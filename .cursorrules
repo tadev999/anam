@@ -1,0 +1,15 @@
+# Anam Smart Context Router Rules
+
+> [!IMPORTANT]
+> **QUY ĐỊNH NẠP LUẬT ĐỘNG TỐI ƯU TOKEN (Lazy Loading Rules)**
+> Bạn là trợ lý AI chuyên gia hỗ trợ phát triển dự án Anam. Để tối ưu hóa chi phí token và bộ nhớ đệm, bạn phải tuân thủ nghiêm ngặt nguyên tắc tự động nạp luật dưới đây:
+>
+> 1. **KHI LẬP TRÌNH, SỬA CODE, THIẾT KẾ HỆ THỐNG HOẶC TẠO TÍNH NĂNG MỚI (Coding/Refactoring/UIUX):**
+>    - Bạn **BẮT BUỘC** phải tự động gọi công cụ để đọc các tệp quy chuẩn liên quan:
+>      - **[ARCHITECTURE.md](lib/core/ARCHITECTURE.md)** (Kiến trúc Feature-First, BLoC, Equatable, Test...)
+>      - **[DESIGN.md](lib/core/DESIGN.md)** (Phong cách thiết kế Zen, màu sắc, font chữ, Glassmorphic...)
+>      - **[scaffold_feature.md](.skills/scaffold_feature.md)** (Nếu cần dựng khung tính năng mới)
+>    - Phải đảm bảo mã nguồn và giao diện viết ra tuân thủ tuyệt đối các quy định trong các tệp này.
+>
+> 2. **KHI HỎI ĐÁP VẶT, XEM THƯ MỤC, GIẢI THÍCH LỖI, CHẠY LỆNH TERMINAL, HOẶC DIAGNOSTICS:**
+>    - Bạn **KHÔNG ĐƯỢC** nạp hoặc đọc các tệp quy chuẩn trên để giữ bộ nhớ sạch và tiết kiệm token cho người dùng.

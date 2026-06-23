@@ -8,10 +8,10 @@ import 'core/repositories/database_repository.dart';
 import 'features/auth/bloc/auth_bloc.dart';
 import 'features/auth/presentation/screens/auth_view.dart';
 import 'features/home/presentation/screens/home_view.dart';
-import 'features/daily_ritual/bloc/ritual_bloc.dart';
-import 'features/confessional/bloc/confessional_bloc.dart';
-import 'features/tribe/bloc/tribe_bloc.dart';
-import 'features/monastery/bloc/monastery_bloc.dart';
+import 'features/daily_anchor/bloc/anchor_bloc.dart';
+import 'features/release_space/bloc/release_bloc.dart';
+import 'features/hearth/bloc/hearth_bloc.dart';
+import 'features/silence/bloc/silence_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -55,23 +55,23 @@ void main() async {
               authRepository: RepositoryProvider.of<BaseAuthRepository>(context),
             )..add(AppStarted()),
           ),
-          BlocProvider<RitualBloc>(
-            create: (context) => RitualBloc(
+          BlocProvider<AnchorBloc>(
+            create: (context) => AnchorBloc(
               databaseRepository: RepositoryProvider.of<BaseDatabaseRepository>(context),
             ),
           ),
-          BlocProvider<ConfessionalBloc>(
-            create: (context) => ConfessionalBloc(
+          BlocProvider<ReleaseBloc>(
+            create: (context) => ReleaseBloc(
               databaseRepository: RepositoryProvider.of<BaseDatabaseRepository>(context),
             ),
           ),
-          BlocProvider<TribeBloc>(
-            create: (context) => TribeBloc(
+          BlocProvider<HearthBloc>(
+            create: (context) => HearthBloc(
               databaseRepository: RepositoryProvider.of<BaseDatabaseRepository>(context),
             ),
           ),
-          BlocProvider<MonasteryBloc>(
-            create: (context) => MonasteryBloc(),
+          BlocProvider<SilenceBloc>(
+            create: (context) => SilenceBloc(),
           ),
         ],
         child: const AnamApp(),

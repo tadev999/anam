@@ -5,10 +5,10 @@ import 'package:anam/main.dart';
 import 'package:anam/core/repositories/auth_repository.dart';
 import 'package:anam/core/repositories/database_repository.dart';
 import 'package:anam/features/auth/bloc/auth_bloc.dart';
-import 'package:anam/features/daily_ritual/bloc/ritual_bloc.dart';
-import 'package:anam/features/confessional/bloc/confessional_bloc.dart';
-import 'package:anam/features/tribe/bloc/tribe_bloc.dart';
-import 'package:anam/features/monastery/bloc/monastery_bloc.dart';
+import 'package:anam/features/daily_anchor/bloc/anchor_bloc.dart';
+import 'package:anam/features/release_space/bloc/release_bloc.dart';
+import 'package:anam/features/hearth/bloc/hearth_bloc.dart';
+import 'package:anam/features/silence/bloc/silence_bloc.dart';
 
 void main() {
   testWidgets('AnamApp Smoke Test', (WidgetTester tester) async {
@@ -32,17 +32,17 @@ void main() {
             BlocProvider<AuthBloc>(
               create: (context) => AuthBloc(authRepository: authRepository)..add(AppStarted()),
             ),
-            BlocProvider<RitualBloc>(
-              create: (context) => RitualBloc(databaseRepository: databaseRepository),
+            BlocProvider<AnchorBloc>(
+              create: (context) => AnchorBloc(databaseRepository: databaseRepository),
             ),
-            BlocProvider<ConfessionalBloc>(
-              create: (context) => ConfessionalBloc(databaseRepository: databaseRepository),
+            BlocProvider<ReleaseBloc>(
+              create: (context) => ReleaseBloc(databaseRepository: databaseRepository),
             ),
-            BlocProvider<TribeBloc>(
-              create: (context) => TribeBloc(databaseRepository: databaseRepository),
+            BlocProvider<HearthBloc>(
+              create: (context) => HearthBloc(databaseRepository: databaseRepository),
             ),
-            BlocProvider<MonasteryBloc>(
-              create: (context) => MonasteryBloc(),
+            BlocProvider<SilenceBloc>(
+              create: (context) => SilenceBloc(),
             ),
           ],
           child: const AnamApp(),

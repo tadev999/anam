@@ -2,24 +2,28 @@ import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../features/confessional/data/models/confession_model.dart';
-import '../../features/daily_ritual/data/models/ritual_model.dart';
+import '../../features/release_space/data/models/release_model.dart';
+import '../../features/daily_anchor/data/models/anchor_model.dart';
 import '../../features/auth/data/models/user_model.dart';
 
 abstract class BaseDatabaseRepository {
+  String? currentMindState;
+  
   Future<void> init();
-  Future<List<ConfessionModel>> fetchConfessions();
-  Future<ConfessionModel> addConfession(String content);
-  Future<ConfessionModel?> sendVirtualHug(String confessionId, String senderUid);
-  Future<RitualModel?> fetchTodayRitual(String uid, String date);
-  Future<RitualModel> completeTodayRitual(String uid, String date, String affirmation, String microOfferingId, String intention);
+  Future<List<ReleaseModel>> fetchReleases();
+  Future<ReleaseModel> addRelease(String content);
+  Future<ReleaseModel?> sendVirtualHug(String releaseId, String senderUid);
+  Future<AnchorModel?> fetchTodayAnchor(String uid, String date);
+  Future<AnchorModel> completeTodayAnchor(String uid, String date, String affirmation, String microOfferingId, String intention, {String? emotionCheckIn});
   Future<UserModel> fetchSpiritualProfile(String uid);
   Future<void> updateSpiritualAvatar(String uid, String symbol);
+  Future<void> saveReflection(String prompt, String content);
+  Future<List<Map<String, dynamic>>> fetchReflections();
 }
 
 // TRIỂN KHAI MOCK DATABASE REPOSITORY (Lưu SharedPreferences offline)
 class MockDatabaseRepository extends BaseDatabaseRepository {
-  List<ConfessionModel> _confessions = [];
+  List<ReleaseModel> _releases = [];
   late SharedPreferences _prefs;
 
   @override
@@ -28,25 +32,25 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
   }
 
   @override
-  Future<List<ConfessionModel>> fetchConfessions() async {
-    final rawList = _prefs.getStringList('mock_confessions') ?? [];
+  Future<List<ReleaseModel>> fetchReleases() async {
+    final rawList = _prefs.getStringList('mock_releases') ?? [];
     if (rawList.isEmpty) {
-      _confessions = [
-        ConfessionModel(
+      _releases = [
+        ReleaseModel(
           id: 'c1',
           content: "Tôi thấy áp lực kinh khủng từ kỳ vọng của bố mẹ. Nhiều lúc chỉ muốn biến mất...",
           timestamp: DateTime.now().subtract(const Duration(hours: 5)),
           hugCount: 12,
           supportedUserUids: const ['user_x'],
         ),
-        ConfessionModel(
+        ReleaseModel(
           id: 'c2',
           content: "Đã 3 tháng thất nghiệp rồi. Cảm thấy bản thân thật vô dụng, không bằng bạn bè cùng trang lứa.",
           timestamp: DateTime.now().subtract(const Duration(hours: 12)),
           hugCount: 24,
           supportedUserUids: const [],
         ),
-        ConfessionModel(
+        ReleaseModel(
           id: 'c3',
           content: "Hôm nay làm vỡ cái cốc của đồng nghiệp nhưng không dám nhận. Thấy tội lỗi và hèn nhát quá.",
           timestamp: DateTime.now().subtract(const Duration(days: 1)),
@@ -54,11 +58,11 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
           supportedUserUids: const [],
         ),
       ];
-      await _saveConfessionsToPrefs();
+      await _saveReleasesToPrefs();
     } else {
-      _confessions = rawList.map((item) {
+      _releases = rawList.map((item) {
         final decoded = jsonDecode(item) as Map<String, dynamic>;
-        return ConfessionModel(
+        return ReleaseModel(
           id: decoded['id'],
           content: decoded['content'],
           timestamp: DateTime.parse(decoded['timestamp']),
@@ -67,13 +71,13 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
           isBurned: decoded['isBurned'] ?? false,
         );
       }).toList();
-      _confessions.sort((a, b) => b.timestamp.compareTo(a.timestamp));
+      _releases.sort((a, b) => b.timestamp.compareTo(a.timestamp));
     }
-    return _confessions;
+    return _releases;
   }
 
-  Future<void> _saveConfessionsToPrefs() async {
-    final listToSave = _confessions.map((c) => jsonEncode({
+  Future<void> _saveReleasesToPrefs() async {
+    final listToSave = _releases.map((c) => jsonEncode({
       'id': c.id,
       'content': c.content,
       'timestamp': c.timestamp.toIso8601String(),
@@ -81,70 +85,70 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
       'supportedUserUids': c.supportedUserUids,
       'isBurned': c.isBurned,
     })).toList();
-    await _prefs.setStringList('mock_confessions', listToSave);
+    await _prefs.setStringList('mock_releases', listToSave);
   }
 
   @override
-  Future<ConfessionModel> addConfession(String content) async {
-    final newConf = ConfessionModel(
+  Future<ReleaseModel> addRelease(String content) async {
+    final newRelease = ReleaseModel(
       id: 'c_${DateTime.now().millisecondsSinceEpoch}',
       content: content,
       timestamp: DateTime.now(),
       hugCount: 0,
       supportedUserUids: const [],
     );
-    _confessions.insert(0, newConf);
-    await _saveConfessionsToPrefs();
-    return newConf;
+    _releases.insert(0, newRelease);
+    await _saveReleasesToPrefs();
+    return newRelease;
   }
 
   @override
-  Future<ConfessionModel?> sendVirtualHug(String confessionId, String senderUid) async {
-    // Nạp confessions trước nếu rỗng
-    if (_confessions.isEmpty) {
-      await fetchConfessions();
+  Future<ReleaseModel?> sendVirtualHug(String releaseId, String senderUid) async {
+    if (_releases.isEmpty) {
+      await fetchReleases();
     }
-    final index = _confessions.indexWhere((c) => c.id == confessionId);
+    final index = _releases.indexWhere((c) => c.id == releaseId);
     if (index != -1) {
-      final confession = _confessions[index];
-      if (!confession.supportedUserUids.contains(senderUid)) {
-        final updated = ConfessionModel(
-          id: confession.id,
-          content: confession.content,
-          timestamp: confession.timestamp,
-          hugCount: confession.hugCount + 1,
-          supportedUserUids: [...confession.supportedUserUids, senderUid],
+      final release = _releases[index];
+      if (!release.supportedUserUids.contains(senderUid)) {
+        final updated = ReleaseModel(
+          id: release.id,
+          content: release.content,
+          timestamp: release.timestamp,
+          hugCount: release.hugCount + 1,
+          supportedUserUids: [...release.supportedUserUids, senderUid],
         );
-        _confessions[index] = updated;
-        await _saveConfessionsToPrefs();
+        _releases[index] = updated;
+        await _saveReleasesToPrefs();
         return updated;
       }
-      return confession;
+      return release;
     }
     return null;
   }
 
   @override
-  Future<RitualModel?> fetchTodayRitual(String uid, String date) async {
-    final key = 'ritual_${uid}_$date';
+  Future<AnchorModel?> fetchTodayAnchor(String uid, String date) async {
+    final key = 'anchor_${uid}_$date';
     final savedData = _prefs.getString(key);
     if (savedData != null) {
       final decoded = jsonDecode(savedData);
-      return RitualModel.fromMap(decoded, key);
+      return AnchorModel.fromMap(decoded, key);
     }
     return null;
   }
 
   @override
-  Future<RitualModel> completeTodayRitual(
+  Future<AnchorModel> completeTodayAnchor(
     String uid,
     String date,
     String affirmation,
     String microOfferingId,
-    String intention,
-  ) async {
-    final key = 'ritual_${uid}_$date';
-    final ritual = RitualModel(
+    String intention, {
+    String? emotionCheckIn,
+  }) async {
+    final key = 'anchor_${uid}_$date';
+    final anchor = AnchorModel(
       id: key,
       uid: uid,
       date: date,
@@ -152,9 +156,10 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
       microOfferingId: microOfferingId,
       intention: intention,
       completed: true,
+      emotionCheckIn: emotionCheckIn,
     );
-    await _prefs.setString(key, jsonEncode(ritual.toMap()));
-    return ritual;
+    await _prefs.setString(key, jsonEncode(anchor.toMap()));
+    return anchor;
   }
 
   @override
@@ -187,56 +192,79 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
       await _prefs.setString(key, jsonEncode(updated.toMap()));
     }
   }
+
+  @override
+  Future<void> saveReflection(String prompt, String content) async {
+    final list = _prefs.getStringList('local_reflections') ?? [];
+    final item = jsonEncode({
+      'prompt': prompt,
+      'content': content,
+      'timestamp': DateTime.now().toIso8601String(),
+    });
+    list.add(item);
+    await _prefs.setStringList('local_reflections', list);
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchReflections() async {
+    final rawList = _prefs.getStringList('local_reflections') ?? [];
+    return rawList.map((item) {
+      return jsonDecode(item) as Map<String, dynamic>;
+    }).toList().reversed.toList();
+  }
 }
 
 // TRIỂN KHAI FIRESTORE DATABASE REPOSITORY THẬT
 class FirebaseDatabaseRepository extends BaseDatabaseRepository {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  late SharedPreferences _prefs;
 
   @override
-  Future<void> init() async {}
+  Future<void> init() async {
+    _prefs = await SharedPreferences.getInstance();
+  }
 
   @override
-  Future<List<ConfessionModel>> fetchConfessions() async {
+  Future<List<ReleaseModel>> fetchReleases() async {
     try {
       final snapshot = await _firestore
-          .collection('confessions')
+          .collection('releases')
           .orderBy('timestamp', descending: true)
           .limit(30)
           .get();
       return snapshot.docs
-          .map((doc) => ConfessionModel.fromMap(doc.data(), doc.id))
+          .map((doc) => ReleaseModel.fromMap(doc.data(), doc.id))
           .toList();
     } catch (e) {
-      debugPrint("Lỗi fetch confessions Repository: $e");
+      debugPrint("Lỗi fetch releases Repository: $e");
       rethrow;
     }
   }
 
   @override
-  Future<ConfessionModel> addConfession(String content) async {
+  Future<ReleaseModel> addRelease(String content) async {
     try {
-      final ref = _firestore.collection('confessions').doc();
-      final newConf = ConfessionModel(
+      final ref = _firestore.collection('releases').doc();
+      final newRelease = ReleaseModel(
         id: ref.id,
         content: content,
         timestamp: DateTime.now(),
         hugCount: 0,
         supportedUserUids: const [],
       );
-      await ref.set(newConf.toMap());
-      return newConf;
+      await ref.set(newRelease.toMap());
+      return newRelease;
     } catch (e) {
-      debugPrint("Lỗi thêm xưng tội Repository: $e");
+      debugPrint("Lỗi thêm giải phóng Repository: $e");
       rethrow;
     }
   }
 
   @override
-  Future<ConfessionModel?> sendVirtualHug(String confessionId, String senderUid) async {
+  Future<ReleaseModel?> sendVirtualHug(String releaseId, String senderUid) async {
     try {
-      final ref = _firestore.collection('confessions').doc(confessionId);
-      ConfessionModel? updatedConfession;
+      final ref = _firestore.collection('releases').doc(releaseId);
+      ReleaseModel? updatedRelease;
       await _firestore.runTransaction((transaction) async {
         final snapshot = await transaction.get(ref);
         if (!snapshot.exists) return;
@@ -249,14 +277,14 @@ class FirebaseDatabaseRepository extends BaseDatabaseRepository {
             'supportedUserUids': supportedUids,
             'hugCount': newHugCount,
           });
-          updatedConfession = ConfessionModel.fromMap({
+          updatedRelease = ReleaseModel.fromMap({
             ...data,
             'supportedUserUids': supportedUids,
             'hugCount': newHugCount,
-          }, confessionId);
+          }, releaseId);
         }
       });
-      return updatedConfession;
+      return updatedRelease;
     } catch (e) {
       debugPrint("Lỗi gửi cái ôm Repository: $e");
       rethrow;
@@ -264,39 +292,40 @@ class FirebaseDatabaseRepository extends BaseDatabaseRepository {
   }
 
   @override
-  Future<RitualModel?> fetchTodayRitual(String uid, String date) async {
+  Future<AnchorModel?> fetchTodayAnchor(String uid, String date) async {
     try {
       final doc = await _firestore
           .collection('users')
           .doc(uid)
-          .collection('rituals')
+          .collection('anchors')
           .doc(date)
           .get();
       if (doc.exists && doc.data() != null) {
-        return RitualModel.fromMap(doc.data()!, doc.id);
+        return AnchorModel.fromMap(doc.data()!, doc.id);
       }
       return null;
     } catch (e) {
-      debugPrint("Lỗi fetch ritual Repository: $e");
+      debugPrint("Lỗi fetch anchor Repository: $e");
       rethrow;
     }
   }
 
   @override
-  Future<RitualModel> completeTodayRitual(
+  Future<AnchorModel> completeTodayAnchor(
     String uid,
     String date,
     String affirmation,
     String microOfferingId,
-    String intention,
-  ) async {
+    String intention, {
+    String? emotionCheckIn,
+  }) async {
     try {
-      final ritualRef = _firestore
+      final anchorRef = _firestore
           .collection('users')
           .doc(uid)
-          .collection('rituals')
+          .collection('anchors')
           .doc(date);
-      final ritual = RitualModel(
+      final anchor = AnchorModel(
         id: date,
         uid: uid,
         date: date,
@@ -304,8 +333,9 @@ class FirebaseDatabaseRepository extends BaseDatabaseRepository {
         microOfferingId: microOfferingId,
         intention: intention,
         completed: true,
+        emotionCheckIn: emotionCheckIn,
       );
-      await ritualRef.set(ritual.toMap());
+      await anchorRef.set(anchor.toMap());
 
       // Cập nhật streak trong user profile
       final userRef = _firestore.collection('users').doc(uid);
@@ -334,9 +364,9 @@ class FirebaseDatabaseRepository extends BaseDatabaseRepository {
           });
         }
       });
-      return ritual;
+      return anchor;
     } catch (e) {
-      debugPrint("Lỗi hoàn thành nghi lễ Repository: $e");
+      debugPrint("Lỗi hoàn thành điểm neo Repository: $e");
       rethrow;
     }
   }
@@ -376,5 +406,25 @@ class FirebaseDatabaseRepository extends BaseDatabaseRepository {
       debugPrint("Lỗi cập nhật avatar Repository: $e");
       rethrow;
     }
+  }
+
+  @override
+  Future<void> saveReflection(String prompt, String content) async {
+    final list = _prefs.getStringList('local_reflections') ?? [];
+    final item = jsonEncode({
+      'prompt': prompt,
+      'content': content,
+      'timestamp': DateTime.now().toIso8601String(),
+    });
+    list.add(item);
+    await _prefs.setStringList('local_reflections', list);
+  }
+
+  @override
+  Future<List<Map<String, dynamic>>> fetchReflections() async {
+    final rawList = _prefs.getStringList('local_reflections') ?? [];
+    return rawList.map((item) {
+      return jsonDecode(item) as Map<String, dynamic>;
+    }).toList().reversed.toList();
   }
 }

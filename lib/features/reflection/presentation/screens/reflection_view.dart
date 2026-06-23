@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -39,20 +40,25 @@ class _ReflectionViewState extends State<ReflectionView> {
   String _selectPromptByMindState() {
     final dbRepo = RepositoryProvider.of<BaseDatabaseRepository>(context, listen: false);
     final mindState = dbRepo.currentMindState;
+    final random = Random();
 
+    List<String> pool;
     if (mindState == 'burnout_state') {
-      return ZenConstants.reflectionPrompts[3];
+      pool = ZenConstants.reflectionPrompts['burnout'] ?? [];
     } else if (mindState == 'overthinking_state') {
-      return ZenConstants.reflectionPrompts[4];
+      pool = ZenConstants.reflectionPrompts['overthinking'] ?? [];
     } else if (mindState == 'lonely_state') {
-      return ZenConstants.reflectionPrompts[5];
+      pool = ZenConstants.reflectionPrompts['lonely'] ?? [];
     } else if (mindState == 'empty_state') {
-      return ZenConstants.reflectionPrompts[6];
+      pool = ZenConstants.reflectionPrompts['empty'] ?? [];
     } else {
-      // Pick random from the core questions
-      final randomIdx = DateTime.now().millisecond % 3;
-      return ZenConstants.reflectionPrompts[randomIdx];
+      pool = ZenConstants.reflectionPrompts['peaceful'] ?? [];
     }
+
+    if (pool.isEmpty) {
+      return "Bạn là ai khi không có ai nhìn?";
+    }
+    return pool[random.nextInt(pool.length)];
   }
 
   void _onTextChanged() {
@@ -111,6 +117,30 @@ class _ReflectionViewState extends State<ReflectionView> {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: const Size.fromHeight(kToolbarHeight),
+        child: AnimatedOpacity(
+          opacity: _isFocusMode ? 0.0 : 1.0,
+          duration: const Duration(milliseconds: 300),
+          child: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.arrow_back_ios, color: ZenTheme.creamWhite, size: 20),
+              onPressed: _isFocusMode ? null : () => Navigator.pop(context),
+            ),
+            title: Text(
+              "Gương Tự Vấn",
+              style: textTheme.titleLarge!.copyWith(
+                fontFamily: 'Lora',
+                fontWeight: FontWeight.normal,
+                color: ZenTheme.creamWhite,
+              ),
+            ),
+            centerTitle: true,
+          ),
+        ),
+      ),
       body: BlocListener<ReflectionBloc, ReflectionState>(
         listener: (context, state) {
           if (state is ReflectionSuccess) {
@@ -121,7 +151,7 @@ class _ReflectionViewState extends State<ReflectionView> {
               SnackBar(
                 content: Text(
                   state.message,
-                  style: GoogleFonts.outfit(color: ZenTheme.creamWhite),
+                  style: GoogleFonts.nunito(color: ZenTheme.creamWhite),
                 ),
                 backgroundColor: ZenTheme.slateDark,
                 duration: const Duration(seconds: 3),
@@ -133,7 +163,7 @@ class _ReflectionViewState extends State<ReflectionView> {
               SnackBar(
                 content: Text(
                   state.error,
-                  style: GoogleFonts.outfit(color: ZenTheme.creamWhite),
+                  style: GoogleFonts.nunito(color: ZenTheme.creamWhite),
                 ),
                 backgroundColor: ZenTheme.mistRed.withOpacity(0.8),
               ),
@@ -167,38 +197,13 @@ class _ReflectionViewState extends State<ReflectionView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // Header HUD (Fades out in focus mode)
-                      AnimatedOpacity(
-                        opacity: _isFocusMode ? 0.0 : 1.0,
-                        duration: const Duration(milliseconds: 300),
-                        child: Row(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.arrow_back, color: ZenTheme.creamWhite),
-                              onPressed: _isFocusMode ? null : () => Navigator.pop(context),
-                            ),
-                            const Spacer(),
-                            Text(
-                              "Gương Tự Vấn",
-                              style: textTheme.displaySmall!.copyWith(
-                                fontSize: 14,
-                                color: ZenTheme.sageGreen,
-                                letterSpacing: 1.5,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            const Spacer(),
-                            const SizedBox(width: 48), // Balancing back button spacing
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 24),
+
 
                       // Prompt Question Card
                       Text(
                         "Câu hỏi tự vấn hôm nay",
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.outfit(
+                        style: GoogleFonts.nunito(
                           fontSize: 12,
                           color: ZenTheme.softGray.withOpacity(0.6),
                           letterSpacing: 1.5,
@@ -240,17 +245,17 @@ class _ReflectionViewState extends State<ReflectionView> {
                                 focusNode: _focusNode,
                                 maxLines: null,
                                 cursorColor: ZenTheme.sageGreen,
-                                style: GoogleFonts.outfit(
-                                  fontSize: 16,
+                                style: GoogleFonts.nunito(
+                                  fontSize: 17,
                                   color: ZenTheme.creamWhite.withOpacity(0.9),
-                                  height: 1.6,
+                                  height: 1.65,
                                 ),
                                 decoration: InputDecoration(
-                                  hintText: "Nhập những suy nghĩ chân thật nhất của bạn...\nHãy viết tự do không bộ lọc...",
-                                  hintStyle: GoogleFonts.outfit(
-                                    fontSize: 15,
+                                  hintText: "Nhập những suy nghĩ chân thật nhất...\nViết tự do không bộ lọc...",
+                                  hintStyle: GoogleFonts.nunito(
+                                    fontSize: 16,
                                     color: ZenTheme.softGray.withOpacity(0.4),
-                                    height: 1.6,
+                                    height: 1.65,
                                   ),
                                   border: InputBorder.none,
                                 ),
@@ -273,7 +278,7 @@ class _ReflectionViewState extends State<ReflectionView> {
                                     child: Text(
                                       "Đừng lo lắng về câu từ hay ngữ pháp, cứ để dòng suy nghĩ tuôn chảy tự do...",
                                       textAlign: TextAlign.center,
-                                      style: GoogleFonts.outfit(
+                                      style: GoogleFonts.nunito(
                                         color: ZenTheme.softGold,
                                         fontSize: 12,
                                         fontStyle: FontStyle.italic,
@@ -305,41 +310,38 @@ class _ReflectionViewState extends State<ReflectionView> {
                                 child: Text(
                                   "Cần nhập thêm ${50 - _controller.text.trim().length} ký tự để hoàn tất tự vấn.",
                                   textAlign: TextAlign.center,
-                                  style: GoogleFonts.outfit(
+                                  style: GoogleFonts.nunito(
                                     color: ZenTheme.softGold,
                                     fontSize: 12,
                                   ),
                                 ),
                               ),
 
-                            // Dual button options
-                            Row(
+                            // Dual button options stacked vertically to prevent right overflow
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
-                                Expanded(
-                                  child: OutlinedButton(
-                                    onPressed: _isFocusMode || _isDissolving ? null : _handleVoidRelease,
-                                    style: OutlinedButton.styleFrom(
-                                      foregroundColor: ZenTheme.mistRed,
-                                      side: const BorderSide(color: ZenTheme.mistRed, width: 1.0),
-                                      padding: const EdgeInsets.symmetric(vertical: 16),
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(28),
-                                      ),
-                                    ),
-                                    child: Text(
-                                      "Gửi vào hư vô",
-                                      style: GoogleFonts.outfit(
-                                        fontSize: 15,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                ZenButton(
+                                  text: "Cất vào góc riêng",
+                                  onPressed: _isFocusMode || _isDissolving ? null : _handleSaveLocal,
+                                ),
+                                const SizedBox(height: 12),
+                                OutlinedButton(
+                                  onPressed: _isFocusMode || _isDissolving ? null : _handleVoidRelease,
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: ZenTheme.mistRed,
+                                    side: const BorderSide(color: ZenTheme.mistRed, width: 1.0),
+                                    padding: const EdgeInsets.symmetric(vertical: 16),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(28),
                                     ),
                                   ),
-                                ),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: ZenButton(
-                                    text: "Cất vào góc riêng",
-                                    onPressed: _isFocusMode || _isDissolving ? null : _handleSaveLocal,
+                                  child: Text(
+                                    "Gửi vào hư vô",
+                                    style: GoogleFonts.nunito(
+                                      fontSize: 15,
+                                      fontWeight: FontWeight.bold,
+                                    ),
                                   ),
                                 ),
                               ],
@@ -364,7 +366,7 @@ class _ReflectionViewState extends State<ReflectionView> {
         SnackBar(
           content: Text(
             "Chiêm nghiệm tự vấn cần đạt tối thiểu 50 ký tự để gửi vào hư vô.",
-            style: GoogleFonts.outfit(color: ZenTheme.creamWhite),
+            style: GoogleFonts.nunito(color: ZenTheme.creamWhite),
           ),
           backgroundColor: ZenTheme.mistRed.withOpacity(0.8),
         ),
@@ -384,7 +386,7 @@ class _ReflectionViewState extends State<ReflectionView> {
         SnackBar(
           content: Text(
             "Chiêm nghiệm tự vấn cần đạt tối thiểu 50 ký tự để cất vào nhật ký.",
-            style: GoogleFonts.outfit(color: ZenTheme.creamWhite),
+            style: GoogleFonts.nunito(color: ZenTheme.creamWhite),
           ),
           backgroundColor: ZenTheme.mistRed.withOpacity(0.8),
         ),

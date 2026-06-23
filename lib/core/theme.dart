@@ -12,7 +12,7 @@ class ZenTheme {
   
   static const Color softGold = Color(0xffd4af37); // Vàng hổ phách ấm áp
   static const Color creamWhite = Color(0xfff4f1eb); // Trắng kem giấy dó mềm mại
-  static const Color softGray = Color(0xff918983); // Xám xơ linen mộc mạc
+  static const Color softGray = Color(0xffa39b95); // Xám xơ linen sáng hơn để tăng tương phản, hỗ trợ đọc dễ dàng
 
   // Bảng màu Wabi-Sabi sáng tinh tế (Linen & Sand)
   static const Color sandLight = Color(0xfffaf8f5); // Nền card sáng mịn màng
@@ -38,6 +38,7 @@ class ZenTheme {
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        surfaceTintColor: Colors.transparent,
         iconTheme: IconThemeData(color: creamWhite, size: 20),
         centerTitle: true,
       ),
@@ -48,13 +49,13 @@ class ZenTheme {
         error: mistRed,
       ),
       textTheme: TextTheme(
-        displayLarge: GoogleFonts.vollkorn(
+        displayLarge: GoogleFonts.lora(
           fontSize: 34, // Tăng từ 32 lên 34
           fontWeight: FontWeight.bold,
           color: creamWhite,
           letterSpacing: -0.5,
         ),
-        displayMedium: GoogleFonts.vollkorn(
+        displayMedium: GoogleFonts.lora(
           fontSize: 26, // Tăng từ 24 lên 26
           fontWeight: FontWeight.w600,
           color: creamWhite,
@@ -68,12 +69,12 @@ class ZenTheme {
           fontSize: 17, // Tăng từ 16 lên 17
           fontWeight: FontWeight.normal,
           color: creamWhite.withOpacity(0.9),
-          height: 1.5,
+          height: 1.6, // Tăng từ 1.5 để văn bản tiếng Việt dễ đọc, thoáng đạt hơn
         ),
         bodyMedium: GoogleFonts.nunito(
           fontSize: 15, // Tăng từ 14 lên 15
           color: softGray,
-          height: 1.4,
+          height: 1.5, // Tăng từ 1.4 để các dòng chữ không chồng lấn dấu thanh
         ),
         labelLarge: GoogleFonts.nunito(
           fontSize: 15, // Tăng từ 14 lên 15
@@ -104,6 +105,7 @@ class ZenTheme {
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        surfaceTintColor: Colors.transparent,
         iconTheme: IconThemeData(color: charcoalBrown, size: 20),
         centerTitle: true,
       ),
@@ -114,13 +116,13 @@ class ZenTheme {
         error: mistRed,
       ),
       textTheme: TextTheme(
-        displayLarge: GoogleFonts.vollkorn(
+        displayLarge: GoogleFonts.lora(
           fontSize: 34, // Tăng từ 32 lên 34
           fontWeight: FontWeight.bold,
           color: charcoalBrown,
           letterSpacing: -0.5,
         ),
-        displayMedium: GoogleFonts.vollkorn(
+        displayMedium: GoogleFonts.lora(
           fontSize: 26, // Tăng từ 24 lên 26
           fontWeight: FontWeight.w600,
           color: charcoalBrown,
@@ -134,12 +136,12 @@ class ZenTheme {
           fontSize: 17, // Tăng từ 16 lên 17
           fontWeight: FontWeight.normal,
           color: charcoalBrown.withOpacity(0.9),
-          height: 1.5,
+          height: 1.6, // Tăng từ 1.5 để văn bản tiếng Việt dễ đọc, thoáng đạt hơn
         ),
         bodyMedium: GoogleFonts.nunito(
           fontSize: 15, // Tăng từ 14 lên 15
           color: clayGray,
-          height: 1.4,
+          height: 1.5, // Tăng từ 1.4 để các dòng chữ không chồng lấn dấu thanh
         ),
         labelLarge: GoogleFonts.nunito(
           fontSize: 15, // Tăng từ 14 lên 15

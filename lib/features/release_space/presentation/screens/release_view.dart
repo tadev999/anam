@@ -193,10 +193,10 @@ class _ReleaseViewState extends State<ReleaseView> {
                       controller: _controller,
                       maxLines: null,
                       enabled: !isLocked,
-                      style: const TextStyle(color: ZenTheme.creamWhite, height: 1.5, fontSize: 15),
+                      style: GoogleFonts.nunito(color: ZenTheme.creamWhite, height: 1.6, fontSize: 17),
                       decoration: InputDecoration(
-                        hintText: "Hãy thành thật với chính mình. Không ai phán xét bạn ở đây...",
-                        hintStyle: TextStyle(color: ZenTheme.softGray.withOpacity(0.4)),
+                        hintText: "Thành thật với chính mình. Không ai phán xét bạn ở đây...",
+                        hintStyle: GoogleFonts.nunito(color: ZenTheme.softGray.withOpacity(0.4), height: 1.6, fontSize: 17),
                         border: InputBorder.none,
                       ),
                     ),
@@ -215,7 +215,7 @@ class _ReleaseViewState extends State<ReleaseView> {
             onPressed: () {
               if (_controller.text.trim().isEmpty) {
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Hãy viết điều gì đó trước khi gửi vào hư vô.")),
+                  const SnackBar(content: Text("Nhập chia sẻ trước khi gửi vào hư vô.")),
                 );
                 return;
               }
@@ -251,7 +251,7 @@ class _ReleaseViewState extends State<ReleaseView> {
         Text(
           "Trước khi bước tiếp — hãy dừng lại một giây.",
           textAlign: TextAlign.center,
-          style: GoogleFonts.outfit(
+          style: GoogleFonts.nunito(
             fontSize: 14,
             color: ZenTheme.softGray,
             fontStyle: FontStyle.italic,
@@ -370,7 +370,7 @@ class _ReleaseViewState extends State<ReleaseView> {
           child: Text(
             subText,
             textAlign: TextAlign.center,
-            style: GoogleFonts.outfit(
+            style: GoogleFonts.nunito(
               fontSize: 14,
               color: ZenTheme.softGray,
               height: 1.5,
@@ -396,7 +396,7 @@ class _ReleaseViewState extends State<ReleaseView> {
           ),
           child: Text(
             "Lòng bạn đã buông bỏ. Bạn có muốn dành 5 phút tự vấn?",
-            style: GoogleFonts.outfit(
+            style: GoogleFonts.nunito(
               color: ZenTheme.sageGreen,
               decoration: TextDecoration.underline,
               fontSize: 14,
@@ -416,7 +416,7 @@ class _ReleaseViewState extends State<ReleaseView> {
             onPressed: _resetFlow,
             child: Text(
               "Viết thêm một điều khác",
-              style: GoogleFonts.outfit(
+              style: GoogleFonts.nunito(
                 color: ZenTheme.sageGreen,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
@@ -473,7 +473,7 @@ class _ReleaseViewState extends State<ReleaseView> {
                 Expanded(
                   child: Text(
                     "Bạn muốn thử...",
-                    style: GoogleFonts.outfit(
+                    style: GoogleFonts.nunito(
                       fontSize: 12,
                       color: ZenTheme.softGray,
                     ),
@@ -484,7 +484,7 @@ class _ReleaseViewState extends State<ReleaseView> {
             const SizedBox(height: 8),
             Text(
               actionText,
-              style: GoogleFonts.outfit(
+              style: GoogleFonts.nunito(
                 fontSize: 14,
                 color: ZenTheme.creamWhite,
                 fontWeight: FontWeight.w500,
@@ -495,7 +495,7 @@ class _ReleaseViewState extends State<ReleaseView> {
               alignment: Alignment.bottomRight,
               child: Text(
                 "→ Đến đây",
-                style: GoogleFonts.outfit(
+                style: GoogleFonts.nunito(
                   fontSize: 13,
                   color: ZenTheme.sageGreen,
                   fontWeight: FontWeight.bold,
@@ -622,7 +622,7 @@ class _ReflectionChipWidgetState extends State<_ReflectionChipWidget> {
               ],
               Text(
                 chip.label,
-                style: GoogleFonts.outfit(
+                style: GoogleFonts.nunito(
                   fontSize: 13,
                   color: isSelected ? accentColor : ZenTheme.softGray,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,

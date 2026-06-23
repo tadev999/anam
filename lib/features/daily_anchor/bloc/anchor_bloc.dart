@@ -43,6 +43,40 @@ class CompleteTodayAnchorRequested extends AnchorEvent {
   List<Object?> get props => [uid, date, affirmation, microOfferingId, intention, emotionCheckIn];
 }
 
+class FetchYesterdayAnchorRequested extends AnchorEvent {
+  final String uid;
+  final String yesterdayDate;
+  const FetchYesterdayAnchorRequested(this.uid, this.yesterdayDate);
+  @override
+  List<Object?> get props => [uid, yesterdayDate];
+}
+
+class MarkIntentionReviewedRequested extends AnchorEvent {
+  final String uid;
+  final String date;
+  final bool achieved;
+  const MarkIntentionReviewedRequested(this.uid, this.date, this.achieved);
+  @override
+  List<Object?> get props => [uid, date, achieved];
+}
+
+class CompleteEveningReflectionRequested extends AnchorEvent {
+  final String uid;
+  final String date;
+  final String emotion;
+  final String note;
+  final bool intentionAchieved;
+  const CompleteEveningReflectionRequested({
+    required this.uid,
+    required this.date,
+    required this.emotion,
+    required this.note,
+    required this.intentionAchieved,
+  });
+  @override
+  List<Object?> get props => [uid, date, emotion, note, intentionAchieved];
+}
+
 // ==========================================
 // 2. STATES
 // ==========================================
@@ -63,6 +97,13 @@ class AnchorLoadSuccess extends AnchorState {
   List<Object?> get props => [anchor];
 }
 
+class YesterdayAnchorLoaded extends AnchorState {
+  final AnchorModel? anchor;
+  const YesterdayAnchorLoaded(this.anchor);
+  @override
+  List<Object?> get props => [anchor];
+}
+
 class AnchorSubmissionSuccess extends AnchorState {
   final AnchorModel anchor;
   const AnchorSubmissionSuccess(this.anchor);
@@ -77,6 +118,13 @@ class AnchorFailure extends AnchorState {
   List<Object?> get props => [message];
 }
 
+class EveningReflectionSuccess extends AnchorState {
+  final AnchorModel anchor;
+  const EveningReflectionSuccess(this.anchor);
+  @override
+  List<Object?> get props => [anchor];
+}
+
 // ==========================================
 // 3. BLOC IMPLEMENTATION
 // ==========================================
@@ -88,6 +136,9 @@ class AnchorBloc extends Bloc<AnchorEvent, AnchorState> {
         super(AnchorInitial()) {
     on<CheckTodayAnchorRequested>(_onCheckTodayAnchorRequested);
     on<CompleteTodayAnchorRequested>(_onCompleteTodayAnchorRequested);
+    on<FetchYesterdayAnchorRequested>(_onFetchYesterdayAnchorRequested);
+    on<MarkIntentionReviewedRequested>(_onMarkIntentionReviewedRequested);
+    on<CompleteEveningReflectionRequested>(_onCompleteEveningReflectionRequested);
   }
 
   Future<void> _onCheckTodayAnchorRequested(
@@ -118,6 +169,44 @@ class AnchorBloc extends Bloc<AnchorEvent, AnchorState> {
         emotionCheckIn: event.emotionCheckIn,
       );
       emit(AnchorSubmissionSuccess(anchor));
+    } catch (e) {
+      emit(AnchorFailure(e.toString()));
+    }
+  }
+
+  Future<void> _onFetchYesterdayAnchorRequested(
+    FetchYesterdayAnchorRequested event,
+    Emitter<AnchorState> emit,
+  ) async {
+    try {
+      final anchor = await _databaseRepository.fetchYesterdayAnchor(event.uid, event.yesterdayDate);
+      emit(YesterdayAnchorLoaded(anchor));
+    } catch (e) {
+      emit(YesterdayAnchorLoaded(null)); // Không làm gãy flow chính
+    }
+  }
+
+  Future<void> _onMarkIntentionReviewedRequested(
+    MarkIntentionReviewedRequested event,
+    Emitter<AnchorState> emit,
+  ) async {
+    try {
+      await _databaseRepository.markIntentionReviewed(event.uid, event.date, event.achieved);
+    } catch (_) {
+      // Silent fail — không block UX
+    }
+  }
+
+  Future<void> _onCompleteEveningReflectionRequested(
+    CompleteEveningReflectionRequested event,
+    Emitter<AnchorState> emit,
+  ) async {
+    emit(AnchorLoading());
+    try {
+      final anchor = await _databaseRepository.completeEveningReflection(
+        event.uid, event.date, event.emotion, event.note, event.intentionAchieved,
+      );
+      emit(EveningReflectionSuccess(anchor));
     } catch (e) {
       emit(AnchorFailure(e.toString()));
     }

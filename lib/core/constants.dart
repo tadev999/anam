@@ -306,15 +306,118 @@ class ZenConstants {
     "Chúc bạn có một giấc ngủ bình yên đêm nay, để ngày mai lại bắt đầu với một tâm thế nhẹ nhàng, nội sinh."
   ];
 
-  // Danh sách các câu hỏi tự vấn sâu sắc (Reflection Prompts)
-  static const List<String> reflectionPrompts = [
-    "Bạn là ai khi không có ai nhìn?",
-    "Bạn đủ rồi chưa — ngay lúc này, trong trạng thái này?",
-    "Thứ gì đang thực sự nuôi dưỡng bạn — không phải kích thích bạn?",
-    "Đâu là ranh giới giữa việc kiên trì cố gắng và việc gồng gánh quá sức chịu đựng?",
-    "Nếu tách biệt suy nghĩ của bạn ra khỏi sự thật khách quan, điều gì thực sự còn lại?",
-    "Nỗi cô đơn đang cố gắng báo hiệu cho bạn về nhu cầu kết nối nào chưa được đáp ứng?",
-    "Khoảng trống rỗng trong lòng bạn hôm nay đang mở ra cơ hội để gieo trồng hạt mầm mới nào?",
-    "Khoảnh khắc bình an nhỏ bé nhất bạn cảm nhận được ngày hôm nay trông như thế nào?"
-  ];
+  // Danh sách các câu hỏi tự vấn sâu sắc (Reflection Prompts) phân loại theo Trạng thái tâm lý
+  static const Map<String, List<String>> reflectionPrompts = {
+    "burnout": [
+      "Đâu là ranh giới giữa việc kiên trì cố gắng và việc gồng gánh quá sức chịu đựng của bản thân?",
+      "Cơ thể bạn lúc này đang phát đi tín hiệu mệt mỏi ở vùng nào, và nó cần gì nhất từ bạn?",
+      "Nếu được phép dừng lại toàn bộ công việc trong một ngày mà không thấy có lỗi, bạn sẽ chăm sóc mình thế nào?",
+      "Bạn là ai khi năng suất làm việc của bạn tạm thời trở về số không?",
+      "Việc từ chối bớt một kỳ vọng của người khác hôm nay mang lại cảm giác gì cho tâm trí bạn?",
+      "Một hành động nhỏ nhất giúp cơ thể bạn được thả lỏng ngay lúc này là gì?",
+      "Bạn có đang vô tình tự trách mình vì đã cảm thấy mệt mỏi hay kiệt sức không?",
+      "Năng lượng tinh thần của bạn lúc này giống như một ngọn nến sắp tắt hay một bếp lửa chỉ còn tro ấm?",
+      "Nếu xem cơn mệt mỏi này là một thông điệp từ cơ thể, nó đang khuyên bạn nên buông bỏ điều gì?",
+      "Điều gì trong cuộc sống đang vắt kiệt năng lượng của bạn nhiều nhất, và bạn có thể lùi lại một bước khỏi nó không?"
+    ],
+    "overthinking": [
+      "Nếu tách biệt suy nghĩ của bạn ra khỏi thực tại khách quan, điều gì thực sự đang diễn ra trước mắt?",
+      "Kịch bản tồi tệ nhất mà tâm trí đang vẽ ra có thực sự là một mối đe dọa thực tế lúc này không?",
+      "Điều gì sẽ xảy ra nếu bạn cho phép câu hỏi đang trăn trở tạm thời không cần tìm kiếm câu trả lời ngay?",
+      "Tâm trí bạn lúc này giống như một nút thắt dây thừng hay một dòng sông đang cuộn sóng?",
+      "Bạn có đang cố gắng kiểm soát một kết quả mà vốn dĩ nằm ngoài khả năng của mình không?",
+      "Nếu lùi lại một bước để quan sát suy nghĩ của mình như người xem kịch, bạn thấy điều gì đang diễn ra trong đầu?",
+      "Việc phân tích quá nhiều đang giúp bạn giải quyết vấn đề hay chỉ đang kéo dài cảm giác lo âu?",
+      "Một sự thật giản đơn nhất trong hiện tại mà bạn có thể chạm vào lúc này là gì?",
+      "Nỗi lo lắng này bắt nguồn từ việc nuối tiếc quá khứ hay sợ hãi tương lai?",
+      "Bạn có thể chấp nhận sự mơ hồ của ngày mai như một phần tự nhiên của cuộc sống không?"
+    ],
+    "lonely": [
+      "Nỗi cô đơn đang cố gắng báo hiệu cho bạn về nhu cầu kết nối nào chưa được đáp ứng?",
+      "Hôm nay, làm thế nào để bạn tự trở thành một người bạn đồng hành ấm áp, kiên nhẫn nhất của chính mình?",
+      "Có ai đó trong quá khứ hay hiện tại từng khiến bạn cảm thấy được thấu hiểu sâu sắc mà không cần giải thích nhiều?",
+      "Bạn đang cảm thấy cô độc giữa đám đông hay cô đơn khi ở một mình, và sự khác biệt đó là gì?",
+      "Nếu nỗi cô đơn là một người bạn ghé thăm, bạn muốn cùng người bạn đó ngồi im lặng làm gì lúc này?",
+      "Bạn có đang đóng một vai diễn không thuộc về mình chỉ để nhận được sự công nhận từ bên ngoài?",
+      "Một chia sẻ thầm lặng, chân thật nào từ lòng bạn đang mong mỏi được lắng nghe nhất?",
+      "Sự cô đơn này là rào cản ngăn bạn kết nối với thế giới hay là khoảng trống để bạn quay về với chính mình?",
+      "Làm thế nào để bạn tự trao cho mình một cái ôm thấu cảm lúc này mà không cần đợi từ người khác?",
+      "Khi ở một mình, điều gì về bản thân khiến bạn cảm thấy thoải mái và tự do nhất?"
+    ],
+    "empty": [
+      "Khoảng trống rỗng trong lòng bạn hôm nay đang mở ra không gian cho những khả năng mới nào?",
+      "Nếu sự trống rỗng không phải là một vấn đề cần giải quyết, bạn sẽ chung sống với nó ra sao?",
+      "Điều gì rất nhỏ bé xung quanh có thể mang lại cho bạn cảm giác hiện diện vật lý lúc này?",
+      "Cảm giác vô định có đang mang lại cho bạn một sự tự do để chọn bất kỳ ngã rẽ nào không?",
+      "Bạn đang tìm kiếm điều gì để lấp đầy khoảng trống đó, và nó có thực sự đem lại bình an lâu dài?",
+      "Bạn là ai khi không có các mục tiêu thúc đẩy hay các kỳ vọng đè nặng trên vai?",
+      "Cho phép bản thân được tồn tại một cách lặng lẽ mà không cần dán nhãn hay định nghĩa mang lại cảm giác gì?",
+      "Giống như một chiếc tách rỗng chờ nước mới, lòng trống trải của bạn lúc này đang chờ đợi điều gì lành mạnh?",
+      "Một ngày trôi qua mà không đạt được thành tựu nào có làm giảm đi giá trị tự thân vô điều kiện của bạn không?",
+      "Sự trống rỗng này là một vực thẳm đáng sợ hay là một căn phòng sạch sẽ đang đón gió mát?"
+    ],
+    "peaceful": [
+      "Khoảnh khắc bình an nhỏ bé nhất bạn cảm nhận được ngày hôm nay trông như thế nào?",
+      "Khi hơi thở đi vào và đi ra chậm rãi lúc này, bạn nhận thấy cơ thể mình đang cảm thấy thế nào?",
+      "Một vẻ đẹp giản dị nào trong thiên nhiên hoặc không gian sống xung quanh đang hiển hiện trước mắt bạn?",
+      "Sự bình yên bên trong bạn lúc này giống như một mặt hồ phẳng lặng hay một làn gió nhẹ buổi sớm?",
+      "Điều gì trong ngày hôm nay đã khiến bạn cảm thấy biết ơn sự tồn tại của chính mình?",
+      "Khi không còn bận tâm đến phán xét của người khác, bạn muốn dành sự quan tâm của mình cho điều gì?",
+      "Làm thế nào để bạn nuôi dưỡng cảm giác thư thái này lâu hơn trong các hoạt động tiếp theo?",
+      "Mối quan hệ giữa bạn và chính mình lúc này đang ở trạng thái hòa hợp và dịu dàng như thế nào?",
+      "Chấp nhận mọi điều vô thường của cuộc sống mang lại cho bạn sự tự do như thế nào trong hiện tại?",
+      "Sự bình yên thực sự có phải là khi mọi xáo động bên ngoài dừng lại, hay là khi bạn bình thản đón nhận chúng?"
+    ]
+  };
+
+  // -----------------------------------------------------------------------
+  // Mẫu câu nguyện ước (Intention Templates) — gợi ý theo cảm xúc (CBT Scaffolding)
+  // Giúp người dùng vượt qua "Blank Page Anxiety" ở bước viết intention.
+  // -----------------------------------------------------------------------
+  static const Map<String, List<String>> intentionTemplates = {
+    'burnout': [
+      'Hôm nay tôi cho phép mình nghỉ ngơi sau khi hoàn thành ',
+      'Hôm nay tôi sẽ nói không với ',
+      'Hôm nay tôi chỉ cần làm một điều nhỏ là ',
+    ],
+    'overthinking': [
+      'Hôm nay tôi sẽ chỉ tập trung vào 1 việc là ',
+      'Hôm nay tôi sẽ buông bỏ lo lắng về ',
+      'Hôm nay tôi chọn hành động thay vì phân tích: ',
+    ],
+    'lonely': [
+      'Hôm nay tôi sẽ kết nối lại bằng cách ',
+      'Hôm nay tôi muốn tự tặng mình khoảnh khắc ',
+      'Hôm nay tôi sẽ trân trọng bản thân bằng cách ',
+    ],
+    'empty': [
+      'Hôm nay tôi muốn thử một điều nhỏ mới là ',
+      'Hôm nay tôi sẽ chú ý đến vẻ đẹp nhỏ bé xung quanh, ví dụ như ',
+      'Hôm nay tôi chỉ cần tồn tại bình yên và ',
+    ],
+    'peaceful': [
+      'Hôm nay tôi muốn lan tỏa điều tốt bằng cách ',
+      'Hôm nay tôi sẽ trân trọng khoảnh khắc ',
+      'Hôm nay tôi muốn nuôi dưỡng sự bình yên bằng cách ',
+    ],
+    'neutral': [
+      'Hôm nay tôi muốn tập trung vào ',
+      'Hôm nay tôi sẽ hoàn thành ',
+      'Hôm nay tôi muốn dành thời gian cho ',
+    ],
+  };
+
+  // -----------------------------------------------------------------------
+  // Các hành động (Micro-Offerings) được ưu tiên theo trạng thái cảm xúc
+  // Dựa trên Behavioral Activation: năng lượng thấp → hành động thể chất tối thiểu,
+  // năng lượng ổn định → hành động kết nối xã hội & tâm hồn.
+  // -----------------------------------------------------------------------
+  static const Map<String, List<String>> offeringsByEmotion = {
+    'burnout':      ['water', 'breathe', 'stretch'],
+    'overthinking': ['breathe', 'nature_look', 'tidy_desk'],
+    'lonely':       ['gratitude_msg', 'empathy_hug', 'confess_burn'],
+    'empty':        ['water', 'breathe', 'nature_look'],
+    'peaceful':     ['gratitude_msg', 'nature_look', 'empathy_hug'],
+    'neutral':      ['breathe', 'tidy_desk', 'stretch'],
+  };
 }

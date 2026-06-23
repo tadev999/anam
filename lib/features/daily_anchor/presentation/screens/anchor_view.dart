@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants.dart';
 import '../../../../core/theme.dart';
@@ -11,59 +12,9 @@ import '../../../../core/repositories/database_repository.dart';
 import '../../../reflection/bloc/reflection_bloc.dart';
 import '../../../reflection/presentation/screens/reflection_view.dart';
 
-// ---------------------------------------------------------------------------
-// Model dữ liệu cảm xúc — Emotion Check-In
-// ---------------------------------------------------------------------------
-class _EmotionOption {
-  final String id;
-  final String label;
-  final String emoji;
-  final Color accentColor;
-
-  const _EmotionOption({
-    required this.id,
-    required this.label,
-    required this.emoji,
-    required this.accentColor,
-  });
-}
-
-const List<_EmotionOption> _emotionOptions = [
-  _EmotionOption(
-    id: 'burnout',
-    label: 'Kiệt sức',
-    emoji: '🔥',
-    accentColor: ZenTheme.mistRed,
-  ),
-  _EmotionOption(
-    id: 'overthinking',
-    label: 'Đang suy nghĩ nhiều',
-    emoji: '🌀',
-    accentColor: ZenTheme.inkBlue,
-  ),
-  _EmotionOption(
-    id: 'lonely',
-    label: 'Cô đơn',
-    emoji: '🌑',
-    accentColor: ZenTheme.softGray,
-  ),
-  _EmotionOption(
-    id: 'empty',
-    label: 'Trống rỗng',
-    emoji: '🫧',
-    accentColor: ZenTheme.creamWhite,
-  ),
-  _EmotionOption(
-    id: 'peaceful',
-    label: 'Bình yên hôm nay',
-    emoji: '☀️',
-    accentColor: ZenTheme.sageGreen,
-  ),
-];
-
-// ---------------------------------------------------------------------------
-// Màn hình chính
-// ---------------------------------------------------------------------------
+/// Morning Anchor Ritual — Nghi thức buổi sáng
+/// Flow: Nguyện ước → Hành động nhỏ → Gợi ý chiêm nghiệm → Hoàn thành
+/// Không có Emotion Check-In (dành cho buổi tối)
 class AnchorView extends StatefulWidget {
   const AnchorView({super.key});
 
@@ -71,72 +22,58 @@ class AnchorView extends StatefulWidget {
   State<AnchorView> createState() => _AnchorViewState();
 }
 
-class _AnchorViewState extends State<AnchorView> {
-  // step -1: Check-In cảm xúc
-  // step  0: Affirmation (cá nhân hóa)
-  // step  1: Micro-Offering
-  // step  2: Intention
-  // step  3: Hoàn thành
-  int _currentStep = -1;
+class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
+  // step 0: Lời Nguyện Ước (Intention) ← đặt ý định trước
+  // step 1: Hành Động Nhỏ (Micro-Offering)
+  // step 2: Gợi Ý Chiêm Nghiệm (Affirmation)
+  // step 3: Hoàn thành buổi sáng
+  int _currentStep = 0;
 
-  String? _selectedEmotionId;
   late String _selectedAffirmation;
   String? _selectedOfferingId;
   final _intentionController = TextEditingController();
 
+  // Closing ritual animation
+  late final AnimationController _rippleController;
+  late final Animation<double> _rippleScale;
+  late final Animation<double> _rippleOpacity;
+  bool _showRipple = false;
+
   @override
   void initState() {
     super.initState();
-    // Read local cross-feature emotional loop state
-    final dbRepo = RepositoryProvider.of<BaseDatabaseRepository>(context);
-    final mindState = dbRepo.currentMindState;
-    if (mindState != null) {
-      String? emotionId;
-      if (mindState == 'burnout_state') {
-        emotionId = 'burnout';
-      } else if (mindState == 'overthinking_state') {
-        emotionId = 'overthinking';
-      } else if (mindState == 'lonely_state') {
-        emotionId = 'lonely';
-      } else if (mindState == 'peaceful_state') {
-        emotionId = 'peaceful';
-      }
 
-      if (emotionId != null) {
-        _selectedEmotionId = emotionId;
-        _currentStep = 0; // Skip check-in step (-1) and go straight to Affirmation step (0)
-        _selectedAffirmation = _pickRandomAffirmation(emotionId);
-      } else {
-        _selectedAffirmation = _pickRandomAffirmation(null);
-      }
-    } else {
-      _selectedAffirmation = _pickRandomAffirmation(null);
-    }
+    _rippleController = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 700),
+    );
+    _rippleScale = Tween<double>(begin: 0.0, end: 2.5).animate(
+      CurvedAnimation(parent: _rippleController, curve: Curves.easeOut),
+    );
+    _rippleOpacity = Tween<double>(begin: 0.5, end: 0.0).animate(
+      CurvedAnimation(parent: _rippleController, curve: Curves.easeOut),
+    );
+
+    // Affirmation buổi sáng — dùng pool chung (không cần emotion)
+    _selectedAffirmation = _pickRandomAffirmation();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkTodayAnchor();
     });
   }
 
-  // Chọn affirmation ngẫu nhiên từ đúng nhóm cảm xúc
-  String _pickRandomAffirmation(String? emotionId) {
-    final rand = Random();
-    if (emotionId != null &&
-        ZenConstants.emotionalAffirmations.containsKey(emotionId)) {
-      final group = ZenConstants.emotionalAffirmations[emotionId]!;
-      return group[rand.nextInt(group.length)];
-    }
-    // Fallback: random toàn bộ pool (tương thích ngược)
-    return ZenConstants.dailyAffirmations[
-        rand.nextInt(ZenConstants.dailyAffirmations.length)];
+  String _pickRandomAffirmation() {
+    return ZenConstants.dailyAffirmations[Random().nextInt(ZenConstants.dailyAffirmations.length)];
+  }
+
+  void _refreshAffirmation() {
+    setState(() => _selectedAffirmation = _pickRandomAffirmation());
   }
 
   void _checkTodayAnchor() {
     final authBloc = BlocProvider.of<AuthBloc>(context);
     final anchorBloc = BlocProvider.of<AnchorBloc>(context);
-    final uid = (authBloc.state is Authenticated)
-        ? (authBloc.state as Authenticated).user.uid
-        : '';
+    final uid = (authBloc.state is Authenticated) ? (authBloc.state as Authenticated).user.uid : '';
     anchorBloc.add(CheckTodayAnchorRequested(uid, _getTodayString()));
   }
 
@@ -145,55 +82,38 @@ class _AnchorViewState extends State<AnchorView> {
     return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
   }
 
-  void _onEmotionSelected(String emotionId) {
-    setState(() {
-      _selectedEmotionId = emotionId;
-      // Re-generate affirmation setiap kali emosi berubah
-      _selectedAffirmation = _pickRandomAffirmation(emotionId);
-    });
-    // Update cross-feature loop state
-    final dbRepo = RepositoryProvider.of<BaseDatabaseRepository>(context);
-    if (emotionId == 'burnout') {
-      dbRepo.currentMindState = 'burnout_state';
-    } else if (emotionId == 'overthinking') {
-      dbRepo.currentMindState = 'overthinking_state';
-    } else if (emotionId == 'lonely') {
-      dbRepo.currentMindState = 'lonely_state';
-    } else if (emotionId == 'empty') {
-      dbRepo.currentMindState = 'lonely_state';
-    } else if (emotionId == 'peaceful') {
-      dbRepo.currentMindState = 'peaceful_state';
-    }
-  }
-
-  void _finishAnchor() {
+  void _finishMorningAnchor() {
     if (_intentionController.text.trim().isEmpty) return;
+
+    HapticFeedback.mediumImpact();
+    setState(() => _showRipple = true);
+    _rippleController.forward().then((_) {
+      if (mounted) {
+        setState(() => _showRipple = false);
+        _rippleController.reset();
+      }
+    });
 
     final authBloc = BlocProvider.of<AuthBloc>(context);
     final anchorBloc = BlocProvider.of<AnchorBloc>(context);
-    final uid = (authBloc.state is Authenticated)
-        ? (authBloc.state as Authenticated).user.uid
-        : '';
+    final uid = (authBloc.state is Authenticated) ? (authBloc.state as Authenticated).user.uid : '';
 
     anchorBloc.add(CompleteTodayAnchorRequested(
       uid: uid,
       date: _getTodayString(),
       affirmation: _selectedAffirmation,
-      microOfferingId: _selectedOfferingId ?? 'water',
+      microOfferingId: _selectedOfferingId ?? 'breathe',
       intention: _intentionController.text.trim(),
-      emotionCheckIn: _selectedEmotionId,
     ));
   }
 
   @override
   void dispose() {
+    _rippleController.dispose();
     _intentionController.dispose();
     super.dispose();
   }
 
-  // ---------------------------------------------------------------------------
-  // Build
-  // ---------------------------------------------------------------------------
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
@@ -203,20 +123,17 @@ class _AnchorViewState extends State<AnchorView> {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios,
-              color: ZenTheme.creamWhite, size: 20),
+          icon: const Icon(Icons.arrow_back_ios, color: ZenTheme.creamWhite, size: 20),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Điểm Neo Mỗi Ngày',
-          style: textTheme.titleLarge!
-              .copyWith(fontFamily: 'Lora', fontWeight: FontWeight.normal),
+          'Điểm Neo Buổi Sáng',
+          style: textTheme.titleLarge!.copyWith(fontFamily: 'Lora', fontWeight: FontWeight.normal),
         ),
         centerTitle: true,
       ),
       body: Stack(
         children: [
-          // Nền gradient
           Positioned.fill(
             child: Container(
               decoration: const BoxDecoration(
@@ -231,482 +148,229 @@ class _AnchorViewState extends State<AnchorView> {
           SafeArea(
             child: BlocConsumer<AnchorBloc, AnchorState>(
               listener: (context, state) {
-                // Nếu điểm neo hôm nay đã completed → bỏ qua Check-In, hiện Completed
-                if (state is AnchorLoadSuccess &&
-                    state.anchor != null &&
-                    state.anchor!.completed) {
+                // Hôm nay đã hoàn thành morning anchor
+                if (state is AnchorLoadSuccess && state.anchor != null && state.anchor!.morningCompleted) {
                   setState(() {
                     _currentStep = 3;
                     _selectedAffirmation = state.anchor!.affirmationText;
                     _selectedOfferingId = state.anchor!.microOfferingId;
                     _intentionController.text = state.anchor!.intention;
-                    _selectedEmotionId = state.anchor!.emotionCheckIn;
                   });
                 }
-
                 if (state is AnchorSubmissionSuccess) {
                   final authBloc = BlocProvider.of<AuthBloc>(context);
-                  final offering = ZenConstants.microOfferings
-                      .firstWhere((o) => o['id'] == _selectedOfferingId);
-                  final int pointsEarned = offering['points'] as int;
-                  authBloc.add(EmpathyPointsUpdated(pointsEarned));
+                  final offering = ZenConstants.microOfferings.firstWhere((o) => o['id'] == _selectedOfferingId);
+                  authBloc.add(EmpathyPointsUpdated(offering['points'] as int));
                   final currentStreak = (authBloc.state is Authenticated)
-                      ? (authBloc.state as Authenticated).user.streak
-                      : 0;
+                      ? (authBloc.state as Authenticated).user.streak : 0;
                   authBloc.add(StreakUpdated(currentStreak + 1, _getTodayString()));
-                  setState(() {
-                    _currentStep = 3;
-                  });
+                  setState(() => _currentStep = 3);
                 }
-
                 if (state is AnchorFailure) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                        content: Text(state.message),
-                        backgroundColor: ZenTheme.mistRed),
+                    SnackBar(content: Text(state.message), backgroundColor: ZenTheme.mistRed),
                   );
                 }
               },
               builder: (context, state) {
                 final isLoading = state is AnchorLoading;
-
-                if (isLoading && _currentStep == -1) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: ZenTheme.sageGreen),
-                  );
+                if (isLoading && _currentStep == 0) {
+                  return const Center(child: CircularProgressIndicator(color: ZenTheme.sageGreen));
                 }
-
                 return Padding(
                   padding: const EdgeInsets.all(20.0),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      if (_currentStep < 3) _buildProgressIndicator(),
-                      const SizedBox(height: 32),
-                      Expanded(
-                        child: SingleChildScrollView(
-                          child: _buildStepContent(textTheme, isLoading),
-                        ),
-                      ),
+                      if (_currentStep < 3) ...[
+                        _buildProgressIndicator(),
+                        const SizedBox(height: 28),
+                      ],
+                      Expanded(child: SingleChildScrollView(child: _buildStepContent(textTheme, isLoading))),
                       const SizedBox(height: 20),
-                      if (_currentStep < 3) _buildNavigationButtons(isLoading),
+                      if (_currentStep < 3)
+                        _buildNavigationButtons(isLoading)
+                      else
+                        ZenButton(
+                          text: 'Bắt đầu ngày mới',
+                          onPressed: () => Navigator.pop(context),
+                        ),
                     ],
                   ),
                 );
               },
             ),
           ),
+
+          // Closing ritual ripple
+          if (_showRipple)
+            Positioned.fill(
+              child: IgnorePointer(
+                child: AnimatedBuilder(
+                  animation: _rippleController,
+                  builder: (context, _) => Center(
+                    child: Transform.scale(
+                      scale: _rippleScale.value,
+                      child: Container(
+                        width: 200, height: 200,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: ZenTheme.sageGreen.withOpacity(_rippleOpacity.value),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
         ],
       ),
     );
   }
 
   // ---------------------------------------------------------------------------
-  // Progress Indicator — 4 segments (Check-In, Affirmation, Offering, Intention)
+  // Progress bar — 3 bước sáng
   // ---------------------------------------------------------------------------
   Widget _buildProgressIndicator() {
-    final activeIndex = _currentStep + 1; // -1→0, 0→1, 1→2, 2→3
-    return Row(
-      children: List.generate(4, (index) {
-        final active = index <= activeIndex;
-        return Expanded(
-          child: Container(
-            height: 4,
-            margin: EdgeInsets.only(right: index == 3 ? 0 : 8),
-            decoration: BoxDecoration(
-              color: active
-                  ? ZenTheme.sageGreen
-                  : ZenTheme.creamWhite.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(2),
-            ),
-          ),
-        );
-      }),
+    final labels = ['Nguyện ước', 'Hành động', 'Chiêm nghiệm'];
+    return Column(
+      children: [
+        Row(
+          children: List.generate(3, (i) {
+            final active = i <= _currentStep;
+            return Expanded(
+              child: Container(
+                height: 4,
+                margin: EdgeInsets.only(right: i == 2 ? 0 : 8),
+                decoration: BoxDecoration(
+                  color: active ? ZenTheme.sageGreen : ZenTheme.creamWhite.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            );
+          }),
+        ),
+        const SizedBox(height: 6),
+        Row(
+          children: List.generate(3, (i) {
+            final active = i <= _currentStep;
+            return Expanded(
+              child: Text(
+                labels[i],
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 9, letterSpacing: 0.4,
+                  color: active ? ZenTheme.sageGreen.withOpacity(0.9) : ZenTheme.softGray.withOpacity(0.35),
+                  fontWeight: active ? FontWeight.w600 : FontWeight.normal,
+                ),
+              ),
+            );
+          }),
+        ),
+      ],
     );
   }
 
-  // ---------------------------------------------------------------------------
-  // Router các step
-  // ---------------------------------------------------------------------------
   Widget _buildStepContent(TextTheme textTheme, bool isLoading) {
     switch (_currentStep) {
-      case -1:
-        return _buildCheckInStep(textTheme);
-      case 0:
-        return _buildAffirmationStep(textTheme);
-      case 1:
-        return _buildOfferingStep(textTheme, isLoading);
-      case 2:
-        return _buildIntentionStep(textTheme, isLoading);
+      case 0: return _buildIntentionStep(textTheme, isLoading);
+      case 1: return _buildOfferingStep(textTheme, isLoading);
+      case 2: return _buildAffirmationStep(textTheme);
       case 3:
-      default:
-        return _buildCompletedStep(textTheme);
+      default: return _buildCompletedStep(textTheme);
     }
   }
 
   // ---------------------------------------------------------------------------
-  // Step -1: Emotional Check-In
+  // Step 0: Lời Nguyện Ước — Đặt ý định cho ngày
   // ---------------------------------------------------------------------------
-  Widget _buildCheckInStep(TextTheme textTheme) {
+  Widget _buildIntentionStep(TextTheme textTheme, bool isLoading) {
+    final templates = ZenConstants.intentionTemplates['neutral']!;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SizedBox(height: 12),
-
-        // Icon tinh tế
-        const Center(
-          child: Icon(
-            Icons.auto_awesome,
-            color: ZenTheme.softGold,
-            size: 20,
-          ),
-        ),
-        const SizedBox(height: 20),
-
-        // Heading
-        Text(
-          'Hôm nay, bạn đang\nmang theo cảm xúc nào?',
-          textAlign: TextAlign.center,
-          style: textTheme.titleLarge!.copyWith(
-            fontFamily: 'Lora',
-            fontWeight: FontWeight.normal,
-            fontSize: 22,
-            height: 1.4,
-          ),
-        ),
-        const SizedBox(height: 12),
-
-        // Sub-heading
-        Text(
-          'Không có câu trả lời đúng hay sai.\nChỉ cần thành thật với bản thân.',
-          textAlign: TextAlign.center,
-          style: textTheme.bodyMedium!.copyWith(
-            fontStyle: FontStyle.italic,
-            color: ZenTheme.softGray,
-          ),
-        ),
-        const SizedBox(height: 40),
-
-        // Grid cảm xúc
-        _buildEmotionGrid(),
-      ],
-    );
-  }
-
-  Widget _buildEmotionGrid() {
-    final firstFour = _emotionOptions.take(4).toList();
-    final last = _emotionOptions.last;
-
-    return Column(
-      children: [
-        Row(
-          children: [
-            Expanded(child: _buildEmotionCard(firstFour[0])),
-            const SizedBox(width: 12),
-            Expanded(child: _buildEmotionCard(firstFour[1])),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            Expanded(child: _buildEmotionCard(firstFour[2])),
-            const SizedBox(width: 12),
-            Expanded(child: _buildEmotionCard(firstFour[3])),
-          ],
-        ),
-        const SizedBox(height: 12),
-        Center(
-          child: SizedBox(
-            width: MediaQuery.of(context).size.width * 0.55,
-            child: _buildEmotionCard(last),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildEmotionCard(_EmotionOption option) {
-    final isSelected = _selectedEmotionId == option.id;
-    return _PebblePressCard(
-      onTap: () => _onEmotionSelected(option.id),
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        curve: Curves.easeOut,
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? option.accentColor.withOpacity(0.12)
-              : ZenTheme.creamWhite.withOpacity(0.06),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(
-            color: isSelected
-                ? option.accentColor.withOpacity(0.5)
-                : ZenTheme.creamWhite.withOpacity(0.1),
-            width: isSelected ? 1.5 : 1.0,
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            AnimatedDefaultTextStyle(
-              duration: const Duration(milliseconds: 200),
-              style: TextStyle(fontSize: isSelected ? 26 : 22),
-              child: Text(option.emoji),
-            ),
-            const SizedBox(height: 8),
-            if (isSelected) ...[
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.check, color: option.accentColor, size: 12),
-                  const SizedBox(width: 4),
-                  Flexible(
-                    child: Text(
-                      option.label,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: option.accentColor,
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ] else ...[
-              Text(
-                option.label,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: ZenTheme.softGray,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // Step 0: Affirmation (cá nhân hóa theo cảm xúc)
-  // ---------------------------------------------------------------------------
-  Widget _buildAffirmationStep(TextTheme textTheme) {
-    final selectedEmotion = _emotionOptions
-        .where((e) => e.id == _selectedEmotionId)
-        .firstOrNull;
-
-    return Column(
-      children: [
-        const SizedBox(height: 20),
-        Text(
-          'I. Gợi ý chiêm nghiệm',
-          style: textTheme.bodyMedium!
-              .copyWith(color: ZenTheme.sageGreen, letterSpacing: 1.0),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Lời nguyện chánh niệm dành riêng cho bạn hôm nay',
-          textAlign: TextAlign.center,
-          style: textTheme.bodyLarge!.copyWith(color: ZenTheme.softGray),
-        ),
-
-        if (selectedEmotion != null) ...[
-          const SizedBox(height: 10),
-          Text(
-            'Dựa trên cảm xúc của bạn: ${selectedEmotion.emoji} ${selectedEmotion.label}',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              color: selectedEmotion.accentColor.withOpacity(0.8),
-              fontSize: 12,
-              fontStyle: FontStyle.italic,
-            ),
-          ),
-        ],
-
-        const SizedBox(height: 48),
-
-        GlassContainer(
-          opacity: 0.05,
-          radius: 36,
-          padding:
-              const EdgeInsets.symmetric(horizontal: 24, vertical: 48),
-          child: Column(
-            children: [
-              const Icon(Icons.filter_vintage_outlined,
-                  color: ZenTheme.softGold, size: 24),
-              const SizedBox(height: 24),
-              Text(
-                _selectedAffirmation,
-                textAlign: TextAlign.center,
-                style: textTheme.displayLarge!.copyWith(
-                  fontSize: 21,
-                  fontWeight: FontWeight.w400,
-                  height: 1.6,
-                  color: ZenTheme.creamWhite,
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                '— Anam Breath',
-                style: textTheme.bodyMedium!.copyWith(
-                  fontStyle: FontStyle.italic,
-                  color: ZenTheme.softGray.withOpacity(0.7),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  // ---------------------------------------------------------------------------
-  // Step 1: Micro-Offering
-  // ---------------------------------------------------------------------------
-  Widget _buildOfferingStep(TextTheme textTheme, bool isLoading) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Center(
-          child: Text(
-            'II. Hành Động Nhỏ (Micro-Offering)',
-            style: textTheme.bodyMedium!
-                .copyWith(color: ZenTheme.sageGreen, letterSpacing: 1.0),
-          ),
-        ),
         const SizedBox(height: 8),
         Center(
-          child: Text(
-            'Chọn 1 hành động cực kỳ nhỏ để tìm lại động lực sống',
-            textAlign: TextAlign.center,
-            style: textTheme.bodyLarge!.copyWith(color: ZenTheme.softGray),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+            decoration: BoxDecoration(
+              color: ZenTheme.creamWhite.withOpacity(0.05),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: ZenTheme.creamWhite.withOpacity(0.08)),
+            ),
+            child: Text(
+              '☀️  Nghi thức buổi sáng  ·  ~3 phút',
+              style: textTheme.bodyMedium!.copyWith(
+                color: ZenTheme.softGray.withOpacity(0.7), fontSize: 11, letterSpacing: 0.5,
+              ),
+            ),
           ),
         ),
         const SizedBox(height: 24),
-        ListView.builder(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          itemCount: ZenConstants.microOfferings.length,
-          itemBuilder: (context, index) {
-            final offering = ZenConstants.microOfferings[index];
-            final isSelected = _selectedOfferingId == offering['id'];
+        const Center(child: Icon(Icons.brightness_6_outlined, color: ZenTheme.sageGreen, size: 22)),
+        const SizedBox(height: 16),
+        Text(
+          'I. Lời Nguyện Ước',
+          textAlign: TextAlign.center,
+          style: textTheme.bodyMedium!.copyWith(color: ZenTheme.sageGreen, letterSpacing: 1.0),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Một điều duy nhất bạn muốn thực hiện hôm nay',
+          textAlign: TextAlign.center,
+          style: textTheme.bodyLarge!.copyWith(color: ZenTheme.softGray),
+        ),
+        const SizedBox(height: 20),
 
-            return _PebblePressCard(
-              onTap: isLoading
-                  ? null
-                  : () => setState(() =>
-                      _selectedOfferingId = offering['id'] as String),
-              child: GlassContainer(
-                margin: const EdgeInsets.only(bottom: 12),
-                opacity: isSelected ? 0.12 : 0.05,
-                border: Border.all(
-                  color: isSelected
-                      ? ZenTheme.sageGreen
-                      : ZenTheme.creamWhite.withOpacity(0.05),
-                  width: isSelected ? 1.5 : 1.0,
+        // Intention Templates
+        Wrap(
+          spacing: 8, runSpacing: 8,
+          children: templates.map((t) {
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  _intentionController.text = t;
+                  _intentionController.selection = TextSelection.fromPosition(TextPosition(offset: t.length));
+                });
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                decoration: BoxDecoration(
+                  color: ZenTheme.softGold.withOpacity(0.06),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: ZenTheme.softGold.withOpacity(0.2)),
                 ),
                 child: Row(
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Container(
-                      padding: const EdgeInsets.all(8),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: isSelected
-                            ? ZenTheme.sageGreen.withOpacity(0.2)
-                            : Colors.black.withOpacity(0.2),
-                      ),
-                      child: Icon(
-                        isSelected ? Icons.check : Icons.spa_outlined,
-                        color: isSelected
-                            ? ZenTheme.sageGreen
-                            : ZenTheme.softGray,
-                        size: 20,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            offering['title'] as String,
-                            style:
-                                textTheme.titleLarge!.copyWith(fontSize: 15),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            offering['description'] as String,
-                            style:
-                                textTheme.bodyMedium!.copyWith(fontSize: 12),
-                          ),
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          '+${offering['points']} EP',
-                          style: const TextStyle(
-                              color: ZenTheme.softGold,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 13),
-                        ),
-                        Text(
-                          offering['duration'] as String,
-                          style: const TextStyle(
-                              color: ZenTheme.softGray, fontSize: 11),
-                        ),
-                      ],
-                    ),
+                    const Icon(Icons.lightbulb_outline, color: ZenTheme.softGold, size: 12),
+                    const SizedBox(width: 5),
+                    Flexible(child: Text(t, style: TextStyle(color: ZenTheme.softGold.withOpacity(0.9), fontSize: 11))),
                   ],
                 ),
               ),
             );
-          },
+          }).toList(),
         ),
-      ],
-    );
-  }
+        const SizedBox(height: 16),
 
-  // ---------------------------------------------------------------------------
-  // Step 2: Intention
-  // ---------------------------------------------------------------------------
-  Widget _buildIntentionStep(TextTheme textTheme, bool isLoading) {
-    return Column(
-      children: [
-        Text(
-          'III. Lời Nguyện Ước (Intention)',
-          style: textTheme.bodyMedium!
-              .copyWith(color: ZenTheme.sageGreen, letterSpacing: 1.0),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Viết một điều duy nhất bạn muốn hoàn thành hôm nay để thấy ngày trôi qua có ý nghĩa',
-          textAlign: TextAlign.center,
-          style: textTheme.bodyLarge!.copyWith(color: ZenTheme.softGray),
-        ),
-        const SizedBox(height: 40),
         GlassContainer(
           opacity: 0.05,
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const Icon(Icons.edit_note, color: ZenTheme.softGold, size: 28),
-              const SizedBox(height: 16),
+              const Icon(Icons.edit_note, color: ZenTheme.softGold, size: 26),
+              const SizedBox(height: 12),
               TextField(
                 controller: _intentionController,
                 maxLines: 4,
                 enabled: !isLoading,
-                style: const TextStyle(color: ZenTheme.creamWhite),
+                onChanged: (_) => setState(() {}),
+                style: const TextStyle(color: ZenTheme.creamWhite, fontSize: 15),
                 decoration: InputDecoration(
-                  hintText:
-                      "Ví dụ: 'Hôm nay, tôi muốn hoàn thành bài tập về nhà và mỉm cười với mọi người xung quanh.'",
-                  hintStyle: TextStyle(
-                      color: ZenTheme.softGray.withOpacity(0.5), fontSize: 14),
+                  hintText: "Tiếp tục câu trên hoặc viết điều của riêng bạn...",
+                  hintStyle: TextStyle(color: ZenTheme.softGray.withOpacity(0.45), fontSize: 13),
                   border: InputBorder.none,
                 ),
               ),
@@ -718,115 +382,177 @@ class _AnchorViewState extends State<AnchorView> {
   }
 
   // ---------------------------------------------------------------------------
-  // Step 3: Hoàn thành
+  // Step 1: Hành Động Nhỏ (Micro-Offering)
   // ---------------------------------------------------------------------------
-  Widget _buildCompletedStep(TextTheme textTheme) {
-    final selectedEmotion = _emotionOptions
-        .where((e) => e.id == _selectedEmotionId)
-        .firstOrNull;
-
+  Widget _buildOfferingStep(TextTheme textTheme, bool isLoading) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SizedBox(height: 40),
-        Container(
-          width: 90,
-          height: 90,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: ZenTheme.sageGreen.withOpacity(0.08),
-            border: Border.all(color: ZenTheme.sageGreen, width: 1.5),
-          ),
-          child: const Icon(Icons.wb_sunny_outlined,
-              color: ZenTheme.softGold, size: 40),
-        ),
-        const SizedBox(height: 32),
-        Text(
-          'Điểm Neo Đã Ghi Nhận',
-          style: textTheme.displayMedium!
-              .copyWith(fontSize: 22, color: ZenTheme.creamWhite),
-        ),
-        const SizedBox(height: 12),
-        Text(
-          'Cảm ơn bạn đã thực hiện điểm neo hôm nay. Tâm hồn bạn đã được tiếp thêm năng lượng tích cực.',
+        Center(child: Text('II. Hành Động Nhỏ',
+          style: textTheme.bodyMedium!.copyWith(color: ZenTheme.sageGreen, letterSpacing: 1.0))),
+        const SizedBox(height: 8),
+        Center(child: Text('Chọn 1 hành động nhỏ để khởi đầu ngày',
           textAlign: TextAlign.center,
-          style: textTheme.bodyLarge!.copyWith(color: ZenTheme.softGray),
-        ),
-        const SizedBox(height: 40),
-        GlassContainer(
-          opacity: 0.05,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              const Text(
-                'Tóm tắt điểm neo hôm nay:',
-                style: TextStyle(
-                    color: ZenTheme.sageGreen, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
-              if (selectedEmotion != null) ...[
-                _buildSummaryRow(
-                    'Cảm xúc check-in:',
-                    '${selectedEmotion.emoji} ${selectedEmotion.label}'),
-                const Divider(color: Colors.white10),
-              ],
-              _buildSummaryRow('Gợi ý chiêm nghiệm:', _selectedAffirmation),
-              const Divider(color: Colors.white10),
-              _buildSummaryRow(
-                'Hành động nhỏ:',
-                ZenConstants.microOfferings.firstWhere(
-                    (o) => o['id'] == _selectedOfferingId)['title'] as String,
-              ),
-              const Divider(color: Colors.white10),
-              _buildSummaryRow('Nguyện ước:', _intentionController.text),
-            ],
-          ),
-        ),
-        const SizedBox(height: 24),
-        TextButton(
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => BlocProvider<ReflectionBloc>(
-                create: (context) => ReflectionBloc(
-                  databaseRepository: RepositoryProvider.of<BaseDatabaseRepository>(context),
+          style: textTheme.bodyLarge!.copyWith(color: ZenTheme.softGray))),
+        const SizedBox(height: 20),
+        ListView.builder(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: ZenConstants.microOfferings.length,
+          itemBuilder: (context, index) {
+            final offering = ZenConstants.microOfferings[index];
+            final isSelected = _selectedOfferingId == offering['id'];
+            return _PebblePressCard(
+              onTap: isLoading ? null : () => setState(() => _selectedOfferingId = offering['id'] as String),
+              child: GlassContainer(
+                margin: const EdgeInsets.only(bottom: 10),
+                opacity: isSelected ? 0.12 : 0.05,
+                border: Border.all(
+                  color: isSelected ? ZenTheme.sageGreen : ZenTheme.creamWhite.withOpacity(0.05),
+                  width: isSelected ? 1.5 : 1.0,
                 ),
-                child: const ReflectionView(),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isSelected ? ZenTheme.sageGreen.withOpacity(0.2) : Colors.black.withOpacity(0.2),
+                      ),
+                      child: Icon(isSelected ? Icons.check : Icons.spa_outlined,
+                        color: isSelected ? ZenTheme.sageGreen : ZenTheme.softGray, size: 20),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        Text(offering['title'] as String, style: textTheme.titleLarge!.copyWith(fontSize: 14)),
+                        const SizedBox(height: 3),
+                        Text(offering['description'] as String,
+                          style: textTheme.bodyMedium!.copyWith(fontSize: 11)),
+                      ]),
+                    ),
+                    const SizedBox(width: 8),
+                    Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
+                      Text('+${offering['points']} EP',
+                        style: const TextStyle(color: ZenTheme.softGold, fontWeight: FontWeight.bold, fontSize: 12)),
+                      Text(offering['duration'] as String,
+                        style: const TextStyle(color: ZenTheme.softGray, fontSize: 10)),
+                    ]),
+                  ],
+                ),
               ),
-            ),
-          ),
-          child: const Text(
-            "Lòng bạn đã lắng lại. Bạn có muốn dành 5 phút tự vấn?",
-            style: TextStyle(
-              color: ZenTheme.sageGreen,
-              decoration: TextDecoration.underline,
-              fontSize: 14,
-            ),
-          ),
-        ),
-        const SizedBox(height: 24),
-        ZenButton(
-          text: 'Trở về Bếp Lửa',
-          onPressed: () => Navigator.pop(context),
+            );
+          },
         ),
       ],
     );
   }
 
-  Widget _buildSummaryRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(label,
-              style:
-                  const TextStyle(color: ZenTheme.softGold, fontSize: 12)),
-          const SizedBox(height: 2),
-          Text(value,
-              style: const TextStyle(
-                  color: ZenTheme.creamWhite, fontSize: 14)),
-        ],
-      ),
+  // ---------------------------------------------------------------------------
+  // Step 2: Gợi Ý Chiêm Nghiệm (Affirmation)
+  // ---------------------------------------------------------------------------
+  Widget _buildAffirmationStep(TextTheme textTheme) {
+    return Column(
+      children: [
+        const SizedBox(height: 20),
+        Text('III. Gợi Ý Chiêm Nghiệm',
+          style: textTheme.bodyMedium!.copyWith(color: ZenTheme.sageGreen, letterSpacing: 1.0)),
+        const SizedBox(height: 8),
+        Text('Mang theo câu này trong suốt ngày hôm nay',
+          textAlign: TextAlign.center,
+          style: textTheme.bodyLarge!.copyWith(color: ZenTheme.softGray)),
+        const SizedBox(height: 36),
+        Stack(
+          children: [
+            GlassContainer(
+              opacity: 0.05, radius: 36,
+              padding: const EdgeInsets.fromLTRB(24, 48, 24, 48),
+              child: Column(children: [
+                const Icon(Icons.filter_vintage_outlined, color: ZenTheme.softGold, size: 24),
+                const SizedBox(height: 24),
+                Text(
+                  _selectedAffirmation,
+                  textAlign: TextAlign.center,
+                  style: textTheme.displayLarge!.copyWith(
+                    fontSize: 20, fontWeight: FontWeight.w400, height: 1.6, color: ZenTheme.creamWhite,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text('— Anam Breath',
+                  style: textTheme.bodyMedium!.copyWith(
+                    fontStyle: FontStyle.italic, color: ZenTheme.softGray.withOpacity(0.7))),
+              ]),
+            ),
+            Positioned(
+              top: 10, right: 10,
+              child: Tooltip(
+                message: 'Gợi ý câu khác',
+                child: GestureDetector(
+                  onTap: _refreshAffirmation,
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: ZenTheme.creamWhite.withOpacity(0.06),
+                      shape: BoxShape.circle,
+                      border: Border.all(color: ZenTheme.creamWhite.withOpacity(0.1)),
+                    ),
+                    child: const Icon(Icons.refresh_rounded, color: ZenTheme.softGray, size: 16),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Step 3: Hoàn thành buổi sáng
+  // ---------------------------------------------------------------------------
+  Widget _buildCompletedStep(TextTheme textTheme) {
+    return Column(
+      children: [
+        const SizedBox(height: 40),
+        Container(
+          width: 90, height: 90,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: ZenTheme.sageGreen.withOpacity(0.08),
+            border: Border.all(color: ZenTheme.sageGreen, width: 1.5),
+          ),
+          child: const Icon(Icons.brightness_6_outlined, color: ZenTheme.sageGreen, size: 40),
+        ),
+        const SizedBox(height: 32),
+        Text('Điểm Neo Buổi Sáng Hoàn Chỉnh',
+          textAlign: TextAlign.center,
+          style: textTheme.displayMedium!.copyWith(fontSize: 22, color: ZenTheme.creamWhite)),
+        const SizedBox(height: 12),
+        Text('Bạn đã đặt ý định cho ngày hôm nay. Hãy mang theo nguyện ước này và quay lại vào buổi tối để nhìn lại.',
+          textAlign: TextAlign.center,
+          style: textTheme.bodyLarge!.copyWith(color: ZenTheme.softGray, height: 1.5)),
+        const SizedBox(height: 36),
+        GlassContainer(
+          opacity: 0.05,
+          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('Nguyện ước của bạn hôm nay:',
+              style: TextStyle(color: ZenTheme.sageGreen, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            Text('"${_intentionController.text}"',
+              style: const TextStyle(color: ZenTheme.creamWhite, fontStyle: FontStyle.italic, fontSize: 15)),
+            const Divider(color: Colors.white10, height: 24),
+            const Text('Hành động nhỏ đã chọn:',
+              style: TextStyle(color: ZenTheme.softGold, fontSize: 12)),
+            const SizedBox(height: 4),
+            Text(
+              _selectedOfferingId != null
+                ? ZenConstants.microOfferings.firstWhere((o) => o['id'] == _selectedOfferingId)['title'] as String
+                : '',
+              style: const TextStyle(color: ZenTheme.creamWhite, fontSize: 14),
+            ),
+          ]),
+        ),
+      ],
     );
   }
 
@@ -834,49 +560,44 @@ class _AnchorViewState extends State<AnchorView> {
   // Navigation buttons
   // ---------------------------------------------------------------------------
   Widget _buildNavigationButtons(bool isLoading) {
-    final canProceed = _currentStep != -1 || _selectedEmotionId != null;
+    final canProceed = _currentStep != 0 || _intentionController.text.trim().isNotEmpty;
 
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        if (_currentStep > -1)
+        if (_currentStep > 0)
           Expanded(
             child: Padding(
               padding: const EdgeInsets.only(right: 12),
               child: ZenButton(
                 text: 'Quay lại',
                 isSecondary: true,
-                onPressed:
-                    isLoading ? null : () => setState(() => _currentStep--),
+                onPressed: isLoading ? null : () => setState(() => _currentStep--),
               ),
             ),
           )
         else
           const Spacer(),
-
         Expanded(
           child: Opacity(
             opacity: canProceed ? 1.0 : 0.4,
             child: ZenButton(
-              text: _currentStep == 2 ? 'Hoàn thành' : 'Tiếp tục',
+              text: _currentStep == 2 ? 'Hoàn thành buổi sáng' : 'Tiếp tục',
               isLoading: isLoading,
               onPressed: canProceed
-                  ? () {
-                      if (_currentStep == 1 && _selectedOfferingId == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                              content: Text(
-                                  'Hãy chọn một hành động nhỏ để tiếp tục.')),
-                        );
-                        return;
-                      }
-                      if (_currentStep == 2) {
-                        _finishAnchor();
-                      } else {
-                        setState(() => _currentStep++);
-                      }
+                ? () {
+                    if (_currentStep == 1 && _selectedOfferingId == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Hãy chọn một hành động nhỏ để tiếp tục.')),
+                      );
+                      return;
                     }
-                  : null,
+                    if (_currentStep == 2) {
+                      _finishMorningAnchor();
+                    } else {
+                      setState(() => _currentStep++);
+                    }
+                  }
+                : null,
             ),
           ),
         ),
@@ -886,36 +607,26 @@ class _AnchorViewState extends State<AnchorView> {
 }
 
 // ---------------------------------------------------------------------------
-// Pebble Press Card — Micro-animation wrapper (DESIGN.md §5)
+// Pebble Press Card
 // ---------------------------------------------------------------------------
 class _PebblePressCard extends StatefulWidget {
   final Widget child;
   final VoidCallback? onTap;
-
   const _PebblePressCard({required this.child, this.onTap});
-
   @override
   State<_PebblePressCard> createState() => _PebblePressCardState();
 }
 
 class _PebblePressCardState extends State<_PebblePressCard> {
   double _scale = 1.0;
-
   @override
   Widget build(BuildContext context) {
     return GestureDetector(
       onTapDown: (_) => setState(() => _scale = 0.95),
-      onTapUp: (_) {
-        setState(() => _scale = 1.0);
-        widget.onTap?.call();
-      },
+      onTapUp: (_) { setState(() => _scale = 1.0); widget.onTap?.call(); },
       onTapCancel: () => setState(() => _scale = 1.0),
-      child: AnimatedScale(
-        scale: _scale,
-        duration: const Duration(milliseconds: 150),
-        curve: Curves.easeOut,
-        child: widget.child,
-      ),
+      child: AnimatedScale(scale: _scale, duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut, child: widget.child),
     );
   }
 }

@@ -2,13 +2,28 @@ class AnchorModel {
   final String id;
   final String uid;
   final String date; // YYYY-MM-DD
+
+  // --- Morning Anchor fields ---
   final String affirmationText;
   final String microOfferingId;
   final String intention;
-  final bool completed;
-  // Trạng thái cảm xúc được ghi nhận từ bước Check-In.
-  // Nullable để đảm bảo tương thích ngược với các anchor records cũ.
+  // morningCompleted thay thế semantics của 'completed' cũ
+  final bool morningCompleted;
+
+  // --- Evening Reflection fields (mới) ---
+  final bool eveningCompleted;
+  final String? eveningEmotion; // cảm xúc check-in buổi tối
+  final String? eveningNote;    // ghi chú 1 điều học được hôm nay
+
+  // --- Backward compat fields ---
+  // emotionCheckIn: dữ liệu cũ trước khi tách morning/evening
   final String? emotionCheckIn;
+  // intentionReviewed: người dùng đã review lại intention hôm qua
+  // null = chưa được hỏi, true = đã làm, false = chưa làm
+  final bool? intentionReviewed;
+
+  // Getter backward compat — code cũ vẫn dùng được
+  bool get completed => morningCompleted;
 
   AnchorModel({
     required this.id,
@@ -17,8 +32,12 @@ class AnchorModel {
     required this.affirmationText,
     required this.microOfferingId,
     required this.intention,
-    this.completed = false,
+    this.morningCompleted = false,
+    this.eveningCompleted = false,
+    this.eveningEmotion,
+    this.eveningNote,
     this.emotionCheckIn,
+    this.intentionReviewed,
   });
 
   Map<String, dynamic> toMap() {
@@ -29,8 +48,13 @@ class AnchorModel {
       'affirmationText': affirmationText,
       'microOfferingId': microOfferingId,
       'intention': intention,
-      'completed': completed,
+      'morningCompleted': morningCompleted,
+      'completed': morningCompleted, // backward compat cho Firestore records cũ
+      'eveningCompleted': eveningCompleted,
+      'eveningEmotion': eveningEmotion,
+      'eveningNote': eveningNote,
       'emotionCheckIn': emotionCheckIn,
+      'intentionReviewed': intentionReviewed,
     };
   }
 
@@ -42,8 +66,13 @@ class AnchorModel {
       affirmationText: map['affirmationText'] ?? '',
       microOfferingId: map['microOfferingId'] ?? '',
       intention: map['intention'] ?? '',
-      completed: map['completed'] ?? false,
-      emotionCheckIn: map['emotionCheckIn'], // nullable — records cũ trả về null
+      // Đọc morningCompleted, fallback về 'completed' cũ
+      morningCompleted: map['morningCompleted'] ?? map['completed'] ?? false,
+      eveningCompleted: map['eveningCompleted'] ?? false,
+      eveningEmotion: map['eveningEmotion'],
+      eveningNote: map['eveningNote'],
+      emotionCheckIn: map['emotionCheckIn'],
+      intentionReviewed: map['intentionReviewed'],
     );
   }
 }

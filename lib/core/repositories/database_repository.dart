@@ -14,7 +14,14 @@ abstract class BaseDatabaseRepository {
   Future<ReleaseModel> addRelease(String content);
   Future<ReleaseModel?> sendVirtualHug(String releaseId, String senderUid);
   Future<AnchorModel?> fetchTodayAnchor(String uid, String date);
+  Future<AnchorModel?> fetchYesterdayAnchor(String uid, String yesterdayDate);
+  // Morning ritual: Intention → Offering → Affirmation
+  Future<AnchorModel> completeMorningAnchor(String uid, String date, String affirmation, String microOfferingId, String intention);
+  // Alias backward compat cho code cũ
   Future<AnchorModel> completeTodayAnchor(String uid, String date, String affirmation, String microOfferingId, String intention, {String? emotionCheckIn});
+  // Evening ritual: Check-in → Review intention → Journal note
+  Future<AnchorModel> completeEveningReflection(String uid, String date, String emotion, String note, bool intentionAchieved);
+  Future<void> markIntentionReviewed(String uid, String date, bool achieved);
   Future<UserModel> fetchSpiritualProfile(String uid);
   Future<void> updateSpiritualAvatar(String uid, String symbol);
   Future<void> saveReflection(String prompt, String content);
@@ -139,6 +146,65 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
   }
 
   @override
+  Future<AnchorModel?> fetchYesterdayAnchor(String uid, String yesterdayDate) async {
+    final key = 'anchor_${uid}_$yesterdayDate';
+    final savedData = _prefs.getString(key);
+    if (savedData != null) {
+      final decoded = jsonDecode(savedData);
+      return AnchorModel.fromMap(decoded, key);
+    }
+    return null;
+  }
+
+  @override
+  Future<void> markIntentionReviewed(String uid, String date, bool achieved) async {
+    final key = 'anchor_${uid}_$date';
+    final savedData = _prefs.getString(key);
+    if (savedData != null) {
+      final decoded = jsonDecode(savedData) as Map<String, dynamic>;
+      decoded['intentionReviewed'] = achieved;
+      await _prefs.setString(key, jsonEncode(decoded));
+    }
+  }
+
+  @override
+  Future<AnchorModel> completeMorningAnchor(
+    String uid,
+    String date,
+    String affirmation,
+    String microOfferingId,
+    String intention,
+  ) async {
+    final key = 'anchor_\${uid}_\$date';
+    final anchor = AnchorModel(
+      id: key, uid: uid, date: date,
+      affirmationText: affirmation,
+      microOfferingId: microOfferingId,
+      intention: intention,
+      morningCompleted: true,
+    );
+    await _prefs.setString(key, jsonEncode(anchor.toMap()));
+    return anchor;
+  }
+
+  @override
+  Future<AnchorModel> completeEveningReflection(
+    String uid, String date, String emotion, String note, bool intentionAchieved,
+  ) async {
+    final key = 'anchor_\${uid}_\$date';
+    final savedData = _prefs.getString(key);
+    final Map<String, dynamic> base = savedData != null
+        ? jsonDecode(savedData) as Map<String, dynamic>
+        : {'uid': uid, 'date': date, 'affirmationText': '', 'microOfferingId': '', 'intention': ''};
+    base['eveningCompleted'] = true;
+    base['eveningEmotion'] = emotion;
+    base['eveningNote'] = note;
+    base['intentionReviewed'] = intentionAchieved;
+    await _prefs.setString(key, jsonEncode(base));
+    return AnchorModel.fromMap(base, key);
+  }
+
+  @override
   Future<AnchorModel> completeTodayAnchor(
     String uid,
     String date,
@@ -155,7 +221,7 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
       affirmationText: affirmation,
       microOfferingId: microOfferingId,
       intention: intention,
-      completed: true,
+      morningCompleted: true,
       emotionCheckIn: emotionCheckIn,
     );
     await _prefs.setString(key, jsonEncode(anchor.toMap()));
@@ -311,6 +377,80 @@ class FirebaseDatabaseRepository extends BaseDatabaseRepository {
   }
 
   @override
+  Future<AnchorModel?> fetchYesterdayAnchor(String uid, String yesterdayDate) async {
+    try {
+      final doc = await _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('anchors')
+          .doc(yesterdayDate)
+          .get();
+      if (doc.exists && doc.data() != null) {
+        return AnchorModel.fromMap(doc.data()!, doc.id);
+      }
+      return null;
+    } catch (e) {
+      debugPrint("Loi fetch yesterday anchor: $e");
+      return null;
+    }
+  }
+
+  @override
+  Future<void> markIntentionReviewed(String uid, String date, bool achieved) async {
+    try {
+      await _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('anchors')
+          .doc(date)
+          .update({'intentionReviewed': achieved});
+    } catch (e) {
+      debugPrint("Loi cap nhat intentionReviewed: $e");
+    }
+  }
+
+  @override
+  Future<AnchorModel> completeMorningAnchor(
+    String uid, String date, String affirmation, String microOfferingId, String intention,
+  ) async {
+    try {
+      final ref = _firestore.collection('users').doc(uid).collection('anchors').doc(date);
+      final anchor = AnchorModel(
+        id: date, uid: uid, date: date,
+        affirmationText: affirmation,
+        microOfferingId: microOfferingId,
+        intention: intention,
+        morningCompleted: true,
+      );
+      await ref.set(anchor.toMap(), SetOptions(merge: true));
+      return anchor;
+    } catch (e) {
+      debugPrint("Loi completeMorningAnchor: \$e");
+      rethrow;
+    }
+  }
+
+  @override
+  Future<AnchorModel> completeEveningReflection(
+    String uid, String date, String emotion, String note, bool intentionAchieved,
+  ) async {
+    try {
+      final ref = _firestore.collection('users').doc(uid).collection('anchors').doc(date);
+      await ref.set({
+        'eveningCompleted': true,
+        'eveningEmotion': emotion,
+        'eveningNote': note,
+        'intentionReviewed': intentionAchieved,
+      }, SetOptions(merge: true));
+      final snap = await ref.get();
+      return AnchorModel.fromMap(snap.data()!, date);
+    } catch (e) {
+      debugPrint("Loi completeEveningReflection: \$e");
+      rethrow;
+    }
+  }
+
+  @override
   Future<AnchorModel> completeTodayAnchor(
     String uid,
     String date,
@@ -332,7 +472,7 @@ class FirebaseDatabaseRepository extends BaseDatabaseRepository {
         affirmationText: affirmation,
         microOfferingId: microOfferingId,
         intention: intention,
-        completed: true,
+        morningCompleted: true,
         emotionCheckIn: emotionCheckIn,
       );
       await anchorRef.set(anchor.toMap());

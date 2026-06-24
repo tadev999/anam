@@ -8,8 +8,8 @@ import '../../../../shared/widgets/zen_button.dart';
 import '../../../auth/bloc/auth_bloc.dart';
 import '../../bloc/anchor_bloc.dart';
 import '../../../../core/repositories/database_repository.dart';
-import '../../../reflection/bloc/reflection_bloc.dart';
-import '../../../reflection/presentation/screens/reflection_view.dart';
+import '../../../mind_garden/bloc/mind_garden_bloc.dart';
+import '../../../mind_garden/presentation/screens/mind_garden_screen.dart';
 
 // ---------------------------------------------------------------------------
 // Model cảm xúc buổi tối — reflective (nhìn lại ngày đã qua)
@@ -48,9 +48,9 @@ class EveningReflectionView extends StatefulWidget {
 
 class _EveningReflectionViewState extends State<EveningReflectionView> with TickerProviderStateMixin {
   // step 0: Emotion Check-In ("Ngày hôm nay mang đến cho bạn cảm xúc gì?")
-  // step 1: Nhìn lại Nguyện Ước sáng nay (intentionReview)
+  // step 1: Nhìn lại Ý định sáng nay (intentionReview)
   // step 2: Ghi chú nhanh (1 điều học/cảm nhận được)
-  // step 3: Vòng tròn hoàn chỉnh
+  // step 3: Khép lại ngày hôm nay
   int _currentStep = 0;
 
   String? _selectedEmotionId;
@@ -225,7 +225,7 @@ class _EveningReflectionViewState extends State<EveningReflectionView> with Tick
   // Progress bar — 3 bước tối
   // ---------------------------------------------------------------------------
   Widget _buildProgressIndicator() {
-    final labels = ['Cảm xúc', 'Nguyện ước', 'Ghi chú'];
+    final labels = ['Cảm xúc', 'Ý định ngày mới', 'Ghi chú'];
     return Column(
       children: [
         Row(
@@ -288,7 +288,7 @@ class _EveningReflectionViewState extends State<EveningReflectionView> with Tick
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: ZenTheme.creamWhite.withOpacity(0.08)),
             ),
-            child: Text('🌙  Nghi thức buổi tối  ·  ~3 phút',
+            child: Text('🌙  Nhìn lại cuối ngày  ·  ~3 phút',
               style: textTheme.bodyMedium!.copyWith(
                 color: ZenTheme.softGray.withOpacity(0.7), fontSize: 11, letterSpacing: 0.5)),
           ),
@@ -337,6 +337,7 @@ class _EveningReflectionViewState extends State<EveningReflectionView> with Tick
         if (_selectedEmotionId != null) ...[
           const SizedBox(height: 16),
           _buildEmotionAffirmation(textTheme),
+          _buildEmotionGardenHint(_selectedEmotionId!),
         ],
       ],
     );
@@ -402,17 +403,62 @@ class _EveningReflectionViewState extends State<EveningReflectionView> with Tick
     );
   }
 
+  Widget _buildEmotionGardenHint(String emotionId) {
+    String hint = "";
+    switch (emotionId) {
+      case 'peaceful':
+        hint = "Cảm xúc này sẽ hiển thị dưới dạng biểu tượng ☀️ trong Vườn Tâm Trí.";
+        break;
+      case 'grateful':
+        hint = "Cảm xúc này sẽ hiển thị dưới dạng biểu tượng 🌸 trong Vườn Tâm Trí.";
+        break;
+      case 'burnout':
+        hint = "Cảm xúc này sẽ hiển thị dưới dạng biểu tượng 🔥 trong Vườn Tâm Trí.";
+        break;
+      case 'overthinking':
+        hint = "Cảm xúc này sẽ hiển thị dưới dạng biểu tượng 🌀 trong Vườn Tâm Trí.";
+        break;
+      case 'lonely':
+        hint = "Cảm xúc này sẽ hiển thị dưới dạng biểu tượng 🌑 trong Vườn Tâm Trí.";
+        break;
+      case 'empty':
+        hint = "Cảm xúc này sẽ hiển thị dưới dạng biểu tượng 🫧 trong Vườn Tâm Trí.";
+        break;
+    }
+    if (hint.isEmpty) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 12.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.filter_vintage_outlined, color: ZenTheme.sageGreen, size: 14),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              hint,
+              style: const TextStyle(
+                color: ZenTheme.sageGreen,
+                fontSize: 12,
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   // ---------------------------------------------------------------------------
-  // Step 1: Nhìn lại Nguyện Ước sáng nay
+  // Step 1: Nhìn lại Ý định sáng nay
   // ---------------------------------------------------------------------------
   Widget _buildIntentionReviewStep(TextTheme textTheme) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Center(child: Text('II. Nhìn Lại Nguyện Ước',
+        Center(child: Text('II. Nhìn Lại Ý Định',
           style: textTheme.bodyMedium!.copyWith(color: ZenTheme.inkBlue, letterSpacing: 1.0))),
         const SizedBox(height: 8),
-        Center(child: Text('Sáng nay bạn đã nguyện ước điều gì?',
+        Center(child: Text('Sáng nay ý định của bạn là gì?',
           textAlign: TextAlign.center,
           style: textTheme.bodyLarge!.copyWith(color: ZenTheme.softGray))),
         const SizedBox(height: 32),
@@ -425,7 +471,7 @@ class _EveningReflectionViewState extends State<EveningReflectionView> with Tick
               Row(children: [
                 const Icon(Icons.brightness_6_outlined, color: ZenTheme.sageGreen, size: 14),
                 const SizedBox(width: 6),
-                Text('Nguyện ước của bạn buổi sáng:',
+                Text('Ý định buổi sáng của bạn:',
                   style: TextStyle(color: ZenTheme.sageGreen, fontSize: 12, fontWeight: FontWeight.w600)),
               ]),
               const SizedBox(height: 10),
@@ -468,7 +514,7 @@ class _EveningReflectionViewState extends State<EveningReflectionView> with Tick
               const Icon(Icons.wb_twilight, color: ZenTheme.softGold, size: 28),
               const SizedBox(height: 10),
               Text(
-                'Bạn chưa đặt nguyện ước sáng nay.\nHôm nay chỉ cần nhìn lại cảm xúc đã là đủ.',
+                'Bạn chưa đặt ý định sáng nay.\nHôm nay chỉ cần nhìn lại cảm xúc đã là đủ.',
                 textAlign: TextAlign.center,
                 style: textTheme.bodyLarge!.copyWith(color: ZenTheme.softGray, height: 1.5),
               ),
@@ -517,7 +563,7 @@ class _EveningReflectionViewState extends State<EveningReflectionView> with Tick
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Center(child: Text('III. Ghi Chú Nhanh',
+        Center(child: Text('III. Ghi chú nhanh',
           style: textTheme.bodyMedium!.copyWith(color: ZenTheme.inkBlue, letterSpacing: 1.0))),
         const SizedBox(height: 8),
         Center(child: Text('Một điều bạn học hoặc cảm nhận được hôm nay',
@@ -579,7 +625,7 @@ class _EveningReflectionViewState extends State<EveningReflectionView> with Tick
   }
 
   // ---------------------------------------------------------------------------
-  // Step 3: Vòng tròn hoàn chỉnh
+  // Step 3: Khép lại ngày hôm nay
   // ---------------------------------------------------------------------------
   Widget _buildCompletedStep(TextTheme textTheme) {
     final selectedEmotion = _eveningEmotions.where((e) => e.id == _selectedEmotionId).firstOrNull;
@@ -603,11 +649,11 @@ class _EveningReflectionViewState extends State<EveningReflectionView> with Tick
           ),
         ),
         const SizedBox(height: 32),
-        Text('Vòng Ngày Hoàn Chỉnh', textAlign: TextAlign.center,
+        Text('Khép lại ngày hôm nay', textAlign: TextAlign.center,
           style: textTheme.displayMedium!.copyWith(fontSize: 22, color: ZenTheme.creamWhite)),
         const SizedBox(height: 12),
         Text(
-          'Bạn đã hoàn thành cả nghi thức sáng lẫn tối. Vòng tròn của ngày hôm nay đã được khép lại.',
+          'Tâm trí bạn giờ đây đã sẵn sàng nghỉ ngơi.',
           textAlign: TextAlign.center,
           style: textTheme.bodyLarge!.copyWith(color: ZenTheme.softGray, height: 1.5),
         ),
@@ -635,28 +681,28 @@ class _EveningReflectionViewState extends State<EveningReflectionView> with Tick
           ),
 
         const SizedBox(height: 24),
-        // CTA: Gương Tự Vấn
+        // CTA: Vườn Tâm Trí
         GlassContainer(
           opacity: 0.04,
           child: Column(children: [
-            const Icon(Icons.self_improvement_outlined, color: ZenTheme.sageGreen, size: 24),
+            const Icon(Icons.filter_vintage_outlined, color: ZenTheme.sageGreen, size: 24),
             const SizedBox(height: 10),
             Text(
-              'Lòng bạn đã lắng lại. Đây là khoảnh khắc lý tưởng để tự vấn sâu hơn.',
+              'Lòng bạn đã lắng lại. Hãy ghé thăm Vườn Tâm Trí để nhìn lại hành trình cảm xúc.',
               textAlign: TextAlign.center,
               style: textTheme.bodyMedium!.copyWith(color: ZenTheme.softGray, height: 1.4),
             ),
             const SizedBox(height: 12),
             TextButton(
               onPressed: () => Navigator.push(context, MaterialPageRoute(
-                builder: (_) => BlocProvider<ReflectionBloc>(
-                  create: (ctx) => ReflectionBloc(
+                builder: (_) => BlocProvider<MindGardenBloc>(
+                  create: (ctx) => MindGardenBloc(
                     databaseRepository: RepositoryProvider.of<BaseDatabaseRepository>(ctx),
                   ),
-                  child: const ReflectionView(),
+                  child: const MindGardenScreen(),
                 ),
               )),
-              child: const Text('Vào Gương Tự Vấn →',
+              child: const Text('Vào Vườn Tâm Trí →',
                 style: TextStyle(color: ZenTheme.sageGreen, decoration: TextDecoration.underline, fontSize: 14)),
             ),
           ]),

@@ -17,7 +17,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   // ĐẶT THÀNH true NẾU BẠN MUỐN BẮT BUỘC CHẠY MOCK OFFLINE ĐỂ TEST GIAO DIỆN
-  bool forceMockMode = false;
+  bool forceMockMode = true;
 
   // KHỞI TẠO HỆ THỐNG AN TOÀN (SAFE BOOTSTRAP)
   bool useFirebase = false;

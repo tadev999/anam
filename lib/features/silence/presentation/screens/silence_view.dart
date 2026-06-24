@@ -36,7 +36,7 @@ class _SilenceViewState extends State<SilenceView> {
       'content': 'Tập trung hoàn toàn vào những gì bạn có thể kiểm soát. Suy nghĩ của bạn, hành vi của bạn, mong muốn của bạn. Những gì xảy ra bên ngoài — thời tiết, thái độ của người khác, biến cố xã hội — đều nằm ngoài tầm tay. Hãy chấp nhận chúng với sự bình thản tối đa (Amor Fati).',
     },
     {
-      'title': 'Hơi thở Chánh niệm',
+      'title': 'Hơi thở Định tâm',
       'content': 'Hãy chú ý đến từng luồng khí đi vào và đi ra qua hai cánh mũi. Khi hít vào, biết mình đang hít vào. Khi thở ra, biết mình đang thở ra. Khi tâm trí đi lang thang, nhẹ nhàng mang nó trở lại với hơi thở mà không phán xét, ghét bỏ.',
     },
     {
@@ -56,12 +56,12 @@ class _SilenceViewState extends State<SilenceView> {
           surfaceTintColor: Colors.transparent,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           title: const Text(
-            "Kết Thúc Khoảng Lặng",
+            "Kết thúc khoảng lặng",
             textAlign: TextAlign.center,
             style: TextStyle(fontFamily: 'Lora', color: ZenTheme.creamWhite),
           ),
           content: const Text(
-            "Chúc mừng bạn đã hoàn thành khoảng lặng chánh niệm. Tâm trí bạn giờ đây đã bình lặng và nhẹ nhõm hơn.",
+            "Chúc mừng bạn đã hoàn thành khoảng lặng định tâm. Tâm trí bạn giờ đây đã bình lặng và nhẹ nhõm hơn.",
             textAlign: TextAlign.center,
             style: TextStyle(color: ZenTheme.softGray),
           ),
@@ -100,7 +100,7 @@ class _SilenceViewState extends State<SilenceView> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          "Khoảng Lặng",
+          "Khoảng lặng",
           style: textTheme.titleLarge!.copyWith(fontFamily: 'Lora', fontWeight: FontWeight.normal),
         ),
         centerTitle: true,
@@ -242,7 +242,7 @@ class _SilenceViewState extends State<SilenceView> {
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text("Nhạc nền chánh niệm", style: textTheme.titleLarge!.copyWith(fontSize: 15)),
+                                    Text("Nhạc nền định tâm", style: textTheme.titleLarge!.copyWith(fontSize: 15)),
                                     const SizedBox(height: 2),
                                     Text("Âm thanh: ${state.currentSound}", style: textTheme.bodyMedium!.copyWith(fontSize: 12)),
                                   ],

@@ -15,6 +15,8 @@ import '../../../hearth/presentation/screens/hearth_view.dart';
 import '../../../silence/presentation/screens/silence_view.dart';
 import '../../../reflection/bloc/reflection_bloc.dart';
 import '../../../reflection/presentation/screens/reflection_view.dart';
+import '../../../mind_garden/bloc/mind_garden_bloc.dart';
+import '../../../mind_garden/presentation/screens/mind_garden_screen.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -33,14 +35,15 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   void initState() {
     super.initState();
     final random = Random();
-    _comfortQuote = ZenConstants.hearthQuotes[random.nextInt(ZenConstants.hearthQuotes.length)];
+    _comfortQuote = ZenConstants
+        .hearthQuotes[random.nextInt(ZenConstants.hearthQuotes.length)];
 
     // 1. Setup Hearth Breathing animation guide (8s cycle)
     _breathingController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 8),
     )..repeat(reverse: true);
-    
+
     _breathingAnimation = Tween<double>(begin: 0.9, end: 1.15).animate(
       CurvedAnimation(parent: _breathingController, curve: Curves.easeInOut),
     );
@@ -97,9 +100,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
           ),
 
           // Hiệu ứng hạt bụi sáng bay lơ lửng rất dịu nhẹ (0% CPU Rebuild overhead)
-          const Positioned.fill(
-            child: _AmbientFloatingDust(),
-          ),
+          const Positioned.fill(child: _AmbientFloatingDust()),
 
           // Đốm sáng Bếp Lửa nhịp thở mờ nhẹ góc dưới
           Positioned(
@@ -137,7 +138,10 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
               listener: (context, authState) {
                 if (authState is Authenticated) {
                   BlocProvider.of<AnchorBloc>(context).add(
-                    CheckTodayAnchorRequested(authState.user.uid, _getTodayString()),
+                    CheckTodayAnchorRequested(
+                      authState.user.uid,
+                      _getTodayString(),
+                    ),
                   );
                 }
               },
@@ -145,249 +149,263 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 builder: (context, state) {
                   final user = (state is Authenticated) ? state.user : null;
 
-                return SingleChildScrollView(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 22.0,
-                    vertical: 24.0,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Thanh tiêu đề trên cùng (Header)
-                      _StaggeredEntranceItem(
-                        key: const ValueKey('entrance_0'),
-                        index: 0,
-                        controller: _entranceController,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  "Chào bạn đồng hành,",
-                                  style: textTheme.bodyMedium,
-                                ),
-                                Text(
-                                  user?.displayName ?? "Lữ khách",
-                                  style: textTheme.displayMedium!.copyWith(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w400,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Row(
-                              children: [
-                                _buildStreakBadge(context, user?.streak ?? 0),
-                                const SizedBox(width: 12),
-                                IconButton(
-                                  icon: const Icon(
-                                    Icons.logout,
-                                    color: ZenTheme.softGray,
-                                    size: 20,
-                                  ),
-                                  onPressed: () {
-                                    BlocProvider.of<AuthBloc>(
-                                      context,
-                                    ).add(SignOutRequested());
-                                  },
-                                  tooltip: "Rời chốn bình yên",
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 28),
-
-                      // Lời Chào "Bếp Lửa" (The Hearth Card)
-                      _StaggeredEntranceItem(
-                        key: const ValueKey('entrance_1'),
-                        index: 1,
-                        controller: _entranceController,
-                        child: GlassContainer(
-                          opacity: 0.05,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 22.0,
+                      vertical: 24.0,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        // Thanh tiêu đề trên cùng (Header)
+                        _StaggeredEntranceItem(
+                          key: const ValueKey('entrance_0'),
+                          index: 0,
+                          controller: _entranceController,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              Row(
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  const Icon(
-                                    Icons.local_fire_department,
-                                    color: ZenTheme.softGold,
-                                    size: 20,
-                                  ),
-                                  const SizedBox(width: 8),
                                   Text(
-                                    "Bếp lửa sưởi ấm",
-                                    style: textTheme.titleLarge!.copyWith(
-                                      fontSize: 16,
-                                      color: ZenTheme.softGold,
+                                    "Chào bạn đồng hành,",
+                                    style: textTheme.bodyMedium,
+                                  ),
+                                  Text(
+                                    user?.displayName ?? "Lữ khách",
+                                    style: textTheme.displayMedium!.copyWith(
+                                      fontSize: 22,
+                                      fontWeight: FontWeight.w400,
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: 12),
-                              Text(
-                                "\"$_comfortQuote\"",
-                                style: textTheme.bodyLarge!.copyWith(
-                                  fontStyle: FontStyle.italic,
-                                  fontSize: 15,
-                                  color: ZenTheme.creamWhite.withOpacity(0.85),
-                                ),
-                              ),
-                              const SizedBox(height: 16),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  Text(
-                                    "Vai trò: ${user?.spiritualRole.split(' ')[0] ?? 'Seeker'}",
-                                    style: textTheme.bodyMedium!.copyWith(
-                                      color: ZenTheme.sageGreen,
+
+                                  IconButton(
+                                    icon: const Icon(
+                                      Icons.logout,
+                                      color: ZenTheme.softGray,
+                                      size: 20,
                                     ),
-                                  ),
-                                  Text(
-                                    "Điểm thấu cảm: ${user?.empathyPoints ?? 0} EP",
-                                    style: textTheme.bodyMedium!.copyWith(
-                                      color: ZenTheme.softGold,
-                                    ),
+                                    onPressed: () {
+                                      BlocProvider.of<AuthBloc>(
+                                        context,
+                                      ).add(SignOutRequested());
+                                    },
+                                    tooltip: "Rời chốn bình yên",
                                   ),
                                 ],
                               ),
                             ],
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 36),
+                        const SizedBox(height: 28),
 
-                      // Điểm neo Mỗi Ngày
-                      _StaggeredEntranceItem(
-                        key: const ValueKey('entrance_2'),
-                        index: 2,
-                        controller: _entranceController,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(
-                              "Điểm neo Mỗi Ngày",
-                              style: textTheme.displaySmall!.copyWith(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: ZenTheme.sageGreen,
-                                letterSpacing: 2.0,
+                        // 1. Khoảnh Khắc Trong Ngày — PRIMARY, luôn đứng đầu
+                        _StaggeredEntranceItem(
+                          key: const ValueKey('entrance_1'),
+                          index: 1,
+                          controller: _entranceController,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                "Khoảnh khắc trong ngày",
+                                style: textTheme.displaySmall!.copyWith(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: ZenTheme.sageGreen,
+                                  letterSpacing: 2.0,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 10),
-                            _buildMainAnchorCard(context),
-                          ],
+                              const SizedBox(height: 10),
+                              _buildMainAnchorCard(context),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 32),
+                        const SizedBox(height: 32),
 
-                      // Tự Thấu Hiểu (Gương Tự Vấn)
-                      _StaggeredEntranceItem(
-                        key: const ValueKey('entrance_3'),
-                        index: 3,
-                        controller: _entranceController,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(
-                              "Tự Thấu Hiểu",
-                              style: textTheme.displaySmall!.copyWith(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: ZenTheme.softGold,
-                                letterSpacing: 2.0,
+                        // 2. Khoảng Lặng — công cụ điều hoà cảm xúc (regulation)
+                        _StaggeredEntranceItem(
+                          key: const ValueKey('entrance_2'),
+                          index: 2,
+                          controller: _entranceController,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                "Khoảng lặng",
+                                style: textTheme.displaySmall!.copyWith(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: ZenTheme.inkBlue,
+                                  letterSpacing: 2.0,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 10),
-                            _buildReflectionCard(context),
-                          ],
+                              const SizedBox(height: 10),
+                              _buildSilenceCard(context),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 32),
+                        const SizedBox(height: 32),
 
-                      // Khám phá thêm
-                      _StaggeredEntranceItem(
-                        key: const ValueKey('entrance_4'),
-                        index: 4,
-                        controller: _entranceController,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(
-                              "Khám phá thêm",
-                              style: textTheme.bodyMedium!.copyWith(
+                        // 3. Tự Thấu Hiểu — chiêm nghiệm sâu (Gương Tự Vấn)
+                        _StaggeredEntranceItem(
+                          key: const ValueKey('entrance_3'),
+                          index: 3,
+                          controller: _entranceController,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                "Tự thấu hiểu",
+                                style: textTheme.displaySmall!.copyWith(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: ZenTheme.softGold,
+                                  letterSpacing: 2.0,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              _buildReflectionCard(context),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+
+                        // 4. Khoảng Buông — xả & giải phóng cảm xúc nặng nề
+                        _StaggeredEntranceItem(
+                          key: const ValueKey('entrance_4'),
+                          index: 4,
+                          controller: _entranceController,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                "Khoảng buông",
+                                style: textTheme.displaySmall!.copyWith(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: ZenTheme.mistRed,
+                                  letterSpacing: 2.0,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              _buildReleaseCard(context),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+
+                        // 5. Kết Nối & Nhìn Lại — Bếp lửa chung + Vườn Tâm Trí
+                        _StaggeredEntranceItem(
+                          key: const ValueKey('entrance_5'),
+                          index: 5,
+                          controller: _entranceController,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                "Kết nối & Nhìn lại",
+                                style: textTheme.bodyMedium!.copyWith(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
                                   color: ZenTheme.softGray.withOpacity(0.6),
                                   letterSpacing: 1.8,
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 12),
-                            _buildSecondaryMenuRow(context),
-                          ],
+                              const SizedBox(height: 12),
+                              _buildConnectionRow(context),
+                            ],
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 40),
+                        const SizedBox(height: 32),
 
-                      // Châm ngôn chân lý Stoic ở cuối
-                      _StaggeredEntranceItem(
-                        key: const ValueKey('entrance_5'),
-                        index: 5,
-                        controller: _entranceController,
-                        child: Center(
-                          child: Text(
-                            "Anam • A Secular Sanctuary for Mindful Souls",
-                            style: textTheme.bodyMedium!.copyWith(
-                              fontSize: 11,
-                              color: ZenTheme.softGray.withOpacity(0.5),
-                              letterSpacing: 1.5,
+                        // 6. Bếp lửa sưởi ấm — ambient, cuối trang
+                        _StaggeredEntranceItem(
+                          key: const ValueKey('entrance_6'),
+                          index: 6,
+                          controller: _entranceController,
+                          child: GlassContainer(
+                            opacity: 0.05,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Icon(
+                                      Icons.local_fire_department,
+                                      color: ZenTheme.softGold,
+                                      size: 20,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      "Bếp lửa sưởi ấm",
+                                      style: textTheme.titleLarge!.copyWith(
+                                        fontSize: 16,
+                                        color: ZenTheme.softGold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                Text(
+                                  "\"$_comfortQuote\"",
+                                  style: textTheme.bodyLarge!.copyWith(
+                                    fontStyle: FontStyle.italic,
+                                    fontSize: 15,
+                                    color: ZenTheme.creamWhite.withOpacity(0.85),
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "Vai trò: ${user?.spiritualRole.split(' ')[0] ?? 'Seeker'}",
+                                      style: textTheme.bodyMedium!.copyWith(
+                                        color: ZenTheme.sageGreen,
+                                      ),
+                                    ),
+                                    Text(
+                                      "Điểm thấu cảm: ${user?.empathyPoints ?? 0} EP",
+                                      style: textTheme.bodyMedium!.copyWith(
+                                        color: ZenTheme.softGold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ],
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 16),
-                    ],
-                  ),
-                );
-              },
-            ),
-          ),
-        ),
-        ],
-      ),
-    );
-  }
+                        const SizedBox(height: 32),
 
-  Widget _buildStreakBadge(BuildContext context, int streak) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: ZenTheme.sageGreen.withOpacity(0.12),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: ZenTheme.sageGreen.withOpacity(0.2),
-          width: 1.0,
-        ),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(
-            Icons.wb_sunny_outlined,
-            color: ZenTheme.sageGreen,
-            size: 14,
-          ),
-          const SizedBox(width: 4),
-          Text(
-            "$streak ngày thiền",
-            style: Theme.of(context).textTheme.bodyMedium!.copyWith(
-              color: ZenTheme.sageGreen,
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
+                        // 7. Footer tagline
+                        _StaggeredEntranceItem(
+                          key: const ValueKey('entrance_7'),
+                          index: 7,
+                          controller: _entranceController,
+                          child: Center(
+                            child: Text(
+                              "Anam • A Secular Sanctuary for Mindful Souls",
+                              style: textTheme.bodyMedium!.copyWith(
+                                fontSize: 11,
+                                color: ZenTheme.softGray.withOpacity(0.5),
+                                letterSpacing: 1.5,
+                              ),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                    ),
+                  );
+                },
+              ),
             ),
           ),
         ],
@@ -532,7 +550,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Thiết lập nguyện ước sáng",
+                      "Thiết lập ý định ngày mới",
                       style: textTheme.bodyLarge!.copyWith(
                         fontWeight: FontWeight.bold,
                         color: ZenTheme.sageGreen,
@@ -594,7 +612,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Nhìn Lại Cuối Ngày",
+                          "Nhìn lại cuối ngày",
                           style: textTheme.headlineSmall!.copyWith(
                             fontSize: 22,
                             fontWeight: FontWeight.w700,
@@ -619,17 +637,14 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 height: 1,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [
-                      eveningColor.withOpacity(0.3),
-                      Colors.transparent,
-                    ],
+                    colors: [eveningColor.withOpacity(0.3), Colors.transparent],
                   ),
                 ),
               ),
               const SizedBox(height: 20),
               if (anchor.intention.isNotEmpty) ...[
                 Text(
-                  "Sáng nay bạn đã đặt nguyện ước:",
+                  "Sáng nay bạn đã đặt ý định:",
                   style: textTheme.bodyMedium!.copyWith(
                     color: ZenTheme.softGray.withOpacity(0.7),
                     fontSize: 12,
@@ -638,11 +653,16 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 const SizedBox(height: 6),
                 Container(
                   width: double.infinity,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
                   decoration: BoxDecoration(
                     color: ZenTheme.creamWhite.withOpacity(0.04),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: ZenTheme.creamWhite.withOpacity(0.06)),
+                    border: Border.all(
+                      color: ZenTheme.creamWhite.withOpacity(0.06),
+                    ),
                   ),
                   child: Text(
                     "\"${anchor.intention}\"",
@@ -743,7 +763,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Một Ngày Trọn Vẹn",
+                          "Khép lại ngày hôm nay",
                           style: textTheme.headlineSmall!.copyWith(
                             fontSize: 22,
                             fontWeight: FontWeight.w700,
@@ -752,7 +772,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          "Vòng ngày đã khép lại",
+                          "Tâm trí đã sẵn sàng nghỉ ngơi",
                           style: textTheme.bodyMedium!.copyWith(
                             fontSize: 13,
                             color: completedColor.withOpacity(0.8),
@@ -777,7 +797,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
               ),
               const SizedBox(height: 20),
               Text(
-                "Bạn đã hoàn thành cả nghi thức đặt nguyện ước buổi sáng và nhìn lại buổi tối. Hôm nay của bạn đã kết thúc trọn vẹn và an yên.",
+                "Bạn đã hoàn thành việc định hướng ngày mới và nhìn lại cuối ngày.",
                 style: textTheme.bodyLarge!.copyWith(
                   fontSize: 15,
                   color: ZenTheme.creamWhite.withOpacity(0.9),
@@ -824,23 +844,10 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildSecondaryMenuRow(BuildContext context) {
+  // Kết Nối & Nhìn Lại: Bếp lửa chung (trái) + Vườn Tâm Trí (phải)
+  Widget _buildConnectionRow(BuildContext context) {
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Expanded(
-          child: _buildSecondaryMenuCard(
-            context: context,
-            title: "Khoảng\nBuông",
-            icon: Icons.blur_on_outlined,
-            color: ZenTheme.mistRed,
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ReleaseView()),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
         Expanded(
           child: _buildSecondaryMenuCard(
             context: context,
@@ -857,12 +864,20 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         Expanded(
           child: _buildSecondaryMenuCard(
             context: context,
-            title: "Khoảng\nlặng",
-            icon: Icons.spa_outlined,
-            color: ZenTheme.inkBlue,
+            title: "Vườn\nTâm Trí",
+            icon: Icons.filter_vintage_outlined,
+            color: ZenTheme.sageGreen,
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (_) => const SilenceView()),
+              MaterialPageRoute(
+                builder: (_) => BlocProvider<MindGardenBloc>(
+                  create: (context) => MindGardenBloc(
+                    databaseRepository:
+                        RepositoryProvider.of<BaseDatabaseRepository>(context),
+                  ),
+                  child: const MindGardenScreen(),
+                ),
+              ),
             ),
           ),
         ),
@@ -913,6 +928,134 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     );
   }
 
+  Widget _buildSilenceCard(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return _PebblePressCard(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const SilenceView()),
+      ),
+      child: GlassContainer(
+        opacity: 0.08,
+        radius: 24,
+        padding: const EdgeInsets.all(0),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 18.0),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: ZenTheme.inkBlue.withOpacity(0.12),
+                ),
+                child: const Icon(
+                  Icons.spa_outlined,
+                  color: ZenTheme.inkBlue,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "Định tâm",
+                      style: textTheme.titleLarge!.copyWith(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: ZenTheme.creamWhite,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "Hơi thở & tĩnh lặng nội tâm",
+                      style: textTheme.bodyMedium!.copyWith(
+                        fontSize: 13,
+                        color: ZenTheme.creamWhite.withOpacity(0.65),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: ZenTheme.inkBlue,
+                size: 24,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildReleaseCard(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+    return _PebblePressCard(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const ReleaseView()),
+      ),
+      child: GlassContainer(
+        opacity: 0.08,
+        radius: 24,
+        padding: const EdgeInsets.all(0),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 18.0),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: ZenTheme.mistRed.withOpacity(0.12),
+                ),
+                child: const Icon(
+                  Icons.blur_on_outlined,
+                  color: ZenTheme.mistRed,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "Khoảng buông",
+                      style: textTheme.titleLarge!.copyWith(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: ZenTheme.creamWhite,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "Xả bỏ & giải phóng cảm xúc nặng nề",
+                      style: textTheme.bodyMedium!.copyWith(
+                        fontSize: 13,
+                        color: ZenTheme.creamWhite.withOpacity(0.65),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: ZenTheme.mistRed,
+                size: 24,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildReflectionCard(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
@@ -922,7 +1065,9 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         MaterialPageRoute(
           builder: (_) => BlocProvider<ReflectionBloc>(
             create: (context) => ReflectionBloc(
-              databaseRepository: RepositoryProvider.of<BaseDatabaseRepository>(context),
+              databaseRepository: RepositoryProvider.of<BaseDatabaseRepository>(
+                context,
+              ),
             ),
             child: const ReflectionView(),
           ),
@@ -984,16 +1129,89 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
       ),
     );
   }
+
+  // _buildGardenCard removed — Vườn Tâm Trí nay dùng _buildSecondaryMenuCard trong _buildConnectionRow
+  // ignore: unused_element
+  Widget _buildGardenCard(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return _PebblePressCard(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => BlocProvider<MindGardenBloc>(
+            create: (context) => MindGardenBloc(
+              databaseRepository: RepositoryProvider.of<BaseDatabaseRepository>(
+                context,
+              ),
+            ),
+            child: const MindGardenScreen(),
+          ),
+        ),
+      ),
+      child: GlassContainer(
+        opacity: 0.08,
+        radius: 24,
+        padding: const EdgeInsets.all(0),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 18.0),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: ZenTheme.sageGreen.withOpacity(0.12),
+                ),
+                child: const Icon(
+                  Icons.filter_vintage_outlined,
+                  color: ZenTheme.sageGreen,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "Khu vườn tâm trí",
+                      style: textTheme.titleLarge!.copyWith(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: ZenTheme.creamWhite,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "Lịch sử dấu ấn cảm xúc thiên nhiên",
+                      style: textTheme.bodyMedium!.copyWith(
+                        fontSize: 13,
+                        color: ZenTheme.creamWhite.withOpacity(0.65),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: ZenTheme.sageGreen,
+                size: 24,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class _PebblePressCard extends StatefulWidget {
   final Widget child;
   final VoidCallback onTap;
 
-  const _PebblePressCard({
-    required this.child,
-    required this.onTap,
-  });
+  const _PebblePressCard({required this.child, required this.onTap});
 
   @override
   State<_PebblePressCard> createState() => _PebblePressCardState();
@@ -1063,17 +1281,17 @@ class _StaggeredEntranceItemState extends State<_StaggeredEntranceItem> {
     );
 
     _opacity = Tween<double>(begin: 0.0, end: 1.0).animate(curvedAnimation);
-    _offset = Tween<Offset>(begin: const Offset(0.0, 0.12), end: Offset.zero).animate(curvedAnimation);
+    _offset = Tween<Offset>(
+      begin: const Offset(0.0, 0.12),
+      end: Offset.zero,
+    ).animate(curvedAnimation);
   }
 
   @override
   Widget build(BuildContext context) {
     return FadeTransition(
       opacity: _opacity,
-      child: SlideTransition(
-        position: _offset,
-        child: widget.child,
-      ),
+      child: SlideTransition(position: _offset, child: widget.child),
     );
   }
 }
@@ -1085,7 +1303,8 @@ class _AmbientFloatingDust extends StatefulWidget {
   State<_AmbientFloatingDust> createState() => _AmbientFloatingDustState();
 }
 
-class _AmbientFloatingDustState extends State<_AmbientFloatingDust> with SingleTickerProviderStateMixin {
+class _AmbientFloatingDustState extends State<_AmbientFloatingDust>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
 
   @override
@@ -1118,14 +1337,70 @@ class _DustPainter extends CustomPainter {
   _DustPainter({required this.animation}) : super(repaint: animation);
 
   static final List<_ParticleSeed> _seeds = [
-    _ParticleSeed(startX: 0.15, startY: 0.25, speedX: 0.05, speedY: 0.08, size: 4.5, baseOpacity: 0.20),
-    _ParticleSeed(startX: 0.85, startY: 0.15, speedX: -0.06, speedY: 0.07, size: 3.5, baseOpacity: 0.16),
-    _ParticleSeed(startX: 0.45, startY: 0.65, speedX: 0.04, speedY: -0.05, size: 5.0, baseOpacity: 0.18),
-    _ParticleSeed(startX: 0.25, startY: 0.75, speedX: -0.05, speedY: -0.06, size: 4.0, baseOpacity: 0.22),
-    _ParticleSeed(startX: 0.75, startY: 0.80, speedX: 0.07, speedY: -0.04, size: 3.0, baseOpacity: 0.14),
-    _ParticleSeed(startX: 0.60, startY: 0.35, speedX: -0.03, speedY: 0.09, size: 4.2, baseOpacity: 0.17),
-    _ParticleSeed(startX: 0.35, startY: 0.50, speedX: 0.06, speedY: 0.05, size: 2.8, baseOpacity: 0.13),
-    _ParticleSeed(startX: 0.90, startY: 0.55, speedX: -0.04, speedY: -0.07, size: 3.8, baseOpacity: 0.15),
+    _ParticleSeed(
+      startX: 0.15,
+      startY: 0.25,
+      speedX: 0.05,
+      speedY: 0.08,
+      size: 4.5,
+      baseOpacity: 0.20,
+    ),
+    _ParticleSeed(
+      startX: 0.85,
+      startY: 0.15,
+      speedX: -0.06,
+      speedY: 0.07,
+      size: 3.5,
+      baseOpacity: 0.16,
+    ),
+    _ParticleSeed(
+      startX: 0.45,
+      startY: 0.65,
+      speedX: 0.04,
+      speedY: -0.05,
+      size: 5.0,
+      baseOpacity: 0.18,
+    ),
+    _ParticleSeed(
+      startX: 0.25,
+      startY: 0.75,
+      speedX: -0.05,
+      speedY: -0.06,
+      size: 4.0,
+      baseOpacity: 0.22,
+    ),
+    _ParticleSeed(
+      startX: 0.75,
+      startY: 0.80,
+      speedX: 0.07,
+      speedY: -0.04,
+      size: 3.0,
+      baseOpacity: 0.14,
+    ),
+    _ParticleSeed(
+      startX: 0.60,
+      startY: 0.35,
+      speedX: -0.03,
+      speedY: 0.09,
+      size: 4.2,
+      baseOpacity: 0.17,
+    ),
+    _ParticleSeed(
+      startX: 0.35,
+      startY: 0.50,
+      speedX: 0.06,
+      speedY: 0.05,
+      size: 2.8,
+      baseOpacity: 0.13,
+    ),
+    _ParticleSeed(
+      startX: 0.90,
+      startY: 0.55,
+      speedX: -0.04,
+      speedY: -0.07,
+      size: 3.8,
+      baseOpacity: 0.15,
+    ),
   ];
 
   @override
@@ -1137,7 +1412,8 @@ class _DustPainter extends CustomPainter {
       final dx = (seed.startX + seed.speedX * sin(t * 2 * pi)) * size.width;
       final dy = (seed.startY + seed.speedY * cos(t * 2 * pi)) * size.height;
 
-      final opacity = seed.baseOpacity * (0.6 + 0.4 * sin(t * 4 * pi + seed.startX * 10));
+      final opacity =
+          seed.baseOpacity * (0.6 + 0.4 * sin(t * 4 * pi + seed.startX * 10));
       paint.color = ZenTheme.softGold.withOpacity(opacity.clamp(0.0, 1.0));
 
       canvas.drawCircle(Offset(dx, dy), seed.size, paint);
@@ -1145,7 +1421,8 @@ class _DustPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_DustPainter oldDelegate) => oldDelegate.animation != animation;
+  bool shouldRepaint(_DustPainter oldDelegate) =>
+      oldDelegate.animation != animation;
 }
 
 class _ParticleSeed {

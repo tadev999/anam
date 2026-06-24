@@ -201,7 +201,7 @@ class _ReflectionViewState extends State<ReflectionView> {
 
                       // Prompt Question Card
                       Text(
-                        "Câu hỏi tự vấn hôm nay",
+                        "Câu hỏi tự thấu hiểu hôm nay",
                         textAlign: TextAlign.center,
                         style: GoogleFonts.nunito(
                           fontSize: 12,
@@ -308,7 +308,7 @@ class _ReflectionViewState extends State<ReflectionView> {
                               Padding(
                                 padding: const EdgeInsets.only(bottom: 8.0),
                                 child: Text(
-                                  "Cần nhập thêm ${50 - _controller.text.trim().length} ký tự để hoàn tất tự vấn.",
+                                  "Cần nhập thêm ${50 - _controller.text.trim().length} ký tự để hoàn tất bài chiêm nghiệm.",
                                   textAlign: TextAlign.center,
                                   style: GoogleFonts.nunito(
                                     color: ZenTheme.softGold,
@@ -365,7 +365,7 @@ class _ReflectionViewState extends State<ReflectionView> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            "Chiêm nghiệm tự vấn cần đạt tối thiểu 50 ký tự để gửi vào hư vô.",
+            "Bài chiêm nghiệm cần đạt tối thiểu 50 ký tự để gửi vào hư vô.",
             style: GoogleFonts.nunito(color: ZenTheme.creamWhite),
           ),
           backgroundColor: ZenTheme.mistRed.withOpacity(0.8),
@@ -385,7 +385,7 @@ class _ReflectionViewState extends State<ReflectionView> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            "Chiêm nghiệm tự vấn cần đạt tối thiểu 50 ký tự để cất vào nhật ký.",
+            "Bài chiêm nghiệm cần đạt tối thiểu 50 ký tự để cất vào nhật ký.",
             style: GoogleFonts.nunito(color: ZenTheme.creamWhite),
           ),
           backgroundColor: ZenTheme.mistRed.withOpacity(0.8),

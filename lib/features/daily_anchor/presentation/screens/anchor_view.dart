@@ -232,7 +232,7 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
   // Progress bar — 3 bước sáng
   // ---------------------------------------------------------------------------
   Widget _buildProgressIndicator() {
-    final labels = ['Nguyện ước', 'Hành động', 'Chiêm nghiệm'];
+    final labels = ['Ý định ngày mới', 'Hành động', 'Chiêm nghiệm'];
     return Column(
       children: [
         Row(
@@ -282,7 +282,7 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
   }
 
   // ---------------------------------------------------------------------------
-  // Step 0: Lời Nguyện Ước — Đặt ý định cho ngày
+  // Step 0: Ý định ngày mới — Đặt định hướng cho ngày
   // ---------------------------------------------------------------------------
   Widget _buildIntentionStep(TextTheme textTheme, bool isLoading) {
     final templates = ZenConstants.intentionTemplates['neutral']!;
@@ -300,7 +300,7 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
               border: Border.all(color: ZenTheme.creamWhite.withOpacity(0.08)),
             ),
             child: Text(
-              '☀️  Nghi thức buổi sáng  ·  ~3 phút',
+              '☀️  Định hướng ngày mới  ·  ~3 phút',
               style: textTheme.bodyMedium!.copyWith(
                 color: ZenTheme.softGray.withOpacity(0.7), fontSize: 11, letterSpacing: 0.5,
               ),
@@ -311,7 +311,7 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
         const Center(child: Icon(Icons.brightness_6_outlined, color: ZenTheme.sageGreen, size: 22)),
         const SizedBox(height: 16),
         Text(
-          'I. Lời Nguyện Ước',
+          'I. Ý định ngày mới',
           textAlign: TextAlign.center,
           style: textTheme.bodyMedium!.copyWith(color: ZenTheme.sageGreen, letterSpacing: 1.0),
         ),
@@ -388,7 +388,7 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Center(child: Text('II. Hành Động Nhỏ',
+        Center(child: Text('II. Hành động nhỏ',
           style: textTheme.bodyMedium!.copyWith(color: ZenTheme.sageGreen, letterSpacing: 1.0))),
         const SizedBox(height: 8),
         Center(child: Text('Chọn 1 hành động nhỏ để khởi đầu ngày',
@@ -455,7 +455,7 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
     return Column(
       children: [
         const SizedBox(height: 20),
-        Text('III. Gợi Ý Chiêm Nghiệm',
+        Text('III. Gợi ý chiêm nghiệm',
           style: textTheme.bodyMedium!.copyWith(color: ZenTheme.sageGreen, letterSpacing: 1.0)),
         const SizedBox(height: 8),
         Text('Mang theo câu này trong suốt ngày hôm nay',
@@ -524,18 +524,18 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
           child: const Icon(Icons.brightness_6_outlined, color: ZenTheme.sageGreen, size: 40),
         ),
         const SizedBox(height: 32),
-        Text('Điểm Neo Buổi Sáng Hoàn Chỉnh',
+        Text('Định hướng ngày mới hoàn tất',
           textAlign: TextAlign.center,
           style: textTheme.displayMedium!.copyWith(fontSize: 22, color: ZenTheme.creamWhite)),
         const SizedBox(height: 12),
-        Text('Bạn đã đặt ý định cho ngày hôm nay. Hãy mang theo nguyện ước này và quay lại vào buổi tối để nhìn lại.',
+        Text('Bạn đã đặt ý định cho ngày hôm nay. Hãy mang theo ý định này và quay lại vào buổi tối để nhìn lại.',
           textAlign: TextAlign.center,
           style: textTheme.bodyLarge!.copyWith(color: ZenTheme.softGray, height: 1.5)),
         const SizedBox(height: 36),
         GlassContainer(
           opacity: 0.05,
           child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('Nguyện ước của bạn hôm nay:',
+            const Text('Ý định của bạn hôm nay:',
               style: TextStyle(color: ZenTheme.sageGreen, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
             Text('"${_intentionController.text}"',

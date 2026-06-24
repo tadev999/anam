@@ -80,7 +80,7 @@ class _HearthViewState extends State<HearthView> {
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          "Bếp Lửa Chung",
+          "Bếp lửa chung",
           style: textTheme.titleLarge!.copyWith(fontFamily: 'Lora', fontWeight: FontWeight.normal),
         ),
         centerTitle: true,
@@ -462,7 +462,7 @@ class _EmpathyMirrorBottomSheetState extends State<_EmpathyMirrorBottomSheet> wi
         const SizedBox(height: 24),
         Center(
           child: Text(
-            "Gương Thấu Cảm",
+            "Gương thấu cảm",
             style: textTheme.titleLarge!.copyWith(
               fontFamily: 'Lora',
               fontSize: 20,
@@ -600,7 +600,7 @@ class _EmpathyMirrorBottomSheetState extends State<_EmpathyMirrorBottomSheet> wi
         const SizedBox(height: 24),
         Center(
           child: Text(
-            "Đã Phản Chiếu Cảm Xúc",
+            "Đã phản chiếu cảm xúc",
             style: textTheme.titleLarge!.copyWith(
               fontFamily: 'Lora',
               fontSize: 20,

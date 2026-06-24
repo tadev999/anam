@@ -55,13 +55,13 @@ class ReflectionBloc extends Bloc<ReflectionEvent, ReflectionState> {
     emit(ReflectionLoading());
     try {
       if (event.content.trim().length < 50) {
-        emit(const ReflectionFailure("Nội dung tự vấn cần đạt tối thiểu 50 ký tự để lưu lại."));
+        emit(const ReflectionFailure("Nội dung chiêm nghiệm cần đạt tối thiểu 50 ký tự để lưu lại."));
         return;
       }
       await databaseRepository.saveReflection(event.prompt, event.content);
       emit(const ReflectionSuccess("Chiêm nghiệm đã được cất giữ vào góc riêng của bạn."));
     } catch (e) {
-      emit(ReflectionFailure("Lỗi lưu tự vấn: ${e.toString()}"));
+      emit(ReflectionFailure("Lỗi lưu bài viết: ${e.toString()}"));
     }
   }
 
@@ -74,7 +74,7 @@ class ReflectionBloc extends Bloc<ReflectionEvent, ReflectionState> {
       // "Gửi vào hư vô" chỉ đơn giản là không lưu trữ gì
       emit(const ReflectionSuccess("Tâm tư đã được trả về với hư vô rộng lớn."));
     } catch (e) {
-      emit(ReflectionFailure("Lỗi xả trôi tự vấn: ${e.toString()}"));
+      emit(ReflectionFailure("Lỗi xả trôi: ${e.toString()}"));
     }
   }
 }

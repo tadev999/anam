@@ -21,7 +21,7 @@ Dưới đây là các không gian chữa lành trong Anam và những giá tr�
 *   **Lợi ích cho bạn**: Xóa tan cảm giác cô độc. Bạn nhận ra mình không đơn độc trong những tổn thương. Đồng thời, việc sưởi ấm cho người khác cũng chính là cơ hội để bạn nhìn thấu và ôm lấy nhu cầu cảm xúc của chính mình.
 
 ### 4. Khoảng Lặng (Silence)
-*   **Trải nghiệm**: Không gian thiền định cá nhân với các âm thanh tự nhiên mộc mạc như tiếng mưa rơi, tiếng chuông xoay định tâm. Đặc biệt, ứng dụng sẽ tự động hiểu tâm cảnh của bạn để đề xuất bài thiền phù hợp (Ví dụ: Đề xuất thiền sâu 20 phút nếu bạn kiệt sức, hoặc thiền tập trung ngắn 5 phút nếu bạn đang suy nghĩ quá nhiều).
+*   **Trải nghiệm**: Không gian thiền định cá nhân với các âm thanh tự nhiên mộc mạc như tiếng mưa rơi, tiếng chuông xoay định tâm. Đặc biệt, ứng dụng sẽ tự động hiểu Tâm trí của bạn để đề xuất bài thiền phù hợp (Ví dụ: Đề xuất thiền sâu 20 phút nếu bạn kiệt sức, hoặc thiền tập trung ngắn 5 phút nếu bạn đang suy nghĩ quá nhiều).
 *   **Lợi ích cho bạn**: Đưa tâm trí trở về trạng thái phẳng lặng. Bạn không cần cố gắng thiền đúng hay sai, chỉ cần ngồi lại và để cơ thể được nghỉ ngơi sâu dưới sự nâng đỡ của âm thanh cộng hưởng.
 
 ### 5. Gương Tự Vấn (Reflection Prompts)

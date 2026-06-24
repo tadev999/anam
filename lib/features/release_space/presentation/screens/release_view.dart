@@ -91,7 +91,7 @@ class _ReleaseViewState extends State<ReleaseView> {
             },
           ),
           title: Text(
-            "Khoảng Buông",
+            "Khoảng buông",
             style: textTheme.titleLarge!.copyWith(fontFamily: 'Lora', fontWeight: FontWeight.normal),
           ),
           centerTitle: true,
@@ -395,7 +395,7 @@ class _ReleaseViewState extends State<ReleaseView> {
             ),
           ),
           child: Text(
-            "Lòng bạn đã buông bỏ. Bạn có muốn dành 5 phút tự vấn?",
+            "Lòng bạn đã buông bỏ. Bạn có muốn dành 5 phút tự thấu hiểu cùng Gương Tự Vấn?",
             style: GoogleFonts.nunito(
               color: ZenTheme.sageGreen,
               decoration: TextDecoration.underline,

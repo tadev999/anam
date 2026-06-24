@@ -120,7 +120,7 @@ class _AuthViewState extends State<AuthView> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    "Một thánh đường thế tục chữa lành tâm hồn",
+                    "Không gian an trú chữa lành tâm hồn",
                     textAlign: TextAlign.center,
                     style: textTheme.bodyMedium!.copyWith(
                       fontStyle: FontStyle.italic,
@@ -151,7 +151,7 @@ class _AuthViewState extends State<AuthView> {
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Text(
-                                _isSignUp ? "Tạo pháp danh mới" : "Trở về chốn bình yên",
+                                _isSignUp ? "Tạo tài khoản mới" : "Trở về chốn bình yên",
                                 textAlign: TextAlign.center,
                                 style: textTheme.titleLarge!.copyWith(
                                   color: ZenTheme.creamWhite,
@@ -164,7 +164,7 @@ class _AuthViewState extends State<AuthView> {
                                   controller: _nameController,
                                   style: const TextStyle(color: ZenTheme.creamWhite),
                                   enabled: !isLoading,
-                                  decoration: _inputDecoration("Tên hiển thị / Pháp danh"),
+                                  decoration: _inputDecoration("Tên hiển thị / Biệt danh"),
                                   validator: (v) => v == null || v.isEmpty ? "Vui lòng nhập tên" : null,
                                 ),
                                 const SizedBox(height: 16),
@@ -192,7 +192,7 @@ class _AuthViewState extends State<AuthView> {
                               const SizedBox(height: 24),
                               
                               ZenButton(
-                                text: _isSignUp ? "Bắt đầu hành trình" : "Bước vào thánh đường",
+                                text: _isSignUp ? "Bắt đầu hành trình" : "Bước vào không gian an trú",
                                 isLoading: isLoading,
                                 onPressed: _submit,
                               ),

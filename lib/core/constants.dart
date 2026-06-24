@@ -179,7 +179,7 @@ class ZenConstants {
     },
     {
       "id": "breathe",
-      "title": "5 hơi thở chánh niệm sâu",
+      "title": "5 hơi thở định tâm sâu",
       "description": "Hít vào bụng phình nhẹ, thở ra bụng xẹp dần. Tập trung hoàn toàn vào luồng khí.",
       "duration": "2 phút",
       "points": 5,
@@ -306,7 +306,7 @@ class ZenConstants {
     "Chúc bạn có một giấc ngủ bình yên đêm nay, để ngày mai lại bắt đầu với một tâm thế nhẹ nhàng, nội sinh."
   ];
 
-  // Danh sách các câu hỏi tự vấn sâu sắc (Reflection Prompts) phân loại theo Trạng thái tâm lý
+  // Danh sách các câu hỏi tự thấu hiểu sâu sắc (Reflection Prompts) phân loại theo Trạng thái tâm lý
   static const Map<String, List<String>> reflectionPrompts = {
     "burnout": [
       "Đâu là ranh giới giữa việc kiên trì cố gắng và việc gồng gánh quá sức chịu đựng của bản thân?",
@@ -371,7 +371,7 @@ class ZenConstants {
   };
 
   // -----------------------------------------------------------------------
-  // Mẫu câu nguyện ước (Intention Templates) — gợi ý theo cảm xúc (CBT Scaffolding)
+  // Mẫu câu ý định (Intention Templates) — gợi ý theo cảm xúc (CBT Scaffolding)
   // Giúp người dùng vượt qua "Blank Page Anxiety" ở bước viết intention.
   // -----------------------------------------------------------------------
   static const Map<String, List<String>> intentionTemplates = {

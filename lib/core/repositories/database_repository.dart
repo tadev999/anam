@@ -15,6 +15,7 @@ abstract class BaseDatabaseRepository {
   Future<ReleaseModel?> sendVirtualHug(String releaseId, String senderUid);
   Future<AnchorModel?> fetchTodayAnchor(String uid, String date);
   Future<AnchorModel?> fetchYesterdayAnchor(String uid, String yesterdayDate);
+  Future<List<AnchorModel>> fetchMonthAnchors(String uid, String yearMonth);
   // Morning ritual: Intention → Offering → Affirmation
   Future<AnchorModel> completeMorningAnchor(String uid, String date, String affirmation, String microOfferingId, String intention);
   // Alias backward compat cho code cũ
@@ -36,6 +37,286 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
   @override
   Future<void> init() async {
     _prefs = await SharedPreferences.getInstance();
+    await seedJune2026MockDataForUid('mock_user_123');
+  }
+
+  Future<void> seedJune2026MockDataForUid(String uid) async {
+    final isSeeded = _prefs.getBool('seeded_june_2026_$uid') ?? false;
+    if (isSeeded) return;
+
+    final List<Map<String, dynamic>> mockAnchors = [
+      // Day 1: grateful
+      {
+        'date': '2026-06-01',
+        'affirmationText': 'Tôi bình yên và trọn vẹn trong hiện tại',
+        'microOfferingId': 'offering_1',
+        'intention': 'Dành 15 phút thiền định buổi sáng',
+        'morningCompleted': true,
+        'eveningCompleted': true,
+        'eveningEmotion': 'grateful',
+        'eveningNote': 'Cảm nhận rõ rệt hơi thở và nhịp tim khi thiền',
+        'intentionReviewed': true,
+      },
+      // Day 2: peaceful
+      {
+        'date': '2026-06-02',
+        'affirmationText': 'Mỗi giây phút đều là một món quà',
+        'microOfferingId': 'offering_2',
+        'intention': 'Uống trà định tâm không điện thoại',
+        'morningCompleted': true,
+        'eveningCompleted': true,
+        'eveningEmotion': 'peaceful',
+        'eveningNote': 'Vị trà oải hương thật thanh tịnh',
+        'intentionReviewed': true,
+      },
+      // Day 3: morning completed only
+      {
+        'date': '2026-06-03',
+        'affirmationText': 'Bước chân tôi chạm vào lòng đất mẹ',
+        'microOfferingId': 'offering_3',
+        'intention': 'Đi bộ công viên',
+        'morningCompleted': true,
+        'eveningCompleted': false,
+      },
+      // Day 4: lonely
+      {
+        'date': '2026-06-04',
+        'affirmationText': 'Tôi kết nối sâu sắc với mọi người xung quanh',
+        'microOfferingId': 'offering_4',
+        'intention': 'Gọi điện hỏi thăm người bạn cũ',
+        'morningCompleted': true,
+        'eveningCompleted': true,
+        'eveningEmotion': 'lonely',
+        'eveningNote': 'Bạn bận không nghe máy, cảm giác hơi lạc lõng nhưng ổn',
+        'intentionReviewed': false,
+      },
+      // Day 5: peaceful
+      {
+        'date': '2026-06-05',
+        'affirmationText': 'Tâm trí tôi trong lành như buổi sớm mai',
+        'microOfferingId': 'offering_5',
+        'intention': 'Viết nhật ký lòng biết ơn',
+        'morningCompleted': true,
+        'eveningCompleted': true,
+        'eveningEmotion': 'peaceful',
+        'eveningNote': 'Buổi chiều ngồi ngắm mưa rơi rất bình lặng',
+        'intentionReviewed': true,
+      },
+      // Day 6: lonely
+      {
+        'date': '2026-06-06',
+        'affirmationText': 'Tôi là người bạn tốt nhất của chính mình',
+        'microOfferingId': 'offering_6',
+        'intention': 'Đọc 10 trang sách tâm lý học',
+        'morningCompleted': true,
+        'eveningCompleted': true,
+        'eveningEmotion': 'lonely',
+        'eveningNote': 'Căn phòng tối nay yên ắng quá mức bình thường',
+        'intentionReviewed': true,
+      },
+      // Day 8: peaceful
+      {
+        'date': '2026-06-08',
+        'affirmationText': 'Tôi nuôi dưỡng sự sống xung quanh và bên trong',
+        'microOfferingId': 'offering_8',
+        'intention': 'Tưới cây ngoài ban công',
+        'morningCompleted': true,
+        'eveningCompleted': true,
+        'eveningEmotion': 'peaceful',
+        'eveningNote': 'Mầm cây nhỏ đã hé nở lá xanh đầu tiên',
+        'intentionReviewed': true,
+      },
+      // Day 9: overthinking
+      {
+        'date': '2026-06-09',
+        'affirmationText': 'Tôi tin tưởng vào tiến trình của mình',
+        'microOfferingId': 'offering_9',
+        'intention': 'Hoàn thành báo cáo công việc sớm',
+        'morningCompleted': true,
+        'eveningCompleted': true,
+        'eveningEmotion': 'overthinking',
+        'eveningNote': 'Đầu óc cứ lẩn quẩn lo lắng về deadline tuần tới',
+        'intentionReviewed': true,
+      },
+      // Day 10: burnout
+      {
+        'date': '2026-06-10',
+        'affirmationText': 'Tôi cho phép bản thân nghỉ ngơi khi mệt mỏi',
+        'microOfferingId': 'offering_10',
+        'intention': 'Làm việc tập trung tối đa',
+        'morningCompleted': true,
+        'eveningCompleted': true,
+        'eveningEmotion': 'burnout',
+        'eveningNote': 'Một ngày kiệt sức vì họp hành liên tục, đầu muốn nổ tung',
+        'intentionReviewed': false,
+      },
+      // Day 11: overthinking
+      {
+        'date': '2026-06-11',
+        'affirmationText': 'Tôi buông bỏ những điều nằm ngoài tầm kiểm soát',
+        'microOfferingId': 'offering_11',
+        'intention': 'Lập kế hoạch tuần mới rõ ràng',
+        'morningCompleted': true,
+        'eveningCompleted': true,
+        'eveningEmotion': 'overthinking',
+        'eveningNote': 'Lại mất ngủ vì suy nghĩ quá nhiều kịch bản rủi ro',
+        'intentionReviewed': false,
+      },
+      // Day 12: grateful
+      {
+        'date': '2026-06-12',
+        'affirmationText': 'Mọi nỗ lực của tôi đều đáng trân quý',
+        'microOfferingId': 'offering_12',
+        'intention': 'Nấu một bữa ăn ấm cúng',
+        'morningCompleted': true,
+        'eveningCompleted': true,
+        'eveningEmotion': 'grateful',
+        'eveningNote': 'Mẹ gọi điện khen món canh sườn hạt sen nấu ngon',
+        'intentionReviewed': true,
+      },
+      // Day 13: lonely
+      {
+        'date': '2026-06-13',
+        'affirmationText': 'Sự cô độc là khoảng trống để thấu hiểu bản thân',
+        'microOfferingId': 'offering_13',
+        'intention': 'Ăn tối một mình không lướt mạng',
+        'morningCompleted': true,
+        'eveningCompleted': true,
+        'eveningEmotion': 'lonely',
+        'eveningNote': 'Nhìn bàn ăn một người, chợt nhớ những ngày xưa cũ',
+        'intentionReviewed': true,
+      },
+      // Day 14: overthinking
+      {
+        'date': '2026-06-14',
+        'affirmationText': 'Tâm trí tôi trật tự và thông suốt',
+        'microOfferingId': 'offering_14',
+        'intention': 'Dọn dẹp phòng ngủ sạch sẽ',
+        'morningCompleted': true,
+        'eveningCompleted': true,
+        'eveningEmotion': 'overthinking',
+        'eveningNote': 'Vừa dọn dẹp vừa nghĩ vẩn vơ về định hướng tương lai 5 năm tới',
+        'intentionReviewed': true,
+      },
+      // Day 16: peaceful
+      {
+        'date': '2026-06-16',
+        'affirmationText': 'Giấc ngủ là cái ôm dịu êm của vũ trụ',
+        'microOfferingId': 'offering_16',
+        'intention': 'Tắt thiết bị điện tử từ 9h tối',
+        'morningCompleted': true,
+        'eveningCompleted': true,
+        'eveningEmotion': 'peaceful',
+        'eveningNote': 'Ngủ rất ngon và sâu, thức dậy sảng khoái',
+        'intentionReviewed': true,
+      },
+      // Day 17: burnout
+      {
+        'date': '2026-06-17',
+        'affirmationText': 'Tôi đón nhận mọi thử thách bằng sự điềm tĩnh',
+        'microOfferingId': 'offering_17',
+        'intention': 'Giải quyết xung đột với đồng nghiệp',
+        'morningCompleted': true,
+        'eveningCompleted': true,
+        'eveningEmotion': 'burnout',
+        'eveningNote': 'Căng thẳng tột độ sau cuộc tranh luận gay gắt',
+        'intentionReviewed': false,
+      },
+      // Day 18: grateful
+      {
+        'date': '2026-06-18',
+        'affirmationText': 'Biết ơn vì được dẫn dắt và chỉ bảo tận tình',
+        'microOfferingId': 'offering_18',
+        'intention': 'Gửi tin nhắn cảm ơn sếp',
+        'morningCompleted': true,
+        'eveningCompleted': true,
+        'eveningEmotion': 'grateful',
+        'eveningNote': 'Nhận được phản hồi khích lệ rất ấm lòng từ team',
+        'intentionReviewed': true,
+      },
+      // Day 19: morning completed only
+      {
+        'date': '2026-06-19',
+        'affirmationText': 'Tôi thanh lọc cơ thể và tâm hồn',
+        'microOfferingId': 'offering_19',
+        'intention': 'Uống đủ 2 lít nước',
+        'morningCompleted': true,
+        'eveningCompleted': false,
+      },
+      // Day 20: peaceful
+      {
+        'date': '2026-06-20',
+        'affirmationText': 'Tần số của tôi hòa nhịp cùng sự hài hòa của tự nhiên',
+        'microOfferingId': 'offering_20',
+        'intention': 'Nghe nhạc thiền tần số 432Hz',
+        'morningCompleted': true,
+        'eveningCompleted': true,
+        'eveningEmotion': 'peaceful',
+        'eveningNote': 'Âm thanh tiếng chuông xoay Tây Tạng giúp tinh thần dịu lại',
+        'intentionReviewed': true,
+      },
+      // Day 21: overthinking
+      {
+        'date': '2026-06-21',
+        'affirmationText': 'Tôi nói bằng sự tự tin và chân thành của mình',
+        'microOfferingId': 'offering_21',
+        'intention': 'Chuẩn bị bài thuyết trình slide',
+        'morningCompleted': true,
+        'eveningCompleted': true,
+        'eveningEmotion': 'overthinking',
+        'eveningNote': 'Lo sợ mọi người phán xét cách mình trình bày',
+        'intentionReviewed': false,
+      },
+      // Day 22: lonely
+      {
+        'date': '2026-06-22',
+        'affirmationText': 'Tôi thuộc về thế giới rộng lớn này',
+        'microOfferingId': 'offering_22',
+        'intention': 'Đi dạo hồ Tây lúc hoàng hôn',
+        'morningCompleted': true,
+        'eveningCompleted': true,
+        'eveningEmotion': 'lonely',
+        'eveningNote': 'Gió hồ mát lạnh, xung quanh ai cũng có đôi, cảm thấy cô đơn nhưng dễ chịu',
+        'intentionReviewed': true,
+      },
+      // Day 23: grateful
+      {
+        'date': '2026-06-23',
+        'affirmationText': 'Tôi luôn hướng về phía ánh sáng mặt trời',
+        'microOfferingId': 'offering_23',
+        'intention': 'Mua tặng bản thân một bông hoa hướng dương',
+        'morningCompleted': true,
+        'eveningCompleted': true,
+        'eveningEmotion': 'grateful',
+        'eveningNote': 'Màu vàng rực của hoa làm bừng sáng góc làm việc',
+        'intentionReviewed': true,
+      },
+      // Day 24: peaceful
+      {
+        'date': '2026-06-24',
+        'affirmationText': 'Tình yêu thương lan tỏa từ tôi đến muôn nơi',
+        'microOfferingId': 'offering_24',
+        'intention': 'Chia sẻ niềm vui với người thân',
+        'morningCompleted': true,
+        'eveningCompleted': true,
+        'eveningEmotion': 'peaceful',
+        'eveningNote': 'Cuộc trò chuyện ngắn với mẹ ngập tràn tiếng cười',
+        'intentionReviewed': true,
+      },
+    ];
+
+    for (final data in mockAnchors) {
+      final date = data['date'] as String;
+      final key = 'anchor_${uid}_$date';
+      final anchorMap = {
+        'id': key,
+        'uid': uid,
+        ...data,
+      };
+      await _prefs.setString(key, jsonEncode(anchorMap));
+    }
+
+    await _prefs.setBool('seeded_june_2026_$uid', true);
   }
 
   @override
@@ -157,6 +438,26 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
   }
 
   @override
+  Future<List<AnchorModel>> fetchMonthAnchors(String uid, String yearMonth) async {
+    if (yearMonth == '2026-06') {
+      await seedJune2026MockDataForUid(uid);
+    }
+    final keys = _prefs.getKeys();
+    final prefix = 'anchor_${uid}_${yearMonth}-';
+    final List<AnchorModel> list = [];
+    for (final key in keys) {
+      if (key.startsWith(prefix)) {
+        final savedData = _prefs.getString(key);
+        if (savedData != null) {
+          list.add(AnchorModel.fromMap(jsonDecode(savedData), key));
+        }
+      }
+    }
+    list.sort((a, b) => a.date.compareTo(b.date));
+    return list;
+  }
+
+  @override
   Future<void> markIntentionReviewed(String uid, String date, bool achieved) async {
     final key = 'anchor_${uid}_$date';
     final savedData = _prefs.getString(key);
@@ -175,7 +476,7 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
     String microOfferingId,
     String intention,
   ) async {
-    final key = 'anchor_\${uid}_\$date';
+    final key = 'anchor_${uid}_$date';
     final anchor = AnchorModel(
       id: key, uid: uid, date: date,
       affirmationText: affirmation,
@@ -191,7 +492,7 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
   Future<AnchorModel> completeEveningReflection(
     String uid, String date, String emotion, String note, bool intentionAchieved,
   ) async {
-    final key = 'anchor_\${uid}_\$date';
+    final key = 'anchor_${uid}_$date';
     final savedData = _prefs.getString(key);
     final Map<String, dynamic> base = savedData != null
         ? jsonDecode(savedData) as Map<String, dynamic>
@@ -392,6 +693,27 @@ class FirebaseDatabaseRepository extends BaseDatabaseRepository {
     } catch (e) {
       debugPrint("Loi fetch yesterday anchor: $e");
       return null;
+    }
+  }
+
+  @override
+  Future<List<AnchorModel>> fetchMonthAnchors(String uid, String yearMonth) async {
+    try {
+      final snapshot = await _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('anchors')
+          .where(FieldPath.documentId, isGreaterThanOrEqualTo: '$yearMonth-01')
+          .where(FieldPath.documentId, isLessThanOrEqualTo: '$yearMonth-31')
+          .get();
+      final list = snapshot.docs
+          .map((doc) => AnchorModel.fromMap(doc.data(), doc.id))
+          .toList();
+      list.sort((a, b) => a.date.compareTo(b.date));
+      return list;
+    } catch (e) {
+      debugPrint("Loi fetch month anchors: $e");
+      rethrow;
     }
   }
 

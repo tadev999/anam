@@ -34,13 +34,15 @@ class ReleaseView extends StatefulWidget {
 
 class _ReleaseViewState extends State<ReleaseView> {
   final _controller = TextEditingController();
+  final _focusNode = FocusNode();
   bool _isBurning = false;
   ReleaseStep _currentStep = ReleaseStep.write;
   ReflectionChip? _selectedChip;
+  bool _isFocusMode = false;
 
   void _burnRelease() {
     if (_controller.text.trim().isEmpty) return;
-    
+
     // Kích hoạt hiệu ứng hạt bay trước
     setState(() {
       _isBurning = true;
@@ -49,7 +51,7 @@ class _ReleaseViewState extends State<ReleaseView> {
 
   void _onBurnComplete() {
     final confBloc = BlocProvider.of<ReleaseBloc>(context);
-    
+
     // Đốt xong thì dispatch Event lưu lên Firestore/Mock
     confBloc.add(SubmitReleaseRequested(_controller.text.trim()));
   }
@@ -64,8 +66,22 @@ class _ReleaseViewState extends State<ReleaseView> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    _focusNode.addListener(_onFocusChanged);
+  }
+
+  void _onFocusChanged() {
+    setState(() {
+      _isFocusMode = _focusNode.hasFocus;
+    });
+  }
+
+  @override
   void dispose() {
     _controller.dispose();
+    _focusNode.removeListener(_onFocusChanged);
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -85,14 +101,21 @@ class _ReleaseViewState extends State<ReleaseView> {
           backgroundColor: Colors.transparent,
           elevation: 0,
           leading: IconButton(
-            icon: const Icon(Icons.arrow_back_ios, color: ZenTheme.creamWhite, size: 20),
+            icon: const Icon(
+              Icons.arrow_back_ios,
+              color: ZenTheme.creamWhite,
+              size: 20,
+            ),
             onPressed: () {
               Navigator.pop(context);
             },
           ),
           title: Text(
             "Khoảng buông",
-            style: textTheme.titleLarge!.copyWith(fontFamily: 'Lora', fontWeight: FontWeight.normal),
+            style: textTheme.titleLarge!.copyWith(
+              fontFamily: 'Lora',
+              fontWeight: FontWeight.normal,
+            ),
           ),
           centerTitle: true,
         ),
@@ -110,35 +133,44 @@ class _ReleaseViewState extends State<ReleaseView> {
                 ),
               ),
             ),
-            
+
             SafeArea(
-              child: BlocConsumer<ReleaseBloc, ReleaseState>(
-                listener: (context, state) {
-                  if (state is ReleaseSuccess) {
-                    setState(() {
-                      _isBurning = false;
-                      _currentStep = ReleaseStep.transition;
-                      _controller.clear();
-                    });
-                  }
-                  
-                  if (state is ReleaseFailure) {
-                    setState(() {
-                      _isBurning = false;
-                    });
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(state.message), backgroundColor: ZenTheme.mistRed),
+              child: GestureDetector(
+                onTap: () {
+                  _focusNode.unfocus();
+                },
+                behavior: HitTestBehavior.opaque,
+                child: BlocConsumer<ReleaseBloc, ReleaseState>(
+                  listener: (context, state) {
+                    if (state is ReleaseSuccess) {
+                      setState(() {
+                        _isBurning = false;
+                        _currentStep = ReleaseStep.transition;
+                        _controller.clear();
+                      });
+                    }
+
+                    if (state is ReleaseFailure) {
+                      setState(() {
+                        _isBurning = false;
+                      });
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(state.message),
+                          backgroundColor: ZenTheme.mistRed,
+                        ),
+                      );
+                    }
+                  },
+                  builder: (context, state) {
+                    final isLoading = state is ReleaseLoading;
+
+                    return Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: _buildBody(textTheme, isLoading || _isBurning),
                     );
-                  }
-                },
-                builder: (context, state) {
-                  final isLoading = state is ReleaseLoading;
-      
-                  return Padding(
-                    padding: const EdgeInsets.all(20.0),
-                    child: _buildBody(textTheme, isLoading || _isBurning),
-                  );
-                },
+                  },
+                ),
               ),
             ),
           ],
@@ -162,19 +194,23 @@ class _ReleaseViewState extends State<ReleaseView> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          "Hãy trút bỏ gánh nặng tiêu cực",
-          textAlign: TextAlign.center,
-          style: textTheme.titleLarge!.copyWith(fontSize: 18),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          "Viết ra tổn thương, lo âu hay lỗi lầm của bạn hoàn toàn ẩn danh. Sau đó, hãy gửi chúng vào hư vô.",
-          textAlign: TextAlign.center,
-          style: textTheme.bodyMedium,
-        ),
-        const SizedBox(height: 32),
-        
+        if (!_isFocusMode) ...[
+          Text(
+            "Hãy trút bỏ gánh nặng tiêu cực",
+            textAlign: TextAlign.center,
+            style: textTheme.titleLarge!.copyWith(fontSize: 18),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "Viết ra tổn thương, lo âu hay lỗi lầm của bạn hoàn toàn ẩn danh. Sau đó, hãy gửi chúng vào hư vô.",
+            textAlign: TextAlign.center,
+            style: textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 32),
+        ] else ...[
+          const SizedBox(height: 12),
+        ],
+
         Expanded(
           child: ReleaseParticleEffect(
             isBurning: _isBurning,
@@ -186,17 +222,31 @@ class _ReleaseViewState extends State<ReleaseView> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Icon(Icons.nights_stay_outlined, color: ZenTheme.mistRed, size: 24),
+                  const Icon(
+                    Icons.nights_stay_outlined,
+                    color: ZenTheme.mistRed,
+                    size: 24,
+                  ),
                   const SizedBox(height: 16),
                   Expanded(
                     child: TextField(
                       controller: _controller,
+                      focusNode: _focusNode,
                       maxLines: null,
                       enabled: !isLocked,
-                      style: GoogleFonts.nunito(color: ZenTheme.creamWhite, height: 1.6, fontSize: 17),
+                      style: GoogleFonts.nunito(
+                        color: ZenTheme.creamWhite,
+                        height: 1.6,
+                        fontSize: 17,
+                      ),
                       decoration: InputDecoration(
-                        hintText: "Thành thật với chính mình. Không ai phán xét bạn ở đây...",
-                        hintStyle: GoogleFonts.nunito(color: ZenTheme.softGray.withOpacity(0.4), height: 1.6, fontSize: 17),
+                        hintText:
+                            "Thành thật với chính mình. Không ai phán xét bạn ở đây...",
+                        hintStyle: GoogleFonts.nunito(
+                          color: ZenTheme.softGray.withValues(alpha: 0.4),
+                          height: 1.6,
+                          fontSize: 17,
+                        ),
                         border: InputBorder.none,
                       ),
                     ),
@@ -206,123 +256,160 @@ class _ReleaseViewState extends State<ReleaseView> {
             ),
           ),
         ),
-        
-        const SizedBox(height: 24),
-        if (!isLocked)
-          ZenButton(
-            text: "Gửi vào hư vô",
-            icon: Icons.cloud_queue,
-            onPressed: () {
-              if (_controller.text.trim().isEmpty) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text("Nhập chia sẻ trước khi gửi vào hư vô.")),
-                );
-                return;
-              }
-              _burnRelease();
-            },
-          )
-        else if (_isBurning)
-          const Center(child: CircularProgressIndicator(color: ZenTheme.mistRed)),
-        const SizedBox(height: 10),
+
+        AnimatedSwitcher(
+          duration: const Duration(milliseconds: 250),
+          transitionBuilder: (Widget child, Animation<double> animation) {
+            return FadeTransition(
+              opacity: animation,
+              child: SizeTransition(
+                sizeFactor: animation,
+                axisAlignment: -1.0,
+                child: child,
+              ),
+            );
+          },
+          child: _isFocusMode
+              ? const SizedBox.shrink()
+              : Column(
+                  key: const ValueKey('bottom_action'),
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    const SizedBox(height: 24),
+                    if (!isLocked)
+                      ZenButton(
+                        text: "Gửi vào hư vô",
+                        icon: Icons.cloud_queue,
+                        onPressed: () {
+                          if (_controller.text.trim().isEmpty) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text("Nhập chia sẻ trước khi gửi vào hư vô."),
+                              ),
+                            );
+                            return;
+                          }
+                          _burnRelease();
+                        },
+                      )
+                    else if (_isBurning)
+                      const Center(
+                        child: CircularProgressIndicator(color: ZenTheme.mistRed),
+                      ),
+                    const SizedBox(height: 10),
+                  ],
+                ),
+        ),
       ],
     );
   }
 
   Widget _buildTransitionView(TextTheme textTheme) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const SizedBox(height: 48),
-        const Center(
-          child: _AshDissolveAnimation(),
-        ),
-        const SizedBox(height: 32),
-        Text(
-          "Nỗi lòng đã trôi vào hư vô.",
-          textAlign: TextAlign.center,
-          style: GoogleFonts.lora(
-            fontSize: 20,
-            color: ZenTheme.creamWhite,
-            fontWeight: FontWeight.normal,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          "Trước khi bước tiếp — hãy dừng lại một giây.",
-          textAlign: TextAlign.center,
-          style: GoogleFonts.nunito(
-            fontSize: 14,
-            color: ZenTheme.softGray,
-            fontStyle: FontStyle.italic,
-          ),
-        ),
-        const SizedBox(height: 40),
-        
-        GlassContainer(
-          opacity: 0.05,
-          radius: 28,
-          padding: const EdgeInsets.all(24),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Text(
-                "Điều bạn vừa viết ra nói lên nhu cầu nào của bạn hôm nay?",
-                textAlign: TextAlign.center,
-                style: GoogleFonts.lora(
-                  fontSize: 17,
-                  color: ZenTheme.creamWhite,
-                  height: 1.6,
-                ),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: IntrinsicHeight(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 16),
+                  const Center(child: _AshDissolveAnimation()),
+                  const SizedBox(height: 16),
+                  Text(
+                    "Nỗi lòng đã trôi vào hư vô.",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.lora(
+                      fontSize: 20,
+                      color: ZenTheme.creamWhite,
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    "Trước khi bước tiếp — hãy dừng lại một giây.",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.nunito(
+                      fontSize: 14,
+                      color: ZenTheme.softGray,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  GlassContainer(
+                    opacity: 0.05,
+                    radius: 28,
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          "Điều bạn vừa viết ra nói lên nhu cầu nào của bạn hôm nay?",
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.lora(
+                            fontSize: 17,
+                            color: ZenTheme.creamWhite,
+                            height: 1.6,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Wrap(
+                          spacing: 12,
+                          runSpacing: 12,
+                          alignment: WrapAlignment.center,
+                          children: ReflectionChip.values.map((chip) {
+                            return _ReflectionChipWidget(
+                              chip: chip,
+                              isSelected: _selectedChip == chip,
+                              onTap: () {
+                                setState(() {
+                                  _selectedChip = chip;
+                                });
+                              },
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 24),
+                  const Spacer(),
+                  Opacity(
+                    opacity: _selectedChip != null ? 1.0 : 0.4,
+                    child: IgnorePointer(
+                      ignoring: _selectedChip == null,
+                      child: ZenButton(
+                        text: "Tiếp tục",
+                        onPressed: () {
+                          if (_selectedChip != null) {
+                            final dbRepo = RepositoryProvider.of<BaseDatabaseRepository>(
+                              context,
+                            );
+                            if (_selectedChip == ReflectionChip.langeNghe) {
+                              dbRepo.currentMindState = 'lonely_state';
+                            } else if (_selectedChip == ReflectionChip.nghiNgoi) {
+                              dbRepo.currentMindState = 'burnout_state';
+                            } else if (_selectedChip == ReflectionChip.thaThu) {
+                              dbRepo.currentMindState = 'overthinking_state';
+                            }
+                          }
+                          setState(() {
+                            _currentStep = ReleaseStep.theReturn;
+                          });
+                        },
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                ],
               ),
-              const SizedBox(height: 24),
-              Wrap(
-                spacing: 12,
-                runSpacing: 12,
-                alignment: WrapAlignment.center,
-                children: ReflectionChip.values.map((chip) {
-                  return _ReflectionChipWidget(
-                    chip: chip,
-                    isSelected: _selectedChip == chip,
-                    onTap: () {
-                      setState(() {
-                        _selectedChip = chip;
-                      });
-                    },
-                  );
-                }).toList(),
-              ),
-            ],
-          ),
-        ),
-        
-        const Spacer(),
-        Opacity(
-          opacity: _selectedChip != null ? 1.0 : 0.4,
-          child: IgnorePointer(
-            ignoring: _selectedChip == null,
-            child: ZenButton(
-              text: "Tiếp tục",
-              onPressed: () {
-                if (_selectedChip != null) {
-                  final dbRepo = RepositoryProvider.of<BaseDatabaseRepository>(context);
-                  if (_selectedChip == ReflectionChip.langeNghe) {
-                    dbRepo.currentMindState = 'lonely_state';
-                  } else if (_selectedChip == ReflectionChip.nghiNgoi) {
-                    dbRepo.currentMindState = 'burnout_state';
-                  } else if (_selectedChip == ReflectionChip.thaThu) {
-                    dbRepo.currentMindState = 'overthinking_state';
-                  }
-                }
-                setState(() {
-                  _currentStep = ReleaseStep.theReturn;
-                });
-              },
             ),
           ),
-        ),
-        const SizedBox(height: 10),
-      ],
+        );
+      },
     );
   }
 
@@ -335,97 +422,111 @@ class _ReleaseViewState extends State<ReleaseView> {
     switch (_selectedChip!) {
       case ReflectionChip.langeNghe:
         headingText = "Bạn đã lắng nghe chính mình.";
-        subText = "Đó là một hành động dũng cảm. Bếp Lửa Chung luôn ở đây nếu bạn muốn biết rằng có người đang cùng cảm giác với bạn.";
+        subText =
+            "Đó là một hành động dũng cảm. Bếp Lửa Chung luôn ở đây nếu bạn muốn biết rằng có người đang cùng cảm giác với bạn.";
         break;
       case ReflectionChip.nghiNgoi:
         headingText = "Bạn được phép nghỉ ngơi.";
-        subText = "Không cần làm gì thêm hôm nay. Khoảng Lặng là nơi bạn có thể ở lại trong yên lặng một lúc.";
+        subText =
+            "Không cần làm gì thêm hôm nay. Khoảng Lặng là nơi bạn có thể ở lại trong yên lặng một lúc.";
         break;
       case ReflectionChip.thaThu:
         headingText = "Bạn đã tha thứ cho chính mình.";
-        subText = "Gửi đi nghĩa là buông. Điểm Neo hôm nay có thể là bước tiếp theo — một hành động nhỏ từ vị trí đứng mới này.";
+        subText =
+            "Gửi đi nghĩa là buông. Ý niệm ngày mới hôm nay có thể là bước tiếp theo — một hành động nhỏ từ vị trí đứng mới này.";
         break;
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        const SizedBox(height: 40),
-        const Center(
-          child: _PulseCheckIcon(),
-        ),
-        const SizedBox(height: 28),
-        Text(
-          headingText,
-          textAlign: TextAlign.center,
-          style: GoogleFonts.lora(
-            fontSize: 20,
-            color: ZenTheme.creamWhite,
-            fontWeight: FontWeight.normal,
-          ),
-        ),
-        const SizedBox(height: 12),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20),
-          child: Text(
-            subText,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.nunito(
-              fontSize: 14,
-              color: ZenTheme.softGray,
-              height: 1.5,
-            ),
-          ),
-        ),
-        const SizedBox(height: 36),
-        
-        _buildMicroActionCard(_selectedChip!),
-        
-        const Spacer(),
-        TextButton(
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => BlocProvider<ReflectionBloc>(
-                create: (context) => ReflectionBloc(
-                  databaseRepository: RepositoryProvider.of<BaseDatabaseRepository>(context),
-                ),
-                child: const ReflectionView(),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return SingleChildScrollView(
+          child: ConstrainedBox(
+            constraints: BoxConstraints(minHeight: constraints.maxHeight),
+            child: IntrinsicHeight(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  const SizedBox(height: 40),
+                  const Center(child: _PulseCheckIcon()),
+                  const SizedBox(height: 28),
+                  Text(
+                    headingText,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.lora(
+                      fontSize: 20,
+                      color: ZenTheme.creamWhite,
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Text(
+                      subText,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.nunito(
+                        fontSize: 14,
+                        color: ZenTheme.softGray,
+                        height: 1.5,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 36),
+
+                  _buildMicroActionCard(_selectedChip!),
+
+                  const SizedBox(height: 20),
+                  const Spacer(),
+                  TextButton(
+                    onPressed: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => BlocProvider<ReflectionBloc>(
+                          create: (context) => ReflectionBloc(
+                            databaseRepository:
+                                RepositoryProvider.of<BaseDatabaseRepository>(context),
+                          ),
+                          child: const ReflectionView(),
+                        ),
+                      ),
+                    ),
+                    child: Text(
+                      "Lòng bạn đã buông bỏ. Bạn có muốn dành 5 phút tự thấu hiểu cùng Gương tự vấn?",
+                      style: GoogleFonts.nunito(
+                        color: ZenTheme.sageGreen,
+                        decoration: TextDecoration.underline,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  ZenButton(
+                    text: "Về Bếp Lửa chính",
+                    onPressed: () {
+                      Navigator.pop(context);
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  Center(
+                    child: TextButton(
+                      onPressed: _resetFlow,
+                      child: Text(
+                        "Viết thêm một điều khác",
+                        style: GoogleFonts.nunito(
+                          color: ZenTheme.sageGreen,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                ],
               ),
             ),
           ),
-          child: Text(
-            "Lòng bạn đã buông bỏ. Bạn có muốn dành 5 phút tự thấu hiểu cùng Gương Tự Vấn?",
-            style: GoogleFonts.nunito(
-              color: ZenTheme.sageGreen,
-              decoration: TextDecoration.underline,
-              fontSize: 14,
-            ),
-          ),
-        ),
-        const SizedBox(height: 12),
-        ZenButton(
-          text: "Về Bếp Lửa chính",
-          onPressed: () {
-            Navigator.pop(context);
-          },
-        ),
-        const SizedBox(height: 12),
-        Center(
-          child: TextButton(
-            onPressed: _resetFlow,
-            child: Text(
-              "Viết thêm một điều khác",
-              style: GoogleFonts.nunito(
-                color: ZenTheme.sageGreen,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(height: 10),
-      ],
+        );
+      },
     );
   }
 
@@ -447,17 +548,14 @@ class _ReleaseViewState extends State<ReleaseView> {
         break;
       case ReflectionChip.thaThu:
         icon = Icons.brightness_6_outlined;
-        actionText = "Làm một hành động nhỏ trong Điểm Neo hôm nay";
+        actionText = "Làm một hành động nhỏ trong Ý niệm ngày mới hôm nay";
         destination = const AnchorView();
         break;
     }
 
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (_) => destination),
-        );
+        Navigator.push(context, MaterialPageRoute(builder: (_) => destination));
       },
       child: GlassContainer(
         opacity: 0.06,
@@ -516,7 +614,8 @@ class _AshDissolveAnimation extends StatefulWidget {
   State<_AshDissolveAnimation> createState() => _AshDissolveAnimationState();
 }
 
-class _AshDissolveAnimationState extends State<_AshDissolveAnimation> with SingleTickerProviderStateMixin {
+class _AshDissolveAnimationState extends State<_AshDissolveAnimation>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
 
   @override
@@ -537,13 +636,15 @@ class _AshDissolveAnimationState extends State<_AshDissolveAnimation> with Singl
   @override
   Widget build(BuildContext context) {
     return FadeTransition(
-      opacity: Tween<double>(begin: 0.8, end: 0.1).animate(
-        CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-      ),
+      opacity: Tween<double>(
+        begin: 0.8,
+        end: 0.1,
+      ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut)),
       child: ScaleTransition(
-        scale: Tween<double>(begin: 1.0, end: 0.85).animate(
-          CurvedAnimation(parent: _controller, curve: Curves.easeOut),
-        ),
+        scale: Tween<double>(
+          begin: 1.0,
+          end: 0.85,
+        ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeOut)),
         child: const Icon(
           Icons.blur_on_outlined,
           size: 40,
@@ -603,13 +704,13 @@ class _ReflectionChipWidgetState extends State<_ReflectionChipWidget> {
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           decoration: BoxDecoration(
             color: isSelected
-                ? accentColor.withOpacity(0.12)
-                : ZenTheme.creamWhite.withOpacity(0.06),
+                ? accentColor.withValues(alpha: 0.12)
+                : ZenTheme.creamWhite.withValues(alpha: 0.06),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: isSelected
-                  ? accentColor.withOpacity(0.35)
-                  : ZenTheme.creamWhite.withOpacity(0.1),
+                  ? accentColor.withValues(alpha: 0.35)
+                  : ZenTheme.creamWhite.withValues(alpha: 0.1),
               width: isSelected ? 1.5 : 1.0,
             ),
           ),
@@ -643,7 +744,8 @@ class _PulseCheckIcon extends StatefulWidget {
   State<_PulseCheckIcon> createState() => _PulseCheckIconState();
 }
 
-class _PulseCheckIconState extends State<_PulseCheckIcon> with SingleTickerProviderStateMixin {
+class _PulseCheckIconState extends State<_PulseCheckIcon>
+    with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _animation;
 
@@ -654,9 +756,10 @@ class _PulseCheckIconState extends State<_PulseCheckIcon> with SingleTickerProvi
       vsync: this,
       duration: const Duration(seconds: 2),
     )..repeat(reverse: true);
-    _animation = Tween<double>(begin: 1.0, end: 1.05).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
-    );
+    _animation = Tween<double>(
+      begin: 1.0,
+      end: 1.05,
+    ).animate(CurvedAnimation(parent: _controller, curve: Curves.easeInOut));
   }
 
   @override
@@ -674,24 +777,20 @@ class _PulseCheckIconState extends State<_PulseCheckIcon> with SingleTickerProvi
         height: 64,
         decoration: BoxDecoration(
           shape: BoxShape.circle,
-          color: ZenTheme.sageGreen.withOpacity(0.08),
+          color: ZenTheme.sageGreen.withValues(alpha: 0.08),
           border: Border.all(
-            color: ZenTheme.sageGreen.withOpacity(0.3),
+            color: ZenTheme.sageGreen.withValues(alpha: 0.3),
             width: 1.5,
           ),
           boxShadow: [
             BoxShadow(
-              color: ZenTheme.sageGreen.withOpacity(0.05),
+              color: ZenTheme.sageGreen.withValues(alpha: 0.05),
               blurRadius: 12,
               spreadRadius: 1,
             ),
           ],
         ),
-        child: const Icon(
-          Icons.check,
-          color: ZenTheme.sageGreen,
-          size: 32,
-        ),
+        child: const Icon(Icons.check, color: ZenTheme.sageGreen, size: 32),
       ),
     );
   }

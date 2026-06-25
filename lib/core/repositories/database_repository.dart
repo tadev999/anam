@@ -27,6 +27,9 @@ abstract class BaseDatabaseRepository {
   Future<void> updateSpiritualAvatar(String uid, String symbol);
   Future<void> saveReflection(String prompt, String content);
   Future<List<Map<String, dynamic>>> fetchReflections();
+  // Sleep Seed
+  Future<AnchorModel> sowSleepSeed(String uid, String date, String sownAt);
+  Future<AnchorModel> collectSleepSprout(String uid, String date, String sproutedAt);
 }
 
 // TRIỂN KHAI MOCK DATABASE REPOSITORY (Lưu SharedPreferences offline)
@@ -41,7 +44,7 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
   }
 
   Future<void> seedJune2026MockDataForUid(String uid) async {
-    final isSeeded = _prefs.getBool('seeded_june_2026_$uid') ?? false;
+    final isSeeded = _prefs.getBool('seeded_june_2026_sleep_$uid') ?? false;
     if (isSeeded) return;
 
     final List<Map<String, dynamic>> mockAnchors = [
@@ -68,6 +71,9 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
         'eveningEmotion': 'peaceful',
         'eveningNote': 'Vị trà oải hương thật thanh tịnh',
         'intentionReviewed': true,
+        'sleepSeedSownAt': '2026-06-02T22:45:00',
+        'sleepSeedSproutedAt': '2026-06-03T06:30:00',
+        'sleepSeedCollected': true,
       },
       // Day 3: morning completed only
       {
@@ -101,6 +107,9 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
         'eveningEmotion': 'peaceful',
         'eveningNote': 'Buổi chiều ngồi ngắm mưa rơi rất bình lặng',
         'intentionReviewed': true,
+        'sleepSeedSownAt': '2026-06-05T23:10:00',
+        'sleepSeedSproutedAt': '2026-06-06T07:05:00',
+        'sleepSeedCollected': true,
       },
       // Day 6: lonely
       {
@@ -125,6 +134,9 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
         'eveningEmotion': 'peaceful',
         'eveningNote': 'Mầm cây nhỏ đã hé nở lá xanh đầu tiên',
         'intentionReviewed': true,
+        'sleepSeedSownAt': '2026-06-08T22:30:00',
+        'sleepSeedSproutedAt': '2026-06-09T06:15:00',
+        'sleepSeedCollected': true,
       },
       // Day 9: overthinking
       {
@@ -173,6 +185,9 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
         'eveningEmotion': 'grateful',
         'eveningNote': 'Mẹ gọi điện khen món canh sườn hạt sen nấu ngon',
         'intentionReviewed': true,
+        'sleepSeedSownAt': '2026-06-12T23:55:00',
+        'sleepSeedSproutedAt': '2026-06-13T08:00:00',
+        'sleepSeedCollected': true,
       },
       // Day 13: lonely
       {
@@ -254,6 +269,9 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
         'eveningEmotion': 'peaceful',
         'eveningNote': 'Âm thanh tiếng chuông xoay Tây Tạng giúp tinh thần dịu lại',
         'intentionReviewed': true,
+        'sleepSeedSownAt': '2026-06-20T22:15:00',
+        'sleepSeedSproutedAt': '2026-06-21T06:00:00',
+        'sleepSeedCollected': true,
       },
       // Day 21: overthinking
       {
@@ -316,7 +334,7 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
       await _prefs.setString(key, jsonEncode(anchorMap));
     }
 
-    await _prefs.setBool('seeded_june_2026_$uid', true);
+    await _prefs.setBool('seeded_june_2026_sleep_$uid', true);
   }
 
   @override
@@ -501,6 +519,32 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
     base['eveningEmotion'] = emotion;
     base['eveningNote'] = note;
     base['intentionReviewed'] = intentionAchieved;
+    await _prefs.setString(key, jsonEncode(base));
+    return AnchorModel.fromMap(base, key);
+  }
+
+  @override
+  Future<AnchorModel> sowSleepSeed(String uid, String date, String sownAt) async {
+    final key = 'anchor_${uid}_$date';
+    final savedData = _prefs.getString(key);
+    final Map<String, dynamic> base = savedData != null
+        ? jsonDecode(savedData) as Map<String, dynamic>
+        : {'uid': uid, 'date': date, 'affirmationText': '', 'microOfferingId': '', 'intention': ''};
+    base['sleepSeedSownAt'] = sownAt;
+    base['sleepSeedCollected'] = false;
+    await _prefs.setString(key, jsonEncode(base));
+    return AnchorModel.fromMap(base, key);
+  }
+
+  @override
+  Future<AnchorModel> collectSleepSprout(String uid, String date, String sproutedAt) async {
+    final key = 'anchor_${uid}_$date';
+    final savedData = _prefs.getString(key);
+    final Map<String, dynamic> base = savedData != null
+        ? jsonDecode(savedData) as Map<String, dynamic>
+        : {'uid': uid, 'date': date, 'affirmationText': '', 'microOfferingId': '', 'intention': ''};
+    base['sleepSeedCollected'] = true;
+    base['sleepSeedSproutedAt'] = sproutedAt;
     await _prefs.setString(key, jsonEncode(base));
     return AnchorModel.fromMap(base, key);
   }
@@ -767,7 +811,39 @@ class FirebaseDatabaseRepository extends BaseDatabaseRepository {
       final snap = await ref.get();
       return AnchorModel.fromMap(snap.data()!, date);
     } catch (e) {
-      debugPrint("Loi completeEveningReflection: \$e");
+      debugPrint("Loi completeEveningReflection: $e");
+      rethrow;
+    }
+  }
+
+  @override
+  Future<AnchorModel> sowSleepSeed(String uid, String date, String sownAt) async {
+    try {
+      final ref = _firestore.collection('users').doc(uid).collection('anchors').doc(date);
+      await ref.set({
+        'sleepSeedSownAt': sownAt,
+        'sleepSeedCollected': false,
+      }, SetOptions(merge: true));
+      final snap = await ref.get();
+      return AnchorModel.fromMap(snap.data()!, date);
+    } catch (e) {
+      debugPrint("Loi sowSleepSeed: $e");
+      rethrow;
+    }
+  }
+
+  @override
+  Future<AnchorModel> collectSleepSprout(String uid, String date, String sproutedAt) async {
+    try {
+      final ref = _firestore.collection('users').doc(uid).collection('anchors').doc(date);
+      await ref.set({
+        'sleepSeedCollected': true,
+        'sleepSeedSproutedAt': sproutedAt,
+      }, SetOptions(merge: true));
+      final snap = await ref.get();
+      return AnchorModel.fromMap(snap.data()!, date);
+    } catch (e) {
+      debugPrint("Loi collectSleepSprout: $e");
       rethrow;
     }
   }
@@ -828,7 +904,7 @@ class FirebaseDatabaseRepository extends BaseDatabaseRepository {
       });
       return anchor;
     } catch (e) {
-      debugPrint("Lỗi hoàn thành điểm neo Repository: $e");
+      debugPrint("Lỗi hoàn thành ý niệm ngày mới Repository: $e");
       rethrow;
     }
   }

@@ -67,41 +67,45 @@ class _MindGardenScreenState extends State<MindGardenScreen> {
         ),
         title: GlassContainer(
           opacity: 0.08,
-          radius: 16,
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          radius: 12,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              IconButton(
-                icon: const Icon(
-                  Icons.arrow_left,
-                  color: ZenTheme.creamWhite,
-                  size: 22,
+              GestureDetector(
+                onTap: () => _changeMonth(-1),
+                behavior: HitTestBehavior.opaque,
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                  child: Icon(
+                    Icons.arrow_left,
+                    color: ZenTheme.creamWhite,
+                    size: 20,
+                  ),
                 ),
-                onPressed: () => _changeMonth(-1),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
               ),
-              const SizedBox(width: 4),
+              const SizedBox(width: 2),
               Text(
-                "Tháng ${_currentMonth.month.toString().padLeft(2, '0')} / ${_currentMonth.year}",
+                "${_currentMonth.month.toString().padLeft(2, '0')}/${_currentMonth.year}",
                 style: textTheme.titleMedium!.copyWith(
                   fontFamily: 'Lora',
-                  fontSize: 14.5,
+                  fontSize: 13.5,
                   fontWeight: FontWeight.bold,
                   color: ZenTheme.creamWhite,
                 ),
               ),
-              const SizedBox(width: 4),
-              IconButton(
-                icon: const Icon(
-                  Icons.arrow_right,
-                  color: ZenTheme.creamWhite,
-                  size: 22,
+              const SizedBox(width: 2),
+              GestureDetector(
+                onTap: () => _changeMonth(1),
+                behavior: HitTestBehavior.opaque,
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 6, vertical: 4),
+                  child: Icon(
+                    Icons.arrow_right,
+                    color: ZenTheme.creamWhite,
+                    size: 20,
+                  ),
                 ),
-                onPressed: () => _changeMonth(1),
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(),
               ),
             ],
           ),
@@ -150,7 +154,7 @@ class _MindGardenScreenState extends State<MindGardenScreen> {
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24.0),
                   child: Text(
-                    "Khu vườn này là không gian an toàn phản chiếu những dấu chân cảm xúc của bạn. Không có đúng sai hay áp lực, chỉ có sự tĩnh lặng của hiện tại. Nhấn vào một vị trí để xem lại chiêm nghiệm của mình.",
+                    "Khu vườn này là không gian an toàn phản chiếu những dấu chân cảm xúc của bạn. Không có đúng sai hay áp lực, chỉ có sự tĩnh lặng của hiện tại.",
                     textAlign: TextAlign.center,
                     style: GoogleFonts.nunito(
                       color: ZenTheme.softGray.withOpacity(0.7),
@@ -688,6 +692,12 @@ class _MindGardenScreenState extends State<MindGardenScreen> {
                       child: iconWidget,
                     ),
                   ),
+                if (anchor != null && anchor.sleepSeedCollected)
+                  const Positioned(
+                    bottom: 2,
+                    right: 3,
+                    child: Text("🌱", style: TextStyle(fontSize: 8)),
+                  ),
               ],
             ),
           ),
@@ -900,6 +910,42 @@ class _MindGardenScreenState extends State<MindGardenScreen> {
 
               const SizedBox(height: 24),
 
+              // 4. Hạt mầm ngủ ngon (nếu có)
+              if (anchor.sleepSeedCollected) ...[
+                const Divider(color: Colors.white10),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    const Text("🌱", style: TextStyle(fontSize: 18)),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "Hạt mầm ngủ ngon",
+                            style: GoogleFonts.nunito(
+                              fontSize: 12,
+                              color: ZenTheme.sageGreen,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          if (anchor.sleepSeedSownAt != null)
+                            Text(
+                              "Gieo lúc ${_formatTimeFromIso(anchor.sleepSeedSownAt!)}",
+                              style: GoogleFonts.nunito(
+                                fontSize: 12,
+                                color: ZenTheme.softGray.withOpacity(0.65),
+                              ),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+              ],
+
               ZenButton(text: "Đóng", onPressed: () => Navigator.pop(context)),
             ],
           ),
@@ -947,6 +993,17 @@ class _MindGardenScreenState extends State<MindGardenScreen> {
         return ZenTheme.softGray;
     }
   }
+
+  String _formatTimeFromIso(String isoString) {
+    try {
+      final dt = DateTime.parse(isoString);
+      final h = dt.hour.toString().padLeft(2, '0');
+      final m = dt.minute.toString().padLeft(2, '0');
+      return "$h:$m";
+    } catch (_) {
+      return isoString;
+    }
+  }
 }
 
 class ZenLegendIcon extends StatelessWidget {
@@ -988,9 +1045,6 @@ class ZenLegendIcon extends StatelessWidget {
         emoji = "⚪";
         break;
     }
-    return Text(
-      emoji,
-      style: TextStyle(fontSize: size.width),
-    );
+    return Text(emoji, style: TextStyle(fontSize: size.width));
   }
 }

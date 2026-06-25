@@ -31,9 +31,10 @@ class ZenTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
+      fontFamily: GoogleFonts.nunito().fontFamily,
       primaryColor: sageGreen,
       scaffoldBackgroundColor: slateDark,
-      dividerColor: creamWhite.withOpacity(0.08),
+      dividerColor: creamWhite.withValues(alpha: 0.08),
       cardColor: slateLight,
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
@@ -68,7 +69,7 @@ class ZenTheme {
         bodyLarge: GoogleFonts.nunito(
           fontSize: 17, // Tăng từ 16 lên 17
           fontWeight: FontWeight.normal,
-          color: creamWhite.withOpacity(0.9),
+          color: creamWhite.withValues(alpha: 0.9),
           height: 1.6, // Tăng từ 1.5 để văn bản tiếng Việt dễ đọc, thoáng đạt hơn
         ),
         bodyMedium: GoogleFonts.nunito(
@@ -98,9 +99,10 @@ class ZenTheme {
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.light,
+      fontFamily: GoogleFonts.nunito().fontFamily,
       primaryColor: sageGreen,
       scaffoldBackgroundColor: sandMedium,
-      dividerColor: charcoalBrown.withOpacity(0.08),
+      dividerColor: charcoalBrown.withValues(alpha: 0.08),
       cardColor: sandLight,
       appBarTheme: const AppBarTheme(
         backgroundColor: Colors.transparent,
@@ -135,7 +137,7 @@ class ZenTheme {
         bodyLarge: GoogleFonts.nunito(
           fontSize: 17, // Tăng từ 16 lên 17
           fontWeight: FontWeight.normal,
-          color: charcoalBrown.withOpacity(0.9),
+          color: charcoalBrown.withValues(alpha: 0.9),
           height: 1.6, // Tăng từ 1.5 để văn bản tiếng Việt dễ đọc, thoáng đạt hơn
         ),
         bodyMedium: GoogleFonts.nunito(
@@ -200,17 +202,17 @@ class ZenTheme {
     bool showBorder = true,
   }) {
     return BoxDecoration(
-      color: (color ?? creamWhite).withOpacity(opacity),
+      color: (color ?? creamWhite).withValues(alpha: opacity),
       borderRadius: BorderRadius.circular(radius),
       border: showBorder
           ? Border.all(
-              color: creamWhite.withOpacity(0.06),
+              color: creamWhite.withValues(alpha: 0.06),
               width: 1.0,
             )
           : null,
       boxShadow: [
         BoxShadow(
-          color: Colors.black.withOpacity(0.08),
+          color: Colors.black.withValues(alpha: 0.08),
           blurRadius: 30,
           offset: const Offset(0, 10),
         ),

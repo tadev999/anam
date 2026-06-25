@@ -12,16 +12,17 @@ import 'features/daily_anchor/bloc/anchor_bloc.dart';
 import 'features/release_space/bloc/release_bloc.dart';
 import 'features/hearth/bloc/hearth_bloc.dart';
 import 'features/silence/bloc/silence_bloc.dart';
+import 'features/sleep_seed/bloc/sleep_seed_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // ĐẶT THÀNH true NẾU BẠN MUỐN BẮT BUỘC CHẠY MOCK OFFLINE ĐỂ TEST GIAO DIỆN
-  bool forceMockMode = true;
+  bool forceMockMode = false;
 
   // KHỞI TẠO HỆ THỐNG AN TOÀN (SAFE BOOTSTRAP)
   bool useFirebase = false;
-  
+
   if (!forceMockMode) {
     try {
       await Firebase.initializeApp(
@@ -30,48 +31,72 @@ void main() async {
       useFirebase = true;
       debugPrint("Anam khởi tạo thành công ở chế độ Real Firebase!");
     } catch (e) {
-      debugPrint("Anam đang chạy ở chế độ Mock Offline (Chưa cấu hình Firebase): $e");
+      debugPrint(
+        "Anam đang chạy ở chế độ Mock Offline (Chưa cấu hình Firebase): $e",
+      );
     }
-  } else { // ignore: dead_code
-    debugPrint("Anam đang chạy ở chế độ BẮT BUỘC MOCK OFFLINE theo yêu cầu cấu hình.");
+  } else {
+    // ignore: dead_code
+    debugPrint(
+      "Anam đang chạy ở chế độ BẮT BUỘC MOCK OFFLINE theo yêu cầu cấu hình.",
+    );
   }
 
   // Khởi tạo các repositories tương ứng
-  final authRepository = useFirebase ? FirebaseAuthRepository() : MockAuthRepository();
-  final databaseRepository = useFirebase ? FirebaseDatabaseRepository() : MockDatabaseRepository();
-  
+  final authRepository = useFirebase
+      ? FirebaseAuthRepository()
+      : MockAuthRepository();
+  final databaseRepository = useFirebase
+      ? FirebaseDatabaseRepository()
+      : MockDatabaseRepository();
+
   await databaseRepository.init();
 
   runApp(
     MultiRepositoryProvider(
       providers: [
         RepositoryProvider<BaseAuthRepository>.value(value: authRepository),
-        RepositoryProvider<BaseDatabaseRepository>.value(value: databaseRepository),
+        RepositoryProvider<BaseDatabaseRepository>.value(
+          value: databaseRepository,
+        ),
       ],
       child: MultiBlocProvider(
         providers: [
           BlocProvider<AuthBloc>(
             create: (context) => AuthBloc(
-              authRepository: RepositoryProvider.of<BaseAuthRepository>(context),
+              authRepository: RepositoryProvider.of<BaseAuthRepository>(
+                context,
+              ),
             )..add(AppStarted()),
           ),
           BlocProvider<AnchorBloc>(
             create: (context) => AnchorBloc(
-              databaseRepository: RepositoryProvider.of<BaseDatabaseRepository>(context),
+              databaseRepository: RepositoryProvider.of<BaseDatabaseRepository>(
+                context,
+              ),
             ),
           ),
           BlocProvider<ReleaseBloc>(
             create: (context) => ReleaseBloc(
-              databaseRepository: RepositoryProvider.of<BaseDatabaseRepository>(context),
+              databaseRepository: RepositoryProvider.of<BaseDatabaseRepository>(
+                context,
+              ),
             ),
           ),
           BlocProvider<HearthBloc>(
             create: (context) => HearthBloc(
-              databaseRepository: RepositoryProvider.of<BaseDatabaseRepository>(context),
+              databaseRepository: RepositoryProvider.of<BaseDatabaseRepository>(
+                context,
+              ),
             ),
           ),
-          BlocProvider<SilenceBloc>(
-            create: (context) => SilenceBloc(),
+          BlocProvider<SilenceBloc>(create: (context) => SilenceBloc()),
+          BlocProvider<SleepSeedBloc>(
+            create: (context) => SleepSeedBloc(
+              databaseRepository: RepositoryProvider.of<BaseDatabaseRepository>(
+                context,
+              ),
+            ),
           ),
         ],
         child: const AnamApp(),

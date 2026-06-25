@@ -21,7 +21,7 @@ class ReflectionView extends StatefulWidget {
 class _ReflectionViewState extends State<ReflectionView> {
   final TextEditingController _controller = TextEditingController();
   final FocusNode _focusNode = FocusNode();
-  
+
   late String _prompt;
   bool _isFocusMode = false;
   bool _showFlowReminder = false;
@@ -32,13 +32,16 @@ class _ReflectionViewState extends State<ReflectionView> {
   void initState() {
     super.initState();
     _prompt = _selectPromptByMindState();
-    
+
     _controller.addListener(_onTextChanged);
     _focusNode.addListener(_onFocusChanged);
   }
 
   String _selectPromptByMindState() {
-    final dbRepo = RepositoryProvider.of<BaseDatabaseRepository>(context, listen: false);
+    final dbRepo = RepositoryProvider.of<BaseDatabaseRepository>(
+      context,
+      listen: false,
+    );
     final mindState = dbRepo.currentMindState;
     final random = Random();
 
@@ -63,17 +66,8 @@ class _ReflectionViewState extends State<ReflectionView> {
 
   void _onTextChanged() {
     final text = _controller.text;
-    
-    // Auto-activate Focus Mode when typing starts
-    if (text.isNotEmpty && !_isFocusMode) {
-      setState(() {
-        _isFocusMode = true;
-      });
-    } else if (text.isEmpty && _isFocusMode) {
-      setState(() {
-        _isFocusMode = false;
-      });
-    }
+
+    setState(() {});
 
     // Flow State Timer: if stops writing for 10s, show hint
     _inactivityTimer?.cancel();
@@ -82,7 +76,7 @@ class _ReflectionViewState extends State<ReflectionView> {
         _showFlowReminder = false;
       });
     }
-    
+
     if (text.isNotEmpty) {
       _inactivityTimer = Timer(const Duration(seconds: 10), () {
         if (mounted && _controller.text.isNotEmpty && _focusNode.hasFocus) {
@@ -95,11 +89,9 @@ class _ReflectionViewState extends State<ReflectionView> {
   }
 
   void _onFocusChanged() {
-    if (!_focusNode.hasFocus) {
-      setState(() {
-        _isFocusMode = false;
-      });
-    }
+    setState(() {
+      _isFocusMode = _focusNode.hasFocus;
+    });
   }
 
   @override
@@ -126,11 +118,15 @@ class _ReflectionViewState extends State<ReflectionView> {
             backgroundColor: Colors.transparent,
             elevation: 0,
             leading: IconButton(
-              icon: const Icon(Icons.arrow_back_ios, color: ZenTheme.creamWhite, size: 20),
+              icon: const Icon(
+                Icons.arrow_back_ios,
+                color: ZenTheme.creamWhite,
+                size: 20,
+              ),
               onPressed: _isFocusMode ? null : () => Navigator.pop(context),
             ),
             title: Text(
-              "Gương Tự Vấn",
+              "Gương tự vấn",
               style: textTheme.titleLarge!.copyWith(
                 fontFamily: 'Lora',
                 fontWeight: FontWeight.normal,
@@ -145,8 +141,10 @@ class _ReflectionViewState extends State<ReflectionView> {
         listener: (context, state) {
           if (state is ReflectionSuccess) {
             // Reward +5 EP on success
-            BlocProvider.of<AuthBloc>(context).add(const EmpathyPointsUpdated(5));
-            
+            BlocProvider.of<AuthBloc>(
+              context,
+            ).add(const EmpathyPointsUpdated(5));
+
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(
@@ -165,7 +163,7 @@ class _ReflectionViewState extends State<ReflectionView> {
                   state.error,
                   style: GoogleFonts.nunito(color: ZenTheme.creamWhite),
                 ),
-                backgroundColor: ZenTheme.mistRed.withOpacity(0.8),
+                backgroundColor: ZenTheme.mistRed.withValues(alpha: 0.8),
               ),
             );
           }
@@ -193,19 +191,20 @@ class _ReflectionViewState extends State<ReflectionView> {
                 },
                 behavior: HitTestBehavior.opaque,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 22.0, vertical: 16.0),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 22.0,
+                    vertical: 16.0,
+                  ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-
-
                       // Prompt Question Card
                       Text(
                         "Câu hỏi tự thấu hiểu hôm nay",
                         textAlign: TextAlign.center,
                         style: GoogleFonts.nunito(
                           fontSize: 12,
-                          color: ZenTheme.softGray.withOpacity(0.6),
+                           color: ZenTheme.softGray.withValues(alpha: 0.6),
                           letterSpacing: 1.5,
                         ),
                       ),
@@ -234,9 +233,9 @@ class _ReflectionViewState extends State<ReflectionView> {
                           isBurning: _isDissolving,
                           onComplete: () {
                             // After dissolution, trigger bloc to discard and exit
-                            BlocProvider.of<ReflectionBloc>(context).add(
-                              const DiscardReflectionRequested(),
-                            );
+                            BlocProvider.of<ReflectionBloc>(
+                              context,
+                            ).add(const DiscardReflectionRequested());
                           },
                           child: Stack(
                             children: [
@@ -247,20 +246,21 @@ class _ReflectionViewState extends State<ReflectionView> {
                                 cursorColor: ZenTheme.sageGreen,
                                 style: GoogleFonts.nunito(
                                   fontSize: 17,
-                                  color: ZenTheme.creamWhite.withOpacity(0.9),
+                                   color: ZenTheme.creamWhite.withValues(alpha: 0.9),
                                   height: 1.65,
                                 ),
                                 decoration: InputDecoration(
-                                  hintText: "Nhập những suy nghĩ chân thật nhất...\nViết tự do không bộ lọc...",
+                                  hintText:
+                                      "Nhập những suy nghĩ chân thật nhất...\nViết tự do không bộ lọc...",
                                   hintStyle: GoogleFonts.nunito(
                                     fontSize: 16,
-                                    color: ZenTheme.softGray.withOpacity(0.4),
+                                    color: ZenTheme.softGray.withValues(alpha: 0.4),
                                     height: 1.65,
                                   ),
                                   border: InputBorder.none,
                                 ),
                               ),
-                              
+
                               // Flow state warning indicator
                               Positioned(
                                 bottom: 12,
@@ -270,7 +270,10 @@ class _ReflectionViewState extends State<ReflectionView> {
                                   opacity: _showFlowReminder ? 0.7 : 0.0,
                                   duration: const Duration(milliseconds: 450),
                                   child: Container(
-                                    padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 8,
+                                      horizontal: 12,
+                                    ),
                                     decoration: BoxDecoration(
                                       color: Colors.black26,
                                       borderRadius: BorderRadius.circular(12),
@@ -292,62 +295,78 @@ class _ReflectionViewState extends State<ReflectionView> {
                         ),
                       ),
 
-                      const SizedBox(height: 16),
-                      const Divider(color: Colors.white10),
-                      const SizedBox(height: 16),
-
-                      // Bottom actions HUD (Fades out in focus mode)
-                      AnimatedOpacity(
-                        opacity: _isFocusMode ? 0.0 : 1.0,
-                        duration: const Duration(milliseconds: 300),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            // Character count validation feedback
-                            if (_controller.text.trim().length < 50 && _controller.text.trim().isNotEmpty)
-                              Padding(
-                                padding: const EdgeInsets.only(bottom: 8.0),
-                                child: Text(
-                                  "Cần nhập thêm ${50 - _controller.text.trim().length} ký tự để hoàn tất bài chiêm nghiệm.",
-                                  textAlign: TextAlign.center,
-                                  style: GoogleFonts.nunito(
-                                    color: ZenTheme.softGold,
-                                    fontSize: 12,
-                                  ),
-                                ),
-                              ),
-
-                            // Dual button options stacked vertically to prevent right overflow
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                ZenButton(
-                                  text: "Cất vào góc riêng",
-                                  onPressed: _isFocusMode || _isDissolving ? null : _handleSaveLocal,
-                                ),
-                                const SizedBox(height: 12),
-                                OutlinedButton(
-                                  onPressed: _isFocusMode || _isDissolving ? null : _handleVoidRelease,
-                                  style: OutlinedButton.styleFrom(
-                                    foregroundColor: ZenTheme.mistRed,
-                                    side: const BorderSide(color: ZenTheme.mistRed, width: 1.0),
-                                    padding: const EdgeInsets.symmetric(vertical: 16),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(28),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    "Gửi vào hư vô",
-                                    style: GoogleFonts.nunito(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                      AnimatedSwitcher(
+                        duration: const Duration(milliseconds: 250),
+                        transitionBuilder: (Widget child, Animation<double> animation) {
+                          return FadeTransition(
+                            opacity: animation,
+                            child: SizeTransition(
+                              sizeFactor: animation,
+                              axisAlignment: -1.0,
+                              child: child,
                             ),
-                          ],
-                        ),
+                          );
+                        },
+                        child: _isFocusMode
+                            ? const SizedBox.shrink()
+                            : Column(
+                                key: const ValueKey('bottom_actions'),
+                                crossAxisAlignment: CrossAxisAlignment.stretch,
+                                children: [
+                                  const SizedBox(height: 16),
+                                  const Divider(color: Colors.white10),
+                                  const SizedBox(height: 16),
+                                  // Character count validation feedback
+                                  if (_controller.text.trim().length < 50 &&
+                                      _controller.text.trim().isNotEmpty)
+                                    Padding(
+                                      padding: const EdgeInsets.only(bottom: 8.0),
+                                      child: Text(
+                                        "Cần nhập thêm ${50 - _controller.text.trim().length} ký tự để hoàn tất bài chiêm nghiệm.",
+                                        textAlign: TextAlign.center,
+                                        style: GoogleFonts.nunito(
+                                          color: ZenTheme.softGold,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ),
+
+                                  // Dual button options stacked vertically to prevent right overflow
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    children: [
+                                      ZenButton(
+                                        text: "Cất vào góc riêng",
+                                        onPressed: _isDissolving ? null : _handleSaveLocal,
+                                      ),
+                                      const SizedBox(height: 12),
+                                      OutlinedButton(
+                                        onPressed: _isDissolving ? null : _handleVoidRelease,
+                                        style: OutlinedButton.styleFrom(
+                                          foregroundColor: ZenTheme.mistRed,
+                                          side: const BorderSide(
+                                            color: ZenTheme.mistRed,
+                                            width: 1.0,
+                                          ),
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 16,
+                                          ),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(28),
+                                          ),
+                                        ),
+                                        child: Text(
+                                          "Gửi vào hư vô",
+                                          style: GoogleFonts.nunito(
+                                            fontSize: 15,
+                                            fontWeight: FontWeight.bold,
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                       ),
                     ],
                   ),
@@ -368,7 +387,7 @@ class _ReflectionViewState extends State<ReflectionView> {
             "Bài chiêm nghiệm cần đạt tối thiểu 50 ký tự để gửi vào hư vô.",
             style: GoogleFonts.nunito(color: ZenTheme.creamWhite),
           ),
-          backgroundColor: ZenTheme.mistRed.withOpacity(0.8),
+          backgroundColor: ZenTheme.mistRed.withValues(alpha: 0.8),
         ),
       );
       return;
@@ -388,15 +407,15 @@ class _ReflectionViewState extends State<ReflectionView> {
             "Bài chiêm nghiệm cần đạt tối thiểu 50 ký tự để cất vào nhật ký.",
             style: GoogleFonts.nunito(color: ZenTheme.creamWhite),
           ),
-          backgroundColor: ZenTheme.mistRed.withOpacity(0.8),
+          backgroundColor: ZenTheme.mistRed.withValues(alpha: 0.8),
         ),
       );
       return;
     }
 
     _focusNode.unfocus();
-    BlocProvider.of<ReflectionBloc>(context).add(
-      SaveReflectionRequested(prompt: _prompt, content: _controller.text),
-    );
+    BlocProvider.of<ReflectionBloc>(
+      context,
+    ).add(SaveReflectionRequested(prompt: _prompt, content: _controller.text));
   }
 }

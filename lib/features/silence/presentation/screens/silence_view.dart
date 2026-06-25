@@ -14,6 +14,8 @@ class SilenceView extends StatefulWidget {
 }
 
 class _SilenceViewState extends State<SilenceView> {
+  late SilenceBloc _silenceBloc;
+
   @override
   void initState() {
     super.initState();
@@ -30,18 +32,30 @@ class _SilenceViewState extends State<SilenceView> {
     }
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _silenceBloc = BlocProvider.of<SilenceBloc>(context);
+  }
+
+  @override
+  void dispose() {
+    _silenceBloc.add(ResetTimerRequested());
+    super.dispose();
+  }
+
   final List<Map<String, String>> _zenReadings = [
     {
-      'title': 'Chủ nghĩa Khắc Kỷ Stoic',
-      'content': 'Tập trung hoàn toàn vào những gì bạn có thể kiểm soát. Suy nghĩ của bạn, hành vi của bạn, mong muốn của bạn. Những gì xảy ra bên ngoài — thời tiết, thái độ của người khác, biến cố xã hội — đều nằm ngoài tầm tay. Hãy chấp nhận chúng với sự bình thản tối đa (Amor Fati).',
+      'title': 'Buông bỏ ngoại cảnh',
+      'content': 'Trút bỏ bớt gánh nặng. Những gì thuộc về ngoài kia, hãy để chúng tự nhiên diễn ra. Lúc này, bạn chỉ cần chịu trách nhiệm cho hơi thở và sự bình yên của chính mình.',
     },
     {
-      'title': 'Hơi thở Định tâm',
-      'content': 'Hãy chú ý đến từng luồng khí đi vào và đi ra qua hai cánh mũi. Khi hít vào, biết mình đang hít vào. Khi thở ra, biết mình đang thở ra. Khi tâm trí đi lang thang, nhẹ nhàng mang nó trở lại với hơi thở mà không phán xét, ghét bỏ.',
+      'title': 'Neo giữ hơi thở',
+      'content': 'Hơi thở là điểm tựa tự nhiên nhất của bạn. Không cần cố gắng điều chỉnh nhịp thở nhanh hay chậm. Chỉ cần cảm nhận luồng khí nhẹ nhàng đi vào, đi ra và nhận biết cơ thể đang sống.',
     },
     {
-      'title': 'Sức mạnh của Hiện tại',
-      'content': 'Quá khứ đã trôi qua, tương lai thì chưa tới. Mọi lo âu đều sinh ra từ việc nuối tiếc quá khứ hoặc sợ hãi tương lai. Chỉ có giây phút hiện tại này là thực sự thuộc về bạn. Hãy trân trọng và sống trọn vẹn trong giây phút này.',
+      'title': 'An trú hiện tại',
+      'content': 'Quá khứ đã qua, tương lai chưa tới. Khoảnh khắc này là thực tại duy nhất bạn có. Hãy cho phép bản thân tạm dừng mọi lo toan, chỉ tồn tại trọn vẹn trong khoảng lặng này.',
     },
   ];
   int _currentReadingIndex = 0;
@@ -56,19 +70,19 @@ class _SilenceViewState extends State<SilenceView> {
           surfaceTintColor: Colors.transparent,
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
           title: const Text(
-            "Kết thúc khoảng lặng",
+            "Khoảng lặng lắng dịu",
             textAlign: TextAlign.center,
             style: TextStyle(fontFamily: 'Lora', color: ZenTheme.creamWhite),
           ),
           content: const Text(
-            "Chúc mừng bạn đã hoàn thành khoảng lặng định tâm. Tâm trí bạn giờ đây đã bình lặng và nhẹ nhõm hơn.",
+            "Cảm ơn bạn đã dành thời gian ngồi yên. Mong sự bình lặng và nhẹ nhõm này sẽ tiếp tục đồng hành cùng bạn.",
             textAlign: TextAlign.center,
-            style: TextStyle(color: ZenTheme.softGray),
+            style: TextStyle(color: ZenTheme.softGray, height: 1.45),
           ),
           actions: [
             Center(
               child: ZenButton(
-                text: "Xác nhận",
+                text: "Đón nhận",
                 onPressed: () {
                   Navigator.pop(dialogCtx);
                   BlocProvider.of<SilenceBloc>(context).add(ResetTimerRequested());
@@ -76,6 +90,116 @@ class _SilenceViewState extends State<SilenceView> {
               ),
             ),
           ],
+        );
+      },
+    );
+  }
+
+  void _showSoundSelectorSheet(BuildContext context, SilenceState state) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (sheetCtx) {
+        return Container(
+          decoration: const BoxDecoration(
+            color: ZenTheme.slateMedium,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(24),
+              topRight: Radius.circular(24),
+            ),
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+          child: SafeArea(
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Text(
+                    "Chọn nhạc nền định tâm",
+                    style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                          fontFamily: 'Lora',
+                          fontSize: 18,
+                          color: ZenTheme.creamWhite,
+                        ),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 20),
+                  ...[
+                    {
+                      'name': 'Mưa Rơi',
+                      'icon': Icons.water_drop,
+                      'url': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+                      'desc': 'Tiếng mưa rơi nhẹ nhàng gột rửa tâm trí',
+                    },
+                    {
+                      'name': 'Tiếng Sóng',
+                      'icon': Icons.waves,
+                      'url': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
+                      'desc': 'Sóng biển rì rào đưa tâm hồn về bến lặng',
+                    },
+                    {
+                      'name': 'Chuông Thiền',
+                      'icon': Icons.spa,
+                      'url': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
+                      'desc': 'Chuông đồng ngân vang thanh lọc mọi xao động',
+                    },
+                  ].map((sound) {
+                    final isSelected = state.currentSound == sound['name'];
+                    final soundName = sound['name'] as String;
+                    final soundUrl = sound['url'] as String;
+
+                    return Container(
+                      margin: const EdgeInsets.only(bottom: 12),
+                      decoration: BoxDecoration(
+                        color: isSelected
+                            ? ZenTheme.sageGreen.withValues(alpha: 0.12)
+                            : ZenTheme.creamWhite.withValues(alpha: 0.03),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(
+                          color: isSelected
+                              ? ZenTheme.sageGreen.withValues(alpha: 0.3)
+                              : Colors.transparent,
+                        ),
+                      ),
+                      child: ListTile(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        leading: Icon(
+                          sound['icon'] as IconData,
+                          color: isSelected ? ZenTheme.sageGreen : ZenTheme.softGray,
+                        ),
+                        title: Text(
+                          soundName,
+                          style: TextStyle(
+                            color: isSelected ? ZenTheme.creamWhite : ZenTheme.creamWhite.withValues(alpha: 0.8),
+                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                            fontSize: 15,
+                          ),
+                        ),
+                        subtitle: Text(
+                          sound['desc'] as String,
+                          style: TextStyle(
+                            color: ZenTheme.softGray.withValues(alpha: 0.7),
+                            fontSize: 12,
+                          ),
+                        ),
+                        trailing: isSelected
+                            ? const Icon(Icons.check, color: ZenTheme.sageGreen)
+                            : null,
+                        onTap: () {
+                          BlocProvider.of<SilenceBloc>(context).add(
+                            SelectSoundRequested(soundName: soundName, soundUrl: soundUrl),
+                          );
+                          Navigator.pop(sheetCtx);
+                        },
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ),
+          ),
         );
       },
     );
@@ -135,54 +259,75 @@ class _SilenceViewState extends State<SilenceView> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      // 1. Đồng hồ đếm ngược
-                      Center(
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            SizedBox(
-                              width: 220,
-                              height: 220,
-                              child: CircularProgressIndicator(
-                                value: progress,
-                                strokeWidth: 5,
-                                backgroundColor: ZenTheme.creamWhite.withOpacity(0.04),
-                                valueColor: const AlwaysStoppedAnimation<Color>(ZenTheme.sageGreen),
+                      // Gợi ý tư thế ban đầu
+                      IgnorePointer(
+                        ignoring: state.isTimerRunning,
+                        child: AnimatedOpacity(
+                          opacity: state.isTimerRunning ? 0.0 : 0.8,
+                          duration: const Duration(milliseconds: 500),
+                          child: Padding(
+                            padding: const EdgeInsets.only(bottom: 24.0),
+                            child: Text(
+                              "Hãy ngồi thoải mái, thả lỏng vai và khép hờ mắt...",
+                              textAlign: TextAlign.center,
+                              style: textTheme.bodyMedium!.copyWith(
+                                color: ZenTheme.softGray,
+                                fontStyle: FontStyle.italic,
                               ),
                             ),
-                            Column(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  _formatDuration(state.secondsRemaining),
-                                  style: textTheme.displayLarge!.copyWith(
-                                    fontSize: 48,
-                                    fontWeight: FontWeight.w200,
-                                    letterSpacing: 2,
-                                  ),
+                          ),
+                        ),
+                      ),
+
+                      // 1. Đồng hồ đếm ngược
+                      GestureDetector(
+                        onTap: () {
+                          BlocProvider.of<SilenceBloc>(context).add(ToggleTimerRequested());
+                        },
+                        behavior: HitTestBehavior.opaque,
+                        child: Center(
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              SizedBox(
+                                width: 220,
+                                height: 220,
+                                child: CircularProgressIndicator(
+                                  value: progress,
+                                  strokeWidth: 5,
+                                  backgroundColor: ZenTheme.creamWhite.withValues(alpha: 0.04),
+                                  valueColor: const AlwaysStoppedAnimation<Color>(ZenTheme.sageGreen),
                                 ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  state.isTimerRunning ? "Đang thiền định..." : "Nhấn để bắt đầu",
-                                  style: textTheme.bodyMedium!.copyWith(
-                                    color: state.isTimerRunning ? ZenTheme.sageGreen : ZenTheme.softGray,
-                                    letterSpacing: 0.5,
+                              ),
+                              Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    _formatDuration(state.secondsRemaining),
+                                    style: textTheme.displayLarge!.copyWith(
+                                      fontSize: 48,
+                                      fontWeight: FontWeight.w200,
+                                      letterSpacing: 2,
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 16),
-                                IconButton(
-                                  icon: Icon(
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    state.isTimerRunning ? "Lắng yên..." : "Nhấn để bắt đầu",
+                                    style: textTheme.bodyMedium!.copyWith(
+                                      color: state.isTimerRunning ? ZenTheme.sageGreen : ZenTheme.softGray,
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 16),
+                                  Icon(
                                     state.isTimerRunning ? Icons.pause_circle_outline : Icons.play_circle_outline,
                                     color: ZenTheme.sageGreen,
                                     size: 36,
                                   ),
-                                  onPressed: () {
-                                    BlocProvider.of<SilenceBloc>(context).add(ToggleTimerRequested());
-                                  },
-                                ),
-                              ],
-                            ),
-                          ],
+                                ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       
@@ -198,13 +343,13 @@ class _SilenceViewState extends State<SilenceView> {
                               BlocProvider.of<SilenceBloc>(context).add(ChangeDurationRequested(minutes));
                             },
                             child: Container(
-                              margin: const EdgeInsets.symmetric(horizontal: 6),
-                              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                              margin: const EdgeInsets.symmetric(horizontal: 4),
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                               decoration: BoxDecoration(
-                                color: isSelected ? ZenTheme.sageGreen.withOpacity(0.12) : Colors.transparent,
+                                color: isSelected ? ZenTheme.sageGreen.withValues(alpha: 0.12) : Colors.transparent,
                                 borderRadius: BorderRadius.circular(18),
                                 border: Border.all(
-                                  color: isSelected ? ZenTheme.sageGreen.withOpacity(0.2) : ZenTheme.creamWhite.withOpacity(0.05),
+                                  color: isSelected ? ZenTheme.sageGreen.withValues(alpha: 0.2) : ZenTheme.creamWhite.withValues(alpha: 0.05),
                                 ),
                               ),
                               child: Text(
@@ -223,43 +368,47 @@ class _SilenceViewState extends State<SilenceView> {
                       const SizedBox(height: 32),
                       
                       // 2. Nhạc nền
-                      GlassContainer(
-                        opacity: 0.05,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    shape: BoxShape.circle,
-                                    color: ZenTheme.inkBlue.withOpacity(0.08),
+                      GestureDetector(
+                        onTap: () => _showSoundSelectorSheet(context, state),
+                        behavior: HitTestBehavior.opaque,
+                        child: GlassContainer(
+                          opacity: 0.05,
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(10),
+                                    decoration: BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: ZenTheme.inkBlue.withValues(alpha: 0.08),
+                                    ),
+                                    child: const Icon(Icons.music_note, color: ZenTheme.inkBlue, size: 22),
                                   ),
-                                  child: const Icon(Icons.music_note, color: ZenTheme.inkBlue, size: 22),
-                                ),
-                                const SizedBox(width: 14),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text("Nhạc nền định tâm", style: textTheme.titleLarge!.copyWith(fontSize: 15)),
-                                    const SizedBox(height: 2),
-                                    Text("Âm thanh: ${state.currentSound}", style: textTheme.bodyMedium!.copyWith(fontSize: 12)),
-                                  ],
-                                ),
-                              ],
-                            ),
-                            IconButton(
-                              icon: Icon(
-                                state.isPlayingSound ? Icons.volume_up : Icons.volume_off,
-                                color: state.isPlayingSound ? ZenTheme.sageGreen : ZenTheme.softGray,
-                                size: 26,
+                                  const SizedBox(width: 14),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text("Nhạc nền định tâm", style: textTheme.titleLarge!.copyWith(fontSize: 15)),
+                                      const SizedBox(height: 2),
+                                      Text("Âm thanh: ${state.currentSound}", style: textTheme.bodyMedium!.copyWith(fontSize: 12)),
+                                    ],
+                                  ),
+                                ],
                               ),
-                              onPressed: () {
-                                BlocProvider.of<SilenceBloc>(context).add(ToggleSoundRequested());
-                              },
-                            ),
-                          ],
+                              IconButton(
+                                icon: Icon(
+                                  state.isPlayingSound ? Icons.volume_up : Icons.volume_off,
+                                  color: state.isPlayingSound ? ZenTheme.sageGreen : ZenTheme.softGray,
+                                  size: 26,
+                                ),
+                                onPressed: () {
+                                  BlocProvider.of<SilenceBloc>(context).add(ToggleSoundRequested());
+                                },
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                       
@@ -323,7 +472,7 @@ class _SilenceViewState extends State<SilenceView> {
             style: textTheme.bodyLarge!.copyWith(
               fontSize: 13,
               height: 1.6,
-              color: ZenTheme.creamWhite.withOpacity(0.8),
+              color: ZenTheme.creamWhite.withValues(alpha: 0.8),
             ),
           ),
         ],

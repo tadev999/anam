@@ -1,10 +1,13 @@
 import 'dart:math';
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/constants.dart';
 import '../../../../core/theme.dart';
 import '../../../../core/repositories/database_repository.dart';
 import '../../../../shared/widgets/glass_container.dart';
+import '../../../../shared/widgets/zen_button.dart';
 import '../../../auth/bloc/auth_bloc.dart';
 import '../../../daily_anchor/bloc/anchor_bloc.dart';
 import '../../../daily_anchor/data/models/anchor_model.dart';
@@ -17,6 +20,10 @@ import '../../../reflection/bloc/reflection_bloc.dart';
 import '../../../reflection/presentation/screens/reflection_view.dart';
 import '../../../mind_garden/bloc/mind_garden_bloc.dart';
 import '../../../mind_garden/presentation/screens/mind_garden_screen.dart';
+import '../../../sleep_seed/bloc/sleep_seed_bloc.dart';
+import '../../../sleep_seed/bloc/sleep_seed_event.dart';
+import '../../../sleep_seed/bloc/sleep_seed_state.dart';
+import '../../../sleep_seed/presentation/screens/sleep_seed_screen.dart';
 
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
@@ -62,6 +69,12 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
           BlocProvider.of<AnchorBloc>(context).add(
             CheckTodayAnchorRequested(authState.user.uid, _getTodayString()),
           );
+          BlocProvider.of<SleepSeedBloc>(context).add(
+            CheckSleepSeedStatusRequested(
+              authState.user.uid,
+              _getTodayString(),
+            ),
+          );
         }
       }
     });
@@ -70,6 +83,17 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   String _getTodayString() {
     final now = DateTime.now();
     return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
+  }
+
+  String _getGreetingPrefix() {
+    final hour = DateTime.now().hour;
+    if (hour >= 5 && hour < 12) {
+      return "Chào ngày mới nhẹ nhõm,";
+    } else if (hour >= 12 && hour < 17) {
+      return "Bình yên giữa ngày,";
+    } else {
+      return "Khép lại ngày, thả lỏng...";
+    }
   }
 
   @override
@@ -134,17 +158,65 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
           ),
 
           SafeArea(
-            child: BlocListener<AuthBloc, AuthState>(
-              listener: (context, authState) {
-                if (authState is Authenticated) {
-                  BlocProvider.of<AnchorBloc>(context).add(
-                    CheckTodayAnchorRequested(
-                      authState.user.uid,
-                      _getTodayString(),
-                    ),
-                  );
-                }
-              },
+            child: MultiBlocListener(
+              listeners: [
+                BlocListener<AuthBloc, AuthState>(
+                  listener: (context, authState) {
+                    if (authState is Authenticated) {
+                      BlocProvider.of<AnchorBloc>(context).add(
+                        CheckTodayAnchorRequested(
+                          authState.user.uid,
+                          _getTodayString(),
+                        ),
+                      );
+                      BlocProvider.of<SleepSeedBloc>(context).add(
+                        CheckSleepSeedStatusRequested(
+                          authState.user.uid,
+                          _getTodayString(),
+                        ),
+                      );
+                    }
+                  },
+                ),
+                BlocListener<SleepSeedBloc, SleepSeedState>(
+                  listener: (context, sleepState) {
+                    if (sleepState is SleepSeedStatusLoaded) {
+                      if (sleepState.canSprout &&
+                          sleepState.yesterdayAnchor != null) {
+                        Future.delayed(const Duration(milliseconds: 800), () {
+                          if (mounted) {
+                            _showMorningSproutDialog(
+                              context,
+                              sleepState.yesterdayAnchor!,
+                            );
+                          }
+                        });
+                      }
+                    } else if (sleepState is SleepSeedCollectionSuccess) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            "🌱 Đã đón nhận mầm bình yên vào Vườn Tâm Trí!",
+                          ),
+                          duration: Duration(seconds: 2),
+                          backgroundColor: ZenTheme.sageGreen,
+                        ),
+                      );
+                      final authState = BlocProvider.of<AuthBloc>(
+                        context,
+                      ).state;
+                      if (authState is Authenticated) {
+                        BlocProvider.of<SleepSeedBloc>(context).add(
+                          CheckSleepSeedStatusRequested(
+                            authState.user.uid,
+                            _getTodayString(),
+                          ),
+                        );
+                      }
+                    }
+                  },
+                ),
+              ],
               child: BlocBuilder<AuthBloc, AuthState>(
                 builder: (context, state) {
                   final user = (state is Authenticated) ? state.user : null;
@@ -169,7 +241,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    "Chào bạn đồng hành,",
+                                    _getGreetingPrefix(),
                                     style: textTheme.bodyMedium,
                                   ),
                                   Text(
@@ -183,7 +255,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                               ),
                               Row(
                                 children: [
-
                                   IconButton(
                                     icon: const Icon(
                                       Icons.logout,
@@ -252,7 +323,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                         ),
                         const SizedBox(height: 32),
 
-                        // 3. Tự Thấu Hiểu — chiêm nghiệm sâu (Gương Tự Vấn)
+                        // 3. Tự Thấu Hiểu — chiêm nghiệm sâu (Gương tự vấn)
                         _StaggeredEntranceItem(
                           key: const ValueKey('entrance_3'),
                           index: 3,
@@ -300,10 +371,34 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                         ),
                         const SizedBox(height: 32),
 
-                        // 5. Kết Nối & Nhìn Lại — Bếp lửa chung + Vườn Tâm Trí
+                        // 5. Giấc ngủ bình yên / Hạt mầm ngủ ngon
                         _StaggeredEntranceItem(
-                          key: const ValueKey('entrance_5'),
+                          key: const ValueKey('entrance_sleep'),
                           index: 5,
+                          controller: _entranceController,
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                "Giấc ngủ bình yên",
+                                style: textTheme.displaySmall!.copyWith(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: ZenTheme.sageGreen,
+                                  letterSpacing: 2.0,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              _buildSleepSeedCard(context),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+
+                        // 6. Kết Nối & Nhìn Lại — Bếp lửa chung + Vườn Tâm Trí
+                        _StaggeredEntranceItem(
+                          key: const ValueKey('entrance_6'),
+                          index: 6,
                           controller: _entranceController,
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -324,10 +419,10 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                         ),
                         const SizedBox(height: 32),
 
-                        // 6. Bếp lửa sưởi ấm — ambient, cuối trang
+                        // 7. Bếp lửa sưởi ấm — ambient, cuối trang
                         _StaggeredEntranceItem(
-                          key: const ValueKey('entrance_6'),
-                          index: 6,
+                          key: const ValueKey('entrance_7'),
+                          index: 7,
                           controller: _entranceController,
                           child: GlassContainer(
                             opacity: 0.05,
@@ -357,12 +452,15 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                                   style: textTheme.bodyLarge!.copyWith(
                                     fontStyle: FontStyle.italic,
                                     fontSize: 15,
-                                    color: ZenTheme.creamWhite.withOpacity(0.85),
+                                    color: ZenTheme.creamWhite.withOpacity(
+                                      0.85,
+                                    ),
                                   ),
                                 ),
                                 const SizedBox(height: 16),
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
                                       "Vai trò: ${user?.spiritualRole.split(' ')[0] ?? 'Seeker'}",
@@ -384,10 +482,10 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                         ),
                         const SizedBox(height: 32),
 
-                        // 7. Footer tagline
+                        // 8. Footer tagline
                         _StaggeredEntranceItem(
-                          key: const ValueKey('entrance_7'),
-                          index: 7,
+                          key: const ValueKey('entrance_8'),
+                          index: 8,
                           controller: _entranceController,
                           child: Center(
                             child: Text(
@@ -421,7 +519,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
         if (state is AnchorLoading) {
           return GlassContainer(
             opacity: 0.12,
-            radius: 38,
+            radius: 24,
             padding: const EdgeInsets.symmetric(vertical: 40),
             child: const Center(
               child: CircularProgressIndicator(
@@ -464,17 +562,17 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
       ),
       child: GlassContainer(
         opacity: 0.12,
-        radius: 38,
+        radius: 24,
         padding: const EdgeInsets.all(0),
         child: Padding(
-          padding: const EdgeInsets.all(28.0),
+          padding: const EdgeInsets.all(20.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: ZenTheme.sageGreen.withOpacity(0.15),
@@ -482,27 +580,27 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                     child: const Icon(
                       Icons.wb_sunny_outlined,
                       color: ZenTheme.sageGreen,
-                      size: 32,
+                      size: 24,
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Điểm neo Buổi Sáng",
+                          "Ý niệm ngày mới",
                           style: textTheme.headlineSmall!.copyWith(
-                            fontSize: 22,
+                            fontSize: 18,
                             fontWeight: FontWeight.w700,
                             color: ZenTheme.creamWhite,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         Text(
                           "Định hình ý niệm & hành động",
                           style: textTheme.bodyMedium!.copyWith(
-                            fontSize: 13,
+                            fontSize: 12,
                             color: ZenTheme.sageGreen.withOpacity(0.8),
                           ),
                         ),
@@ -511,7 +609,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
               Container(
                 height: 1,
                 decoration: BoxDecoration(
@@ -523,24 +621,24 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
               Text(
-                "Đứng trước những bộn bề, hãy dành 2 phút đặt mục tiêu tâm trí và nhận một hành động nhỏ lành mạnh cho ngày hôm nay.",
-                style: textTheme.bodyLarge!.copyWith(
-                  fontSize: 15,
-                  color: ZenTheme.creamWhite.withOpacity(0.9),
-                  height: 1.6,
+                "Gieo một ý niệm lành mạnh cho ngày hôm nay.",
+                style: textTheme.bodyMedium!.copyWith(
+                  fontSize: 13,
+                  color: ZenTheme.softGray,
+                  height: 1.5,
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 16,
+                  horizontal: 20,
+                  vertical: 12,
                 ),
                 decoration: BoxDecoration(
                   color: ZenTheme.sageGreen.withOpacity(0.18),
-                  borderRadius: BorderRadius.circular(28),
+                  borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: ZenTheme.sageGreen.withOpacity(0.25),
                     width: 1.0,
@@ -551,16 +649,16 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   children: [
                     Text(
                       "Thiết lập ý định ngày mới",
-                      style: textTheme.bodyLarge!.copyWith(
+                      style: textTheme.bodyMedium!.copyWith(
                         fontWeight: FontWeight.bold,
                         color: ZenTheme.sageGreen,
-                        fontSize: 15,
+                        fontSize: 14,
                       ),
                     ),
                     const Icon(
                       Icons.arrow_forward_rounded,
                       color: ZenTheme.sageGreen,
-                      size: 20,
+                      size: 16,
                     ),
                   ],
                 ),
@@ -585,17 +683,17 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
       ),
       child: GlassContainer(
         opacity: 0.12,
-        radius: 38,
+        radius: 24,
         padding: const EdgeInsets.all(0),
         child: Padding(
-          padding: const EdgeInsets.all(28.0),
+          padding: const EdgeInsets.all(20.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: eveningColor.withOpacity(0.15),
@@ -603,10 +701,10 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                     child: const Icon(
                       Icons.nightlight_outlined,
                       color: eveningColor,
-                      size: 32,
+                      size: 24,
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -614,16 +712,16 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                         Text(
                           "Nhìn lại cuối ngày",
                           style: textTheme.headlineSmall!.copyWith(
-                            fontSize: 22,
+                            fontSize: 18,
                             fontWeight: FontWeight.w700,
                             color: ZenTheme.creamWhite,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         Text(
                           "Lắng đọng & Ghi nhận bài học",
                           style: textTheme.bodyMedium!.copyWith(
-                            fontSize: 13,
+                            fontSize: 12,
                             color: eveningColor.withOpacity(0.8),
                           ),
                         ),
@@ -632,7 +730,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
               Container(
                 height: 1,
                 decoration: BoxDecoration(
@@ -641,7 +739,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
               if (anchor.intention.isNotEmpty) ...[
                 Text(
                   "Sáng nay bạn đã đặt ý định:",
@@ -654,12 +752,12 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 10,
+                    horizontal: 12,
+                    vertical: 8,
                   ),
                   decoration: BoxDecoration(
                     color: ZenTheme.creamWhite.withOpacity(0.04),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(10),
                     border: Border.all(
                       color: ZenTheme.creamWhite.withOpacity(0.06),
                     ),
@@ -673,25 +771,25 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                     ),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 12),
               ],
               Text(
-                "Đã đến lúc nhìn lại ngày hôm nay. Hãy dành vài phút để ôm ấp cảm xúc của bạn trước khi đi ngủ.",
-                style: textTheme.bodyLarge!.copyWith(
-                  fontSize: 15,
-                  color: ZenTheme.creamWhite.withOpacity(0.9),
-                  height: 1.6,
+                "Dành vài phút nhìn lại để lòng thêm nhẹ nhõm trước khi ngủ.",
+                style: textTheme.bodyMedium!.copyWith(
+                  fontSize: 13,
+                  color: ZenTheme.softGray,
+                  height: 1.5,
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 16,
+                  horizontal: 20,
+                  vertical: 12,
                 ),
                 decoration: BoxDecoration(
                   color: eveningColor.withOpacity(0.18),
-                  borderRadius: BorderRadius.circular(28),
+                  borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: eveningColor.withOpacity(0.25),
                     width: 1.0,
@@ -702,16 +800,16 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   children: [
                     Text(
                       "Bắt đầu nhìn lại tối",
-                      style: textTheme.bodyLarge!.copyWith(
+                      style: textTheme.bodyMedium!.copyWith(
                         fontWeight: FontWeight.bold,
                         color: eveningColor,
-                        fontSize: 15,
+                        fontSize: 14,
                       ),
                     ),
                     const Icon(
                       Icons.arrow_forward_rounded,
                       color: eveningColor,
-                      size: 20,
+                      size: 16,
                     ),
                   ],
                 ),
@@ -736,17 +834,17 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
       ),
       child: GlassContainer(
         opacity: 0.12,
-        radius: 38,
+        radius: 24,
         padding: const EdgeInsets.all(0),
         child: Padding(
-          padding: const EdgeInsets.all(28.0),
+          padding: const EdgeInsets.all(20.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: completedColor.withOpacity(0.15),
@@ -754,10 +852,10 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                     child: const Icon(
                       Icons.check_circle_outline_rounded,
                       color: completedColor,
-                      size: 32,
+                      size: 24,
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -765,16 +863,16 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                         Text(
                           "Khép lại ngày hôm nay",
                           style: textTheme.headlineSmall!.copyWith(
-                            fontSize: 22,
+                            fontSize: 18,
                             fontWeight: FontWeight.w700,
                             color: ZenTheme.creamWhite,
                           ),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: 2),
                         Text(
                           "Tâm trí đã sẵn sàng nghỉ ngơi",
                           style: textTheme.bodyMedium!.copyWith(
-                            fontSize: 13,
+                            fontSize: 12,
                             color: completedColor.withOpacity(0.8),
                           ),
                         ),
@@ -783,7 +881,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   ),
                 ],
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
               Container(
                 height: 1,
                 decoration: BoxDecoration(
@@ -795,24 +893,24 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 12),
               Text(
-                "Bạn đã hoàn thành việc định hướng ngày mới và nhìn lại cuối ngày.",
-                style: textTheme.bodyLarge!.copyWith(
-                  fontSize: 15,
-                  color: ZenTheme.creamWhite.withOpacity(0.9),
-                  height: 1.6,
+                "Tâm trí đã lắng yên. Bạn đã khép lại ngày hôm nay trọn vẹn.",
+                style: textTheme.bodyMedium!.copyWith(
+                  fontSize: 13,
+                  color: ZenTheme.softGray,
+                  height: 1.5,
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 16,
+                  horizontal: 20,
+                  vertical: 12,
                 ),
                 decoration: BoxDecoration(
                   color: ZenTheme.sageGreen.withOpacity(0.18),
-                  borderRadius: BorderRadius.circular(28),
+                  borderRadius: BorderRadius.circular(20),
                   border: Border.all(
                     color: ZenTheme.sageGreen.withOpacity(0.25),
                     width: 1.0,
@@ -823,16 +921,16 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   children: [
                     Text(
                       "Xem chi tiết ngày hôm nay",
-                      style: textTheme.bodyLarge!.copyWith(
+                      style: textTheme.bodyMedium!.copyWith(
                         fontWeight: FontWeight.bold,
                         color: ZenTheme.sageGreen,
-                        fontSize: 15,
+                        fontSize: 14,
                       ),
                     ),
                     const Icon(
                       Icons.arrow_forward_rounded,
                       color: ZenTheme.sageGreen,
-                      size: 20,
+                      size: 16,
                     ),
                   ],
                 ),
@@ -962,7 +1060,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      "Định tâm",
+                      "Khoảng lặng",
                       style: textTheme.titleLarge!.copyWith(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -1100,7 +1198,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
-                      "Gương Tự Vấn",
+                      "Gương tự vấn",
                       style: textTheme.titleLarge!.copyWith(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
@@ -1203,6 +1301,179 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildSleepSeedCard(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
+
+    return _PebblePressCard(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const SleepSeedScreen()),
+      ),
+      child: GlassContainer(
+        opacity: 0.08,
+        radius: 24,
+        padding: const EdgeInsets.all(0),
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 18.0),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: ZenTheme.sageGreen.withOpacity(0.12),
+                ),
+                child: const Icon(
+                  Icons.spa_outlined,
+                  color: ZenTheme.sageGreen,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "Hạt mầm ngủ ngon",
+                      style: textTheme.titleLarge!.copyWith(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: ZenTheme.creamWhite,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      "Gieo mầm tĩnh tại trước giờ nghỉ ngơi",
+                      style: textTheme.bodyMedium!.copyWith(
+                        fontSize: 13,
+                        color: ZenTheme.creamWhite.withOpacity(0.65),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const Icon(
+                Icons.chevron_right_rounded,
+                color: ZenTheme.sageGreen,
+                size: 24,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _showMorningSproutDialog(
+    BuildContext context,
+    AnchorModel yesterdayAnchor,
+  ) {
+    showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierLabel: "MorningSprout",
+      transitionDuration: const Duration(milliseconds: 600),
+      pageBuilder: (ctx, anim1, anim2) {
+        return Material(
+          type: MaterialType.transparency,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
+                  child: Container(
+                    color: const Color(0xFF08080C).withOpacity(0.85),
+                  ),
+                ),
+              ),
+              Center(
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 28),
+                  padding: const EdgeInsets.all(32),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.03),
+                    borderRadius: BorderRadius.circular(36),
+                    border: Border.all(color: Colors.white.withOpacity(0.08)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: ZenTheme.sageGreen.withOpacity(0.05),
+                        blurRadius: 40,
+                        spreadRadius: 5,
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      ScaleTransition(
+                        scale: anim1,
+                        child: Container(
+                          width: 100,
+                          height: 100,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: ZenTheme.sageGreen.withOpacity(0.12),
+                            boxShadow: [
+                              BoxShadow(
+                                color: ZenTheme.sageGreen.withOpacity(0.2),
+                                blurRadius: 30,
+                                spreadRadius: 2,
+                              ),
+                            ],
+                          ),
+                          child: const Center(
+                            child: Text("🌱", style: TextStyle(fontSize: 48)),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                      const Text(
+                        "Mầm xanh an trú nảy nở",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: ZenTheme.creamWhite,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w400,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        "Chào buổi sáng. Hạt mầm ngủ ngon bạn gieo đêm qua đã nảy mầm trong tĩnh lặng của màn đêm. Hãy đưa chiếc mầm này vào Vườn Tâm Trí của bạn.",
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: ZenTheme.softGray.withOpacity(0.8),
+                          fontSize: 14,
+                          height: 1.5,
+                        ),
+                      ),
+                      const SizedBox(height: 36),
+                      ZenButton.glass(
+                        text: "Nhận mầm bình yên",
+                        onPressed: () {
+                          BlocProvider.of<SleepSeedBloc>(context).add(
+                            CollectSleepSproutRequested(
+                              uid: yesterdayAnchor.uid,
+                              date: yesterdayAnchor.date,
+                              sproutedAt: DateTime.now(),
+                            ),
+                          );
+                          Navigator.pop(ctx);
+                          HapticFeedback.mediumImpact();
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
     );
   }
 }

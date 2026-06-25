@@ -63,45 +63,46 @@ class ZenGardenPainter extends CustomPainter {
           ..strokeWidth = 1.0;
         canvas.drawCircle(pos, 6, slotPaint);
         _drawDayLabel(canvas, pos, d, false);
-        continue;
-      }
-
-      // Tình huống B: Chỉ hoàn thành morning check-in (Bình minh 🌅)
-      if (!anchor.eveningCompleted) {
+      } else if (!anchor.eveningCompleted) {
+        // Tình huống B: Chỉ hoàn thành morning check-in (Bình minh 🌅)
         _drawEmoji(canvas, pos, "🌅", 15);
         _drawDayLabel(canvas, pos, d, true);
-        continue;
+      } else {
+        // Tình huống C: Hoàn thành trọn vẹn cả ngày (Vẽ theo eveningEmotion)
+        final emotion = anchor.eveningEmotion;
+        String emoji = "";
+        switch (emotion) {
+          case 'peaceful':
+            emoji = "☀️";
+            break;
+          case 'grateful':
+            emoji = "🌸";
+            break;
+          case 'burnout':
+            emoji = "🔥";
+            break;
+          case 'overthinking':
+            emoji = "🌀";
+            break;
+          case 'lonely':
+            emoji = "🌑";
+            break;
+          case 'empty':
+            emoji = "🫧";
+            break;
+          default:
+            emoji = "⚪";
+            break;
+        }
+
+        _drawEmoji(canvas, pos, emoji, 18);
+        _drawDayLabel(canvas, pos, d, true);
       }
 
-      // Tình huống C: Hoàn thành trọn vẹn cả ngày (Vẽ theo eveningEmotion)
-      final emotion = anchor.eveningEmotion;
-      String emoji = "";
-      switch (emotion) {
-        case 'peaceful':
-          emoji = "☀️";
-          break;
-        case 'grateful':
-          emoji = "🌸";
-          break;
-        case 'burnout':
-          emoji = "🔥";
-          break;
-        case 'overthinking':
-          emoji = "🌀";
-          break;
-        case 'lonely':
-          emoji = "🌑";
-          break;
-        case 'empty':
-          emoji = "🫧";
-          break;
-        default:
-          emoji = "⚪";
-          break;
+      // Vẽ thêm mầm ngủ ngon nếu có
+      if (anchor != null && anchor.sleepSeedCollected) {
+        _drawEmoji(canvas, Offset(pos.dx - 10, pos.dy + 10), "🌱", 12);
       }
-
-      _drawEmoji(canvas, pos, emoji, 18);
-      _drawDayLabel(canvas, pos, d, true);
     }
   }
 

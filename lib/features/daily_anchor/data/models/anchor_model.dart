@@ -15,6 +15,11 @@ class AnchorModel {
   final String? eveningEmotion; // cảm xúc check-in buổi tối
   final String? eveningNote;    // ghi chú 1 điều học được hôm nay
 
+  // --- Sleep Seed fields (mới) ---
+  final String? sleepSeedSownAt;     // Thời điểm gieo hạt ngủ ngon (ISO-8601)
+  final String? sleepSeedSproutedAt; // Thời điểm thu hoạch mầm non (ISO-8601)
+  final bool sleepSeedCollected;     // Đã thu hoạch mầm non chưa
+
   // --- Backward compat fields ---
   // emotionCheckIn: dữ liệu cũ trước khi tách morning/evening
   final String? emotionCheckIn;
@@ -36,6 +41,9 @@ class AnchorModel {
     this.eveningCompleted = false,
     this.eveningEmotion,
     this.eveningNote,
+    this.sleepSeedSownAt,
+    this.sleepSeedSproutedAt,
+    this.sleepSeedCollected = false,
     this.emotionCheckIn,
     this.intentionReviewed,
   });
@@ -53,6 +61,9 @@ class AnchorModel {
       'eveningCompleted': eveningCompleted,
       'eveningEmotion': eveningEmotion,
       'eveningNote': eveningNote,
+      'sleepSeedSownAt': sleepSeedSownAt,
+      'sleepSeedSproutedAt': sleepSeedSproutedAt,
+      'sleepSeedCollected': sleepSeedCollected,
       'emotionCheckIn': emotionCheckIn,
       'intentionReviewed': intentionReviewed,
     };
@@ -71,6 +82,9 @@ class AnchorModel {
       eveningCompleted: map['eveningCompleted'] ?? false,
       eveningEmotion: map['eveningEmotion'],
       eveningNote: map['eveningNote'],
+      sleepSeedSownAt: map['sleepSeedSownAt'],
+      sleepSeedSproutedAt: map['sleepSeedSproutedAt'],
+      sleepSeedCollected: map['sleepSeedCollected'] ?? false,
       emotionCheckIn: map['emotionCheckIn'],
       intentionReviewed: map['intentionReviewed'],
     );

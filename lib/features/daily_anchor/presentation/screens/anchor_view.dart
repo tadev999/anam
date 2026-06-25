@@ -8,9 +8,6 @@ import '../../../../shared/widgets/glass_container.dart';
 import '../../../../shared/widgets/zen_button.dart';
 import '../../../auth/bloc/auth_bloc.dart';
 import '../../bloc/anchor_bloc.dart';
-import '../../../../core/repositories/database_repository.dart';
-import '../../../reflection/bloc/reflection_bloc.dart';
-import '../../../reflection/presentation/screens/reflection_view.dart';
 
 /// Morning Anchor Ritual — Nghi thức buổi sáng
 /// Flow: Nguyện ước → Hành động nhỏ → Gợi ý chiêm nghiệm → Hoàn thành
@@ -63,7 +60,9 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
   }
 
   String _pickRandomAffirmation() {
-    return ZenConstants.dailyAffirmations[Random().nextInt(ZenConstants.dailyAffirmations.length)];
+    return ZenConstants.dailyAffirmations[Random().nextInt(
+      ZenConstants.dailyAffirmations.length,
+    )];
   }
 
   void _refreshAffirmation() {
@@ -73,7 +72,9 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
   void _checkTodayAnchor() {
     final authBloc = BlocProvider.of<AuthBloc>(context);
     final anchorBloc = BlocProvider.of<AnchorBloc>(context);
-    final uid = (authBloc.state is Authenticated) ? (authBloc.state as Authenticated).user.uid : '';
+    final uid = (authBloc.state is Authenticated)
+        ? (authBloc.state as Authenticated).user.uid
+        : '';
     anchorBloc.add(CheckTodayAnchorRequested(uid, _getTodayString()));
   }
 
@@ -96,15 +97,19 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
 
     final authBloc = BlocProvider.of<AuthBloc>(context);
     final anchorBloc = BlocProvider.of<AnchorBloc>(context);
-    final uid = (authBloc.state is Authenticated) ? (authBloc.state as Authenticated).user.uid : '';
+    final uid = (authBloc.state is Authenticated)
+        ? (authBloc.state as Authenticated).user.uid
+        : '';
 
-    anchorBloc.add(CompleteTodayAnchorRequested(
-      uid: uid,
-      date: _getTodayString(),
-      affirmation: _selectedAffirmation,
-      microOfferingId: _selectedOfferingId ?? 'breathe',
-      intention: _intentionController.text.trim(),
-    ));
+    anchorBloc.add(
+      CompleteTodayAnchorRequested(
+        uid: uid,
+        date: _getTodayString(),
+        affirmation: _selectedAffirmation,
+        microOfferingId: _selectedOfferingId ?? 'breathe',
+        intention: _intentionController.text.trim(),
+      ),
+    );
   }
 
   @override
@@ -123,12 +128,19 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
         backgroundColor: Colors.transparent,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: ZenTheme.creamWhite, size: 20),
+          icon: const Icon(
+            Icons.arrow_back_ios,
+            color: ZenTheme.creamWhite,
+            size: 20,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Điểm Neo Buổi Sáng',
-          style: textTheme.titleLarge!.copyWith(fontFamily: 'Lora', fontWeight: FontWeight.normal),
+          'Ý niệm ngày mới',
+          style: textTheme.titleLarge!.copyWith(
+            fontFamily: 'Lora',
+            fontWeight: FontWeight.normal,
+          ),
         ),
         centerTitle: true,
       ),
@@ -149,7 +161,9 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
             child: BlocConsumer<AnchorBloc, AnchorState>(
               listener: (context, state) {
                 // Hôm nay đã hoàn thành morning anchor
-                if (state is AnchorLoadSuccess && state.anchor != null && state.anchor!.morningCompleted) {
+                if (state is AnchorLoadSuccess &&
+                    state.anchor != null &&
+                    state.anchor!.morningCompleted) {
                   setState(() {
                     _currentStep = 3;
                     _selectedAffirmation = state.anchor!.affirmationText;
@@ -159,23 +173,33 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
                 }
                 if (state is AnchorSubmissionSuccess) {
                   final authBloc = BlocProvider.of<AuthBloc>(context);
-                  final offering = ZenConstants.microOfferings.firstWhere((o) => o['id'] == _selectedOfferingId);
+                  final offering = ZenConstants.microOfferings.firstWhere(
+                    (o) => o['id'] == _selectedOfferingId,
+                  );
                   authBloc.add(EmpathyPointsUpdated(offering['points'] as int));
                   final currentStreak = (authBloc.state is Authenticated)
-                      ? (authBloc.state as Authenticated).user.streak : 0;
-                  authBloc.add(StreakUpdated(currentStreak + 1, _getTodayString()));
+                      ? (authBloc.state as Authenticated).user.streak
+                      : 0;
+                  authBloc.add(
+                    StreakUpdated(currentStreak + 1, _getTodayString()),
+                  );
                   setState(() => _currentStep = 3);
                 }
                 if (state is AnchorFailure) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(state.message), backgroundColor: ZenTheme.mistRed),
+                    SnackBar(
+                      content: Text(state.message),
+                      backgroundColor: ZenTheme.mistRed,
+                    ),
                   );
                 }
               },
               builder: (context, state) {
                 final isLoading = state is AnchorLoading;
                 if (isLoading && _currentStep == 0) {
-                  return const Center(child: CircularProgressIndicator(color: ZenTheme.sageGreen));
+                  return const Center(
+                    child: CircularProgressIndicator(color: ZenTheme.sageGreen),
+                  );
                 }
                 return Padding(
                   padding: const EdgeInsets.all(20.0),
@@ -186,7 +210,11 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
                         _buildProgressIndicator(),
                         const SizedBox(height: 28),
                       ],
-                      Expanded(child: SingleChildScrollView(child: _buildStepContent(textTheme, isLoading))),
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: _buildStepContent(textTheme, isLoading),
+                        ),
+                      ),
                       const SizedBox(height: 20),
                       if (_currentStep < 3)
                         _buildNavigationButtons(isLoading)
@@ -212,10 +240,13 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
                     child: Transform.scale(
                       scale: _rippleScale.value,
                       child: Container(
-                        width: 200, height: 200,
+                        width: 200,
+                        height: 200,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: ZenTheme.sageGreen.withOpacity(_rippleOpacity.value),
+                          color: ZenTheme.sageGreen.withOpacity(
+                            _rippleOpacity.value,
+                          ),
                         ),
                       ),
                     ),
@@ -243,7 +274,9 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
                 height: 4,
                 margin: EdgeInsets.only(right: i == 2 ? 0 : 8),
                 decoration: BoxDecoration(
-                  color: active ? ZenTheme.sageGreen : ZenTheme.creamWhite.withOpacity(0.1),
+                  color: active
+                      ? ZenTheme.sageGreen
+                      : ZenTheme.creamWhite.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -259,8 +292,11 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
                 labels[i],
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  fontSize: 9, letterSpacing: 0.4,
-                  color: active ? ZenTheme.sageGreen.withOpacity(0.9) : ZenTheme.softGray.withOpacity(0.35),
+                  fontSize: 9,
+                  letterSpacing: 0.4,
+                  color: active
+                      ? ZenTheme.sageGreen.withOpacity(0.9)
+                      : ZenTheme.softGray.withOpacity(0.35),
                   fontWeight: active ? FontWeight.w600 : FontWeight.normal,
                 ),
               ),
@@ -273,11 +309,15 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
 
   Widget _buildStepContent(TextTheme textTheme, bool isLoading) {
     switch (_currentStep) {
-      case 0: return _buildIntentionStep(textTheme, isLoading);
-      case 1: return _buildOfferingStep(textTheme, isLoading);
-      case 2: return _buildAffirmationStep(textTheme);
+      case 0:
+        return _buildIntentionStep(textTheme, isLoading);
+      case 1:
+        return _buildOfferingStep(textTheme, isLoading);
+      case 2:
+        return _buildAffirmationStep(textTheme);
       case 3:
-      default: return _buildCompletedStep(textTheme);
+      default:
+        return _buildCompletedStep(textTheme);
     }
   }
 
@@ -302,18 +342,29 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
             child: Text(
               '☀️  Định hướng ngày mới  ·  ~3 phút',
               style: textTheme.bodyMedium!.copyWith(
-                color: ZenTheme.softGray.withOpacity(0.7), fontSize: 11, letterSpacing: 0.5,
+                color: ZenTheme.softGray.withOpacity(0.7),
+                fontSize: 11,
+                letterSpacing: 0.5,
               ),
             ),
           ),
         ),
         const SizedBox(height: 24),
-        const Center(child: Icon(Icons.brightness_6_outlined, color: ZenTheme.sageGreen, size: 22)),
+        const Center(
+          child: Icon(
+            Icons.brightness_6_outlined,
+            color: ZenTheme.sageGreen,
+            size: 22,
+          ),
+        ),
         const SizedBox(height: 16),
         Text(
           'I. Ý định ngày mới',
           textAlign: TextAlign.center,
-          style: textTheme.bodyMedium!.copyWith(color: ZenTheme.sageGreen, letterSpacing: 1.0),
+          style: textTheme.bodyMedium!.copyWith(
+            color: ZenTheme.sageGreen,
+            letterSpacing: 1.0,
+          ),
         ),
         const SizedBox(height: 8),
         Text(
@@ -325,17 +376,23 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
 
         // Intention Templates
         Wrap(
-          spacing: 8, runSpacing: 8,
+          spacing: 8,
+          runSpacing: 8,
           children: templates.map((t) {
             return GestureDetector(
               onTap: () {
                 setState(() {
                   _intentionController.text = t;
-                  _intentionController.selection = TextSelection.fromPosition(TextPosition(offset: t.length));
+                  _intentionController.selection = TextSelection.fromPosition(
+                    TextPosition(offset: t.length),
+                  );
                 });
               },
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 7,
+                ),
                 decoration: BoxDecoration(
                   color: ZenTheme.softGold.withOpacity(0.06),
                   borderRadius: BorderRadius.circular(12),
@@ -344,9 +401,21 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.lightbulb_outline, color: ZenTheme.softGold, size: 12),
+                    const Icon(
+                      Icons.lightbulb_outline,
+                      color: ZenTheme.softGold,
+                      size: 12,
+                    ),
                     const SizedBox(width: 5),
-                    Flexible(child: Text(t, style: TextStyle(color: ZenTheme.softGold.withOpacity(0.9), fontSize: 11))),
+                    Flexible(
+                      child: Text(
+                        t,
+                        style: TextStyle(
+                          color: ZenTheme.softGold.withOpacity(0.9),
+                          fontSize: 11,
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -367,10 +436,16 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
                 maxLines: 4,
                 enabled: !isLoading,
                 onChanged: (_) => setState(() {}),
-                style: const TextStyle(color: ZenTheme.creamWhite, fontSize: 15),
+                style: const TextStyle(
+                  color: ZenTheme.creamWhite,
+                  fontSize: 15,
+                ),
                 decoration: InputDecoration(
                   hintText: "Tiếp tục câu trên hoặc viết điều của riêng bạn...",
-                  hintStyle: TextStyle(color: ZenTheme.softGray.withOpacity(0.45), fontSize: 13),
+                  hintStyle: TextStyle(
+                    color: ZenTheme.softGray.withOpacity(0.45),
+                    fontSize: 13,
+                  ),
                   border: InputBorder.none,
                 ),
               ),
@@ -388,12 +463,23 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Center(child: Text('II. Hành động nhỏ',
-          style: textTheme.bodyMedium!.copyWith(color: ZenTheme.sageGreen, letterSpacing: 1.0))),
+        Center(
+          child: Text(
+            'II. Hành động nhỏ',
+            style: textTheme.bodyMedium!.copyWith(
+              color: ZenTheme.sageGreen,
+              letterSpacing: 1.0,
+            ),
+          ),
+        ),
         const SizedBox(height: 8),
-        Center(child: Text('Chọn 1 hành động nhỏ để khởi đầu ngày',
-          textAlign: TextAlign.center,
-          style: textTheme.bodyLarge!.copyWith(color: ZenTheme.softGray))),
+        Center(
+          child: Text(
+            'Chọn 1 hành động nhỏ để khởi đầu ngày',
+            textAlign: TextAlign.center,
+            style: textTheme.bodyLarge!.copyWith(color: ZenTheme.softGray),
+          ),
+        ),
         const SizedBox(height: 20),
         ListView.builder(
           shrinkWrap: true,
@@ -403,12 +489,18 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
             final offering = ZenConstants.microOfferings[index];
             final isSelected = _selectedOfferingId == offering['id'];
             return _PebblePressCard(
-              onTap: isLoading ? null : () => setState(() => _selectedOfferingId = offering['id'] as String),
+              onTap: isLoading
+                  ? null
+                  : () => setState(
+                      () => _selectedOfferingId = offering['id'] as String,
+                    ),
               child: GlassContainer(
                 margin: const EdgeInsets.only(bottom: 10),
                 opacity: isSelected ? 0.12 : 0.05,
                 border: Border.all(
-                  color: isSelected ? ZenTheme.sageGreen : ZenTheme.creamWhite.withOpacity(0.05),
+                  color: isSelected
+                      ? ZenTheme.sageGreen
+                      : ZenTheme.creamWhite.withOpacity(0.05),
                   width: isSelected ? 1.5 : 1.0,
                 ),
                 child: Row(
@@ -417,27 +509,56 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
                       padding: const EdgeInsets.all(8),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: isSelected ? ZenTheme.sageGreen.withOpacity(0.2) : Colors.black.withOpacity(0.2),
+                        color: isSelected
+                            ? ZenTheme.sageGreen.withOpacity(0.2)
+                            : Colors.black.withOpacity(0.2),
                       ),
-                      child: Icon(isSelected ? Icons.check : Icons.spa_outlined,
-                        color: isSelected ? ZenTheme.sageGreen : ZenTheme.softGray, size: 20),
+                      child: Icon(
+                        isSelected ? Icons.check : Icons.spa_outlined,
+                        color: isSelected
+                            ? ZenTheme.sageGreen
+                            : ZenTheme.softGray,
+                        size: 20,
+                      ),
                     ),
                     const SizedBox(width: 12),
                     Expanded(
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text(offering['title'] as String, style: textTheme.titleLarge!.copyWith(fontSize: 14)),
-                        const SizedBox(height: 3),
-                        Text(offering['description'] as String,
-                          style: textTheme.bodyMedium!.copyWith(fontSize: 11)),
-                      ]),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            offering['title'] as String,
+                            style: textTheme.titleLarge!.copyWith(fontSize: 14),
+                          ),
+                          const SizedBox(height: 3),
+                          Text(
+                            offering['description'] as String,
+                            style: textTheme.bodyMedium!.copyWith(fontSize: 11),
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(width: 8),
-                    Column(crossAxisAlignment: CrossAxisAlignment.end, children: [
-                      Text('+${offering['points']} EP',
-                        style: const TextStyle(color: ZenTheme.softGold, fontWeight: FontWeight.bold, fontSize: 12)),
-                      Text(offering['duration'] as String,
-                        style: const TextStyle(color: ZenTheme.softGray, fontSize: 10)),
-                    ]),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Text(
+                          '+${offering['points']} EP',
+                          style: const TextStyle(
+                            color: ZenTheme.softGold,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                        Text(
+                          offering['duration'] as String,
+                          style: const TextStyle(
+                            color: ZenTheme.softGray,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -455,36 +576,58 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
     return Column(
       children: [
         const SizedBox(height: 20),
-        Text('III. Gợi ý chiêm nghiệm',
-          style: textTheme.bodyMedium!.copyWith(color: ZenTheme.sageGreen, letterSpacing: 1.0)),
+        Text(
+          'III. Gợi ý chiêm nghiệm',
+          style: textTheme.bodyMedium!.copyWith(
+            color: ZenTheme.sageGreen,
+            letterSpacing: 1.0,
+          ),
+        ),
         const SizedBox(height: 8),
-        Text('Mang theo câu này trong suốt ngày hôm nay',
+        Text(
+          'Mang theo câu này trong suốt ngày hôm nay',
           textAlign: TextAlign.center,
-          style: textTheme.bodyLarge!.copyWith(color: ZenTheme.softGray)),
+          style: textTheme.bodyLarge!.copyWith(color: ZenTheme.softGray),
+        ),
         const SizedBox(height: 36),
         Stack(
           children: [
             GlassContainer(
-              opacity: 0.05, radius: 36,
+              opacity: 0.05,
+              radius: 36,
               padding: const EdgeInsets.fromLTRB(24, 48, 24, 48),
-              child: Column(children: [
-                const Icon(Icons.filter_vintage_outlined, color: ZenTheme.softGold, size: 24),
-                const SizedBox(height: 24),
-                Text(
-                  _selectedAffirmation,
-                  textAlign: TextAlign.center,
-                  style: textTheme.displayLarge!.copyWith(
-                    fontSize: 20, fontWeight: FontWeight.w400, height: 1.6, color: ZenTheme.creamWhite,
+              child: Column(
+                children: [
+                  const Icon(
+                    Icons.filter_vintage_outlined,
+                    color: ZenTheme.softGold,
+                    size: 24,
                   ),
-                ),
-                const SizedBox(height: 24),
-                Text('— Anam Breath',
-                  style: textTheme.bodyMedium!.copyWith(
-                    fontStyle: FontStyle.italic, color: ZenTheme.softGray.withOpacity(0.7))),
-              ]),
+                  const SizedBox(height: 24),
+                  Text(
+                    _selectedAffirmation,
+                    textAlign: TextAlign.center,
+                    style: textTheme.displayLarge!.copyWith(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w400,
+                      height: 1.6,
+                      color: ZenTheme.creamWhite,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  Text(
+                    '— Anam Breath',
+                    style: textTheme.bodyMedium!.copyWith(
+                      fontStyle: FontStyle.italic,
+                      color: ZenTheme.softGray.withOpacity(0.7),
+                    ),
+                  ),
+                ],
+              ),
             ),
             Positioned(
-              top: 10, right: 10,
+              top: 10,
+              right: 10,
               child: Tooltip(
                 message: 'Gợi ý câu khác',
                 child: GestureDetector(
@@ -494,9 +637,15 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
                     decoration: BoxDecoration(
                       color: ZenTheme.creamWhite.withOpacity(0.06),
                       shape: BoxShape.circle,
-                      border: Border.all(color: ZenTheme.creamWhite.withOpacity(0.1)),
+                      border: Border.all(
+                        color: ZenTheme.creamWhite.withOpacity(0.1),
+                      ),
                     ),
-                    child: const Icon(Icons.refresh_rounded, color: ZenTheme.softGray, size: 16),
+                    child: const Icon(
+                      Icons.refresh_rounded,
+                      color: ZenTheme.softGray,
+                      size: 16,
+                    ),
                   ),
                 ),
               ),
@@ -515,42 +664,79 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
       children: [
         const SizedBox(height: 40),
         Container(
-          width: 90, height: 90,
+          width: 90,
+          height: 90,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: ZenTheme.sageGreen.withOpacity(0.08),
             border: Border.all(color: ZenTheme.sageGreen, width: 1.5),
           ),
-          child: const Icon(Icons.brightness_6_outlined, color: ZenTheme.sageGreen, size: 40),
+          child: const Icon(
+            Icons.brightness_6_outlined,
+            color: ZenTheme.sageGreen,
+            size: 40,
+          ),
         ),
         const SizedBox(height: 32),
-        Text('Định hướng ngày mới hoàn tất',
+        Text(
+          'Định hướng ngày mới hoàn tất',
           textAlign: TextAlign.center,
-          style: textTheme.displayMedium!.copyWith(fontSize: 22, color: ZenTheme.creamWhite)),
+          style: textTheme.displayMedium!.copyWith(
+            fontSize: 22,
+            color: ZenTheme.creamWhite,
+          ),
+        ),
         const SizedBox(height: 12),
-        Text('Bạn đã đặt ý định cho ngày hôm nay. Hãy mang theo ý định này và quay lại vào buổi tối để nhìn lại.',
+        Text(
+          'Bạn đã đặt ý định cho ngày hôm nay. Hãy mang theo ý định này và quay lại vào buổi tối để nhìn lại.',
           textAlign: TextAlign.center,
-          style: textTheme.bodyLarge!.copyWith(color: ZenTheme.softGray, height: 1.5)),
+          style: textTheme.bodyLarge!.copyWith(
+            color: ZenTheme.softGray,
+            height: 1.5,
+          ),
+        ),
         const SizedBox(height: 36),
         GlassContainer(
           opacity: 0.05,
-          child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-            const Text('Ý định của bạn hôm nay:',
-              style: TextStyle(color: ZenTheme.sageGreen, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 8),
-            Text('"${_intentionController.text}"',
-              style: const TextStyle(color: ZenTheme.creamWhite, fontStyle: FontStyle.italic, fontSize: 15)),
-            const Divider(color: Colors.white10, height: 24),
-            const Text('Hành động nhỏ đã chọn:',
-              style: TextStyle(color: ZenTheme.softGold, fontSize: 12)),
-            const SizedBox(height: 4),
-            Text(
-              _selectedOfferingId != null
-                ? ZenConstants.microOfferings.firstWhere((o) => o['id'] == _selectedOfferingId)['title'] as String
-                : '',
-              style: const TextStyle(color: ZenTheme.creamWhite, fontSize: 14),
-            ),
-          ]),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Ý định của bạn hôm nay:',
+                style: TextStyle(
+                  color: ZenTheme.sageGreen,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                '"${_intentionController.text}"',
+                style: const TextStyle(
+                  color: ZenTheme.creamWhite,
+                  fontStyle: FontStyle.italic,
+                  fontSize: 15,
+                ),
+              ),
+              const Divider(color: Colors.white10, height: 24),
+              const Text(
+                'Hành động nhỏ đã chọn:',
+                style: TextStyle(color: ZenTheme.softGold, fontSize: 12),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                _selectedOfferingId != null
+                    ? ZenConstants.microOfferings.firstWhere(
+                            (o) => o['id'] == _selectedOfferingId,
+                          )['title']
+                          as String
+                    : '',
+                style: const TextStyle(
+                  color: ZenTheme.creamWhite,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
         ),
       ],
     );
@@ -560,7 +746,8 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
   // Navigation buttons
   // ---------------------------------------------------------------------------
   Widget _buildNavigationButtons(bool isLoading) {
-    final canProceed = _currentStep != 0 || _intentionController.text.trim().isNotEmpty;
+    final canProceed =
+        _currentStep != 0 || _intentionController.text.trim().isNotEmpty;
 
     return Row(
       children: [
@@ -571,7 +758,9 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
               child: ZenButton(
                 text: 'Quay lại',
                 isSecondary: true,
-                onPressed: isLoading ? null : () => setState(() => _currentStep--),
+                onPressed: isLoading
+                    ? null
+                    : () => setState(() => _currentStep--),
               ),
             ),
           )
@@ -581,23 +770,27 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
           child: Opacity(
             opacity: canProceed ? 1.0 : 0.4,
             child: ZenButton(
-              text: _currentStep == 2 ? 'Hoàn thành buổi sáng' : 'Tiếp tục',
+              text: _currentStep == 2 ? 'Hoàn thành ý niệm' : 'Tiếp tục',
               isLoading: isLoading,
               onPressed: canProceed
-                ? () {
-                    if (_currentStep == 1 && _selectedOfferingId == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Hãy chọn một hành động nhỏ để tiếp tục.')),
-                      );
-                      return;
+                  ? () {
+                      if (_currentStep == 1 && _selectedOfferingId == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'Hãy chọn một hành động nhỏ để tiếp tục.',
+                            ),
+                          ),
+                        );
+                        return;
+                      }
+                      if (_currentStep == 2) {
+                        _finishMorningAnchor();
+                      } else {
+                        setState(() => _currentStep++);
+                      }
                     }
-                    if (_currentStep == 2) {
-                      _finishMorningAnchor();
-                    } else {
-                      setState(() => _currentStep++);
-                    }
-                  }
-                : null,
+                  : null,
             ),
           ),
         ),
@@ -623,10 +816,17 @@ class _PebblePressCardState extends State<_PebblePressCard> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTapDown: (_) => setState(() => _scale = 0.95),
-      onTapUp: (_) { setState(() => _scale = 1.0); widget.onTap?.call(); },
+      onTapUp: (_) {
+        setState(() => _scale = 1.0);
+        widget.onTap?.call();
+      },
       onTapCancel: () => setState(() => _scale = 1.0),
-      child: AnimatedScale(scale: _scale, duration: const Duration(milliseconds: 150),
-        curve: Curves.easeOut, child: widget.child),
+      child: AnimatedScale(
+        scale: _scale,
+        duration: const Duration(milliseconds: 150),
+        curve: Curves.easeOut,
+        child: widget.child,
+      ),
     );
   }
 }

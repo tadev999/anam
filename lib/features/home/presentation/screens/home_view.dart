@@ -25,6 +25,8 @@ import '../../../sleep_seed/bloc/sleep_seed_event.dart';
 import '../../../sleep_seed/bloc/sleep_seed_state.dart';
 import '../../../sleep_seed/presentation/screens/sleep_seed_screen.dart';
 
+enum _CircadianPeriod { day, evening, night }
+
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
 
@@ -93,6 +95,17 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
       return "Bình yên giữa ngày,";
     } else {
       return "Khép lại ngày, thả lỏng...";
+    }
+  }
+
+  _CircadianPeriod _getCircadianPeriod() {
+    final hour = DateTime.now().hour;
+    if (hour >= 5 && hour < 17) {
+      return _CircadianPeriod.day;
+    } else if (hour >= 17 && hour < 21) {
+      return _CircadianPeriod.evening;
+    } else {
+      return _CircadianPeriod.night;
     }
   }
 
@@ -218,69 +231,70 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 ),
               ],
               child: BlocBuilder<AuthBloc, AuthState>(
-                builder: (context, state) {
-                  final user = (state is Authenticated) ? state.user : null;
+                builder: (context, authState) {
+                  final user = (authState is Authenticated) ? authState.user : null;
 
-                  return SingleChildScrollView(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 22.0,
-                      vertical: 24.0,
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        // Thanh tiêu đề trên cùng (Header)
-                        _StaggeredEntranceItem(
-                          key: const ValueKey('entrance_0'),
-                          index: 0,
-                          controller: _entranceController,
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  return BlocBuilder<AnchorBloc, AnchorState>(
+                    builder: (context, anchorState) {
+                      AnchorModel? anchor;
+                      if (anchorState is AnchorLoadSuccess) {
+                        anchor = anchorState.anchor;
+                      } else if (anchorState is AnchorSubmissionSuccess) {
+                        anchor = anchorState.anchor;
+                      } else if (anchorState is EveningReflectionSuccess) {
+                        anchor = anchorState.anchor;
+                      }
+                      final isEveningCompleted = anchor?.eveningCompleted ?? false;
+
+                      final period = _getCircadianPeriod();
+                      final isNight = period == _CircadianPeriod.night;
+
+                      // Now we build our dynamic children list:
+                      final List<Widget> children = [];
+
+                      // 1. Header
+                      children.add(Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    _getGreetingPrefix(),
-                                    style: textTheme.bodyMedium,
-                                  ),
-                                  Text(
-                                    user?.displayName ?? "Lữ khách",
-                                    style: textTheme.displayMedium!.copyWith(
-                                      fontSize: 22,
-                                      fontWeight: FontWeight.w400,
-                                    ),
-                                  ),
-                                ],
+                              Text(
+                                _getGreetingPrefix(),
+                                style: textTheme.bodyMedium,
                               ),
-                              Row(
-                                children: [
-                                  IconButton(
-                                    icon: const Icon(
-                                      Icons.logout,
-                                      color: ZenTheme.softGray,
-                                      size: 20,
-                                    ),
-                                    onPressed: () {
-                                      BlocProvider.of<AuthBloc>(
-                                        context,
-                                      ).add(SignOutRequested());
-                                    },
-                                    tooltip: "Rời chốn bình yên",
-                                  ),
-                                ],
+                              Text(
+                                user?.displayName ?? "Lữ khách",
+                                style: textTheme.displayMedium!.copyWith(
+                                  fontSize: 22,
+                                  fontWeight: FontWeight.w400,
+                                ),
                               ),
                             ],
                           ),
-                        ),
-                        const SizedBox(height: 28),
+                          Row(
+                            children: [
+                              IconButton(
+                                icon: const Icon(
+                                  Icons.logout,
+                                  color: ZenTheme.softGray,
+                                  size: 20,
+                                ),
+                                onPressed: () {
+                                  BlocProvider.of<AuthBloc>(context).add(SignOutRequested());
+                                },
+                                tooltip: "Rời chốn bình yên",
+                              ),
+                            ],
+                          ),
+                        ],
+                      ));
 
-                        // 1. Khoảnh Khắc Trong Ngày — PRIMARY, luôn đứng đầu
-                        _StaggeredEntranceItem(
-                          key: const ValueKey('entrance_1'),
-                          index: 1,
-                          controller: _entranceController,
-                          child: Column(
+                      if (isNight) {
+                        if (!isEveningCompleted) {
+                          // Night Mode, Evening reflection NOT completed
+                          // Primary: Daily Anchor (Evening Reflection Card)
+                          children.add(Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Text(
@@ -295,88 +309,10 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                               const SizedBox(height: 10),
                               _buildMainAnchorCard(context),
                             ],
-                          ),
-                        ),
-                        const SizedBox(height: 32),
+                          ));
 
-                        // 2. Khoảng Lặng — công cụ điều hoà cảm xúc (regulation)
-                        _StaggeredEntranceItem(
-                          key: const ValueKey('entrance_2'),
-                          index: 2,
-                          controller: _entranceController,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Text(
-                                "Khoảng lặng",
-                                style: textTheme.displaySmall!.copyWith(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: ZenTheme.inkBlue,
-                                  letterSpacing: 2.0,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              _buildSilenceCard(context),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 32),
-
-                        // 3. Tự Thấu Hiểu — chiêm nghiệm sâu (Gương tự vấn)
-                        _StaggeredEntranceItem(
-                          key: const ValueKey('entrance_3'),
-                          index: 3,
-                          controller: _entranceController,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Text(
-                                "Tự thấu hiểu",
-                                style: textTheme.displaySmall!.copyWith(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: ZenTheme.softGold,
-                                  letterSpacing: 2.0,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              _buildReflectionCard(context),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 32),
-
-                        // 4. Khoảng Buông — xả & giải phóng cảm xúc nặng nề
-                        _StaggeredEntranceItem(
-                          key: const ValueKey('entrance_4'),
-                          index: 4,
-                          controller: _entranceController,
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Text(
-                                "Khoảng buông",
-                                style: textTheme.displaySmall!.copyWith(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: ZenTheme.mistRed,
-                                  letterSpacing: 2.0,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              _buildReleaseCard(context),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: 32),
-
-                        // 5. Giấc ngủ bình yên / Hạt mầm ngủ ngon
-                        _StaggeredEntranceItem(
-                          key: const ValueKey('entrance_sleep'),
-                          index: 5,
-                          controller: _entranceController,
-                          child: Column(
+                          // Secondary Primary: Prominent Sleep Seed
+                          children.add(Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Text(
@@ -389,118 +325,202 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                                 ),
                               ),
                               const SizedBox(height: 10),
-                              _buildSleepSeedCard(context),
+                              _buildSleepSeedCard(context, isNight: true),
                             ],
-                          ),
-                        ),
-                        const SizedBox(height: 32),
+                          ));
 
-                        // 6. Kết Nối & Nhìn Lại — Bếp lửa chung + Vườn Tâm Trí
-                        _StaggeredEntranceItem(
-                          key: const ValueKey('entrance_6'),
-                          index: 6,
-                          controller: _entranceController,
-                          child: Column(
+                          // Self Care Suite
+                          children.add(_buildSelfCareSuite(context, period));
+                        } else {
+                          // Night Mode, Evening reflection COMPLETED
+                          // Primary: Prominent Sleep Seed
+                          children.add(Column(
                             crossAxisAlignment: CrossAxisAlignment.stretch,
                             children: [
                               Text(
-                                "Kết nối & Nhìn lại",
-                                style: textTheme.bodyMedium!.copyWith(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                  color: ZenTheme.softGray.withOpacity(0.6),
-                                  letterSpacing: 1.8,
+                                "Giấc ngủ bình yên",
+                                style: textTheme.displaySmall!.copyWith(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: ZenTheme.sageGreen,
+                                  letterSpacing: 2.0,
                                 ),
                               ),
-                              const SizedBox(height: 12),
-                              _buildConnectionRow(context),
+                              const SizedBox(height: 10),
+                              _buildSleepSeedCard(context, isNight: true),
                             ],
-                          ),
-                        ),
-                        const SizedBox(height: 32),
+                          ));
 
-                        // 7. Bếp lửa sưởi ấm — ambient, cuối trang
-                        _StaggeredEntranceItem(
-                          key: const ValueKey('entrance_7'),
-                          index: 7,
-                          controller: _entranceController,
-                          child: GlassContainer(
-                            opacity: 0.05,
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                          // Self Care Suite
+                          children.add(_buildSelfCareSuite(context, period));
+
+                          // Daily Anchor (Completed Card)
+                          children.add(Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Text(
+                                "Khoảnh khắc trong ngày",
+                                style: textTheme.displaySmall!.copyWith(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: ZenTheme.sageGreen,
+                                  letterSpacing: 2.0,
+                                ),
+                              ),
+                              const SizedBox(height: 10),
+                              _buildMainAnchorCard(context),
+                            ],
+                          ));
+                        }
+                      } else {
+                        // Day or Evening Mode
+                        // Primary: Daily Anchor
+                        children.add(Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              "Khoảnh khắc trong ngày",
+                              style: textTheme.displaySmall!.copyWith(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: ZenTheme.sageGreen,
+                                letterSpacing: 2.0,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            _buildMainAnchorCard(context),
+                          ],
+                        ));
+
+                        // Self Care Suite
+                        children.add(_buildSelfCareSuite(context, period));
+
+                        // Sleep Seed (locked/compact card)
+                        children.add(Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              "Giấc ngủ bình yên",
+                              style: textTheme.displaySmall!.copyWith(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: ZenTheme.sageGreen,
+                                letterSpacing: 2.0,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            _buildSleepSeedCard(context, isNight: false),
+                          ],
+                        ));
+                      }
+
+                      // Connection Row
+                      children.add(Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            "Kết nối & Nhìn lại",
+                            style: textTheme.bodyMedium!.copyWith(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: ZenTheme.softGray.withOpacity(0.6),
+                              letterSpacing: 1.8,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          _buildConnectionRow(context),
+                        ],
+                      ));
+
+                      // Bottom Ambient Hearth
+                      children.add(GlassContainer(
+                        opacity: 0.05,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
                               children: [
-                                Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.local_fire_department,
-                                      color: ZenTheme.softGold,
-                                      size: 20,
-                                    ),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      "Bếp lửa sưởi ấm",
-                                      style: textTheme.titleLarge!.copyWith(
-                                        fontSize: 16,
-                                        color: ZenTheme.softGold,
-                                      ),
-                                    ),
-                                  ],
+                                const Icon(
+                                  Icons.local_fire_department,
+                                  color: ZenTheme.softGold,
+                                  size: 20,
                                 ),
-                                const SizedBox(height: 12),
+                                const SizedBox(width: 8),
                                 Text(
-                                  "\"$_comfortQuote\"",
-                                  style: textTheme.bodyLarge!.copyWith(
-                                    fontStyle: FontStyle.italic,
-                                    fontSize: 15,
-                                    color: ZenTheme.creamWhite.withOpacity(
-                                      0.85,
-                                    ),
+                                  "Bếp lửa sưởi ấm",
+                                  style: textTheme.titleLarge!.copyWith(
+                                    fontSize: 16,
+                                    color: ZenTheme.softGold,
                                   ),
-                                ),
-                                const SizedBox(height: 16),
-                                Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Text(
-                                      "Vai trò: ${user?.spiritualRole.split(' ')[0] ?? 'Seeker'}",
-                                      style: textTheme.bodyMedium!.copyWith(
-                                        color: ZenTheme.sageGreen,
-                                      ),
-                                    ),
-                                    Text(
-                                      "Điểm thấu cảm: ${user?.empathyPoints ?? 0} EP",
-                                      style: textTheme.bodyMedium!.copyWith(
-                                        color: ZenTheme.softGold,
-                                      ),
-                                    ),
-                                  ],
                                 ),
                               ],
                             ),
-                          ),
-                        ),
-                        const SizedBox(height: 32),
-
-                        // 8. Footer tagline
-                        _StaggeredEntranceItem(
-                          key: const ValueKey('entrance_8'),
-                          index: 8,
-                          controller: _entranceController,
-                          child: Center(
-                            child: Text(
-                              "Anam • A Secular Sanctuary for Mindful Souls",
-                              style: textTheme.bodyMedium!.copyWith(
-                                fontSize: 11,
-                                color: ZenTheme.softGray.withOpacity(0.5),
-                                letterSpacing: 1.5,
+                            const SizedBox(height: 12),
+                            Text(
+                              "\"$_comfortQuote\"",
+                              style: textTheme.bodyLarge!.copyWith(
+                                fontStyle: FontStyle.italic,
+                                fontSize: 15,
+                                color: ZenTheme.creamWhite.withOpacity(0.85),
                               ),
                             ),
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  "Vai trò: ${user?.spiritualRole.split(' ')[0] ?? 'Seeker'}",
+                                  style: textTheme.bodyMedium!.copyWith(
+                                    color: ZenTheme.sageGreen,
+                                  ),
+                                ),
+                                Text(
+                                  "Điểm thấu cảm: ${user?.empathyPoints ?? 0} EP",
+                                  style: textTheme.bodyMedium!.copyWith(
+                                    color: ZenTheme.softGold,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ));
+
+                      // Footer tagline
+                      children.add(Center(
+                        child: Text(
+                          "Anam • A Secular Sanctuary for Mindful Souls",
+                          style: textTheme.bodyMedium!.copyWith(
+                            fontSize: 11,
+                            color: ZenTheme.softGray.withOpacity(0.5),
+                            letterSpacing: 1.5,
                           ),
                         ),
-                        const SizedBox(height: 16),
-                      ],
-                    ),
+                      ));
+
+                      return SingleChildScrollView(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 22.0,
+                          vertical: 24.0,
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            for (int i = 0; i < children.length; i++) ...[
+                              _StaggeredEntranceItem(
+                                key: ValueKey('entrance_$i'),
+                                index: i,
+                                controller: _entranceController,
+                                child: children[i],
+                              ),
+                              if (i < children.length - 1)
+                                SizedBox(height: i == 0 ? 28 : 32),
+                            ],
+                            const SizedBox(height: 16),
+                          ],
+                        ),
+                      );
+                    },
                   );
                 },
               ),
@@ -1026,347 +1046,395 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildSilenceCard(BuildContext context) {
+  Widget _buildSelfCareSuite(BuildContext context, _CircadianPeriod period) {
     final textTheme = Theme.of(context).textTheme;
-    return _PebblePressCard(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const SilenceView()),
-      ),
-      child: GlassContainer(
-        opacity: 0.08,
-        radius: 24,
-        padding: const EdgeInsets.all(0),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 18.0),
+    final isNight = period == _CircadianPeriod.night;
+
+    // Calculate a responsive card width so exactly 2.25 cards are visible,
+    // ensuring the third card always peeks by 25% to indicate scrollability.
+    final screenWidth = MediaQuery.of(context).size.width;
+    final cardWidth = (screenWidth - 44 - (12 * 2)) / 2.25;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(
+          "KHÔNG GIAN LẮNG DỊU",
+          style: textTheme.displaySmall!.copyWith(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: ZenTheme.inkBlue,
+            letterSpacing: 2.0,
+          ),
+        ),
+        const SizedBox(height: 10),
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          physics: const BouncingScrollPhysics(),
           child: Row(
             children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: ZenTheme.inkBlue.withOpacity(0.12),
-                ),
-                child: const Icon(
-                  Icons.spa_outlined,
-                  color: ZenTheme.inkBlue,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      "Khoảng lặng",
-                      style: textTheme.titleLarge!.copyWith(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: ZenTheme.creamWhite,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "Hơi thở & tĩnh lặng nội tâm",
-                      style: textTheme.bodyMedium!.copyWith(
-                        fontSize: 13,
-                        color: ZenTheme.creamWhite.withOpacity(0.65),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(
-                Icons.chevron_right_rounded,
+              _buildCompactSelfCareCard(
+                context: context,
+                title: "Khoảng lặng",
+                subtitle: "Thở & tĩnh lặng",
+                icon: Icons.spa_outlined,
                 color: ZenTheme.inkBlue,
-                size: 24,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildReleaseCard(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    return _PebblePressCard(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const ReleaseView()),
-      ),
-      child: GlassContainer(
-        opacity: 0.08,
-        radius: 24,
-        padding: const EdgeInsets.all(0),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 18.0),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: ZenTheme.mistRed.withOpacity(0.12),
-                ),
-                child: const Icon(
-                  Icons.blur_on_outlined,
-                  color: ZenTheme.mistRed,
-                  size: 24,
+                width: cardWidth,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SilenceView()),
                 ),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      "Khoảng buông",
-                      style: textTheme.titleLarge!.copyWith(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: ZenTheme.creamWhite,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "Xả bỏ & giải phóng cảm xúc nặng nề",
-                      style: textTheme.bodyMedium!.copyWith(
-                        fontSize: 13,
-                        color: ZenTheme.creamWhite.withOpacity(0.65),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(
-                Icons.chevron_right_rounded,
+              const SizedBox(width: 12),
+              _buildCompactSelfCareCard(
+                context: context,
+                title: "Khoảng buông",
+                subtitle: "Xả bỏ nặng nề",
+                icon: Icons.blur_on_outlined,
                 color: ZenTheme.mistRed,
-                size: 24,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildReflectionCard(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-
-    return _PebblePressCard(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => BlocProvider<ReflectionBloc>(
-            create: (context) => ReflectionBloc(
-              databaseRepository: RepositoryProvider.of<BaseDatabaseRepository>(
-                context,
-              ),
-            ),
-            child: const ReflectionView(),
-          ),
-        ),
-      ),
-      child: GlassContainer(
-        opacity: 0.08,
-        radius: 24,
-        padding: const EdgeInsets.all(0),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 18.0),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: ZenTheme.softGold.withOpacity(0.12),
-                ),
-                child: const Icon(
-                  Icons.visibility_outlined,
-                  color: ZenTheme.softGold,
-                  size: 24,
+                width: cardWidth,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const ReleaseView()),
                 ),
               ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      "Gương tự vấn",
-                      style: textTheme.titleLarge!.copyWith(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: ZenTheme.creamWhite,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "Chiêm nghiệm & Đối thoại chiều sâu",
-                      style: textTheme.bodyMedium!.copyWith(
-                        fontSize: 13,
-                        color: ZenTheme.creamWhite.withOpacity(0.65),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(
-                Icons.chevron_right_rounded,
+              const SizedBox(width: 12),
+              _buildCompactSelfCareCard(
+                context: context,
+                title: "Gương tự vấn",
+                subtitle: "Đối thoại sâu",
+                icon: Icons.visibility_outlined,
                 color: ZenTheme.softGold,
-                size: 24,
+                width: cardWidth,
+                isDimmed: isNight,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => BlocProvider<ReflectionBloc>(
+                      create: (context) => ReflectionBloc(
+                        databaseRepository: RepositoryProvider.of<BaseDatabaseRepository>(
+                          context,
+                        ),
+                      ),
+                      child: const ReflectionView(),
+                    ),
+                  ),
+                ),
               ),
             ],
           ),
         ),
+      ],
+    );
+  }
+
+  Widget _buildCompactSelfCareCard({
+    required BuildContext context,
+    required String title,
+    required String subtitle,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+    required double width,
+    bool isDimmed = false,
+  }) {
+    final textTheme = Theme.of(context).textTheme;
+
+    Widget cardContent = GlassContainer(
+      opacity: isDimmed ? 0.04 : 0.08,
+      radius: 24,
+      padding: const EdgeInsets.all(0),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(10),
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: color.withOpacity(0.12),
+                  ),
+                  child: Icon(
+                    icon,
+                    color: color,
+                    size: 20,
+                  ),
+                ),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  color: color.withOpacity(isDimmed ? 0.3 : 0.8),
+                  size: 18,
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: textTheme.titleLarge!.copyWith(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: ZenTheme.creamWhite,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  isDimmed ? "Ưu tiên nghỉ ngơi" : subtitle,
+                  style: textTheme.bodyMedium!.copyWith(
+                    fontSize: 11,
+                    color: ZenTheme.creamWhite.withOpacity(isDimmed ? 0.4 : 0.65),
+                    height: 1.3,
+                  ),
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (isDimmed) {
+      cardContent = Opacity(
+        opacity: 0.45,
+        child: cardContent,
+      );
+    }
+
+    return SizedBox(
+      width: width,
+      height: 135,
+      child: _PebblePressCard(
+        onTap: onTap,
+        child: cardContent,
       ),
     );
   }
 
-  // _buildGardenCard removed — Vườn Tâm Trí nay dùng _buildSecondaryMenuCard trong _buildConnectionRow
-  // ignore: unused_element
-  Widget _buildGardenCard(BuildContext context) {
+  Widget _buildSleepSeedCard(BuildContext context, {required bool isNight}) {
     final textTheme = Theme.of(context).textTheme;
 
-    return _PebblePressCard(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => BlocProvider<MindGardenBloc>(
-            create: (context) => MindGardenBloc(
-              databaseRepository: RepositoryProvider.of<BaseDatabaseRepository>(
-                context,
+    if (isNight) {
+      return _PebblePressCard(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const SleepSeedScreen()),
+        ),
+        child: GlassContainer(
+          opacity: 0.15,
+          radius: 24,
+          padding: const EdgeInsets.all(0),
+          border: Border.all(
+            color: ZenTheme.sageGreen.withOpacity(0.35),
+            width: 1.5,
+          ),
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: ZenTheme.sageGreen.withOpacity(0.18),
+                        boxShadow: [
+                          BoxShadow(
+                            color: ZenTheme.sageGreen.withOpacity(0.1),
+                            blurRadius: 15,
+                            spreadRadius: 2,
+                          ),
+                        ],
+                      ),
+                      child: const Icon(
+                        Icons.spa_outlined,
+                        color: ZenTheme.sageGreen,
+                        size: 24,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              Text(
+                                "Hạt mầm ngủ ngon",
+                                style: textTheme.headlineSmall!.copyWith(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: ZenTheme.creamWhite,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: ZenTheme.sageGreen.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: Text(
+                                  "Đêm lành",
+                                  style: textTheme.bodyMedium!.copyWith(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: ZenTheme.sageGreen,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            "Buông bỏ & Chìm vào giấc ngủ tự nhiên",
+                            style: textTheme.bodyMedium!.copyWith(
+                              fontSize: 12,
+                              color: ZenTheme.sageGreen.withOpacity(0.8),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  height: 1,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        ZenTheme.sageGreen.withOpacity(0.3),
+                        Colors.transparent,
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  "Đêm đã về. Gieo một hạt mầm bình yên và khép lại ngày hôm nay trong tĩnh lặng.",
+                  style: textTheme.bodyMedium!.copyWith(
+                    fontSize: 13,
+                    color: ZenTheme.softGray,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 20,
+                    vertical: 12,
+                  ),
+                  decoration: BoxDecoration(
+                    color: ZenTheme.sageGreen.withOpacity(0.22),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(
+                      color: ZenTheme.sageGreen.withOpacity(0.35),
+                      width: 1.0,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Gieo hạt mầm ngủ ngon",
+                        style: textTheme.bodyMedium!.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: ZenTheme.creamWhite,
+                          fontSize: 14,
+                        ),
+                      ),
+                      const Icon(
+                        Icons.arrow_forward_rounded,
+                        color: ZenTheme.creamWhite,
+                        size: 16,
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    } else {
+      return _PebblePressCard(
+        onTap: () => Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const SleepSeedScreen()),
+        ),
+        child: Opacity(
+          opacity: 0.65,
+          child: GlassContainer(
+            opacity: 0.06,
+            radius: 24,
+            padding: const EdgeInsets.all(0),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: ZenTheme.sageGreen.withOpacity(0.08),
+                    ),
+                    child: const Icon(
+                      Icons.spa_outlined,
+                      color: ZenTheme.softGray,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          "Hạt mầm ngủ ngon",
+                          style: textTheme.titleLarge!.copyWith(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                            color: ZenTheme.creamWhite.withOpacity(0.9),
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          "Chờ bóng tối màn đêm (Mở sau 21h00)",
+                          style: textTheme.bodyMedium!.copyWith(
+                            fontSize: 13,
+                            color: ZenTheme.softGray.withOpacity(0.8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Icon(
+                    Icons.lock_outline_rounded,
+                    color: ZenTheme.softGray,
+                    size: 18,
+                  ),
+                ],
               ),
             ),
-            child: const MindGardenScreen(),
           ),
         ),
-      ),
-      child: GlassContainer(
-        opacity: 0.08,
-        radius: 24,
-        padding: const EdgeInsets.all(0),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 18.0),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: ZenTheme.sageGreen.withOpacity(0.12),
-                ),
-                child: const Icon(
-                  Icons.filter_vintage_outlined,
-                  color: ZenTheme.sageGreen,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      "Khu vườn tâm trí",
-                      style: textTheme.titleLarge!.copyWith(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: ZenTheme.creamWhite,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "Lịch sử dấu ấn cảm xúc thiên nhiên",
-                      style: textTheme.bodyMedium!.copyWith(
-                        fontSize: 13,
-                        color: ZenTheme.creamWhite.withOpacity(0.65),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(
-                Icons.chevron_right_rounded,
-                color: ZenTheme.sageGreen,
-                size: 24,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSleepSeedCard(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-
-    return _PebblePressCard(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => const SleepSeedScreen()),
-      ),
-      child: GlassContainer(
-        opacity: 0.08,
-        radius: 24,
-        padding: const EdgeInsets.all(0),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 18.0),
-          child: Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: ZenTheme.sageGreen.withOpacity(0.12),
-                ),
-                child: const Icon(
-                  Icons.spa_outlined,
-                  color: ZenTheme.sageGreen,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Text(
-                      "Hạt mầm ngủ ngon",
-                      style: textTheme.titleLarge!.copyWith(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: ZenTheme.creamWhite,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "Gieo mầm tĩnh tại trước giờ nghỉ ngơi",
-                      style: textTheme.bodyMedium!.copyWith(
-                        fontSize: 13,
-                        color: ZenTheme.creamWhite.withOpacity(0.65),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const Icon(
-                Icons.chevron_right_rounded,
-                color: ZenTheme.sageGreen,
-                size: 24,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
+      );
+    }
   }
 
   void _showMorningSproutDialog(

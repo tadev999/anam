@@ -738,216 +738,225 @@ class _MindGardenScreenState extends State<MindGardenScreen> {
       context: context,
       backgroundColor: Colors.transparent,
       barrierColor: Colors.black.withOpacity(0.4),
+      isScrollControlled: true,
       builder: (context) {
         final emotionText = _getEmotionLabel(anchor.eveningEmotion);
         final emotionColor = _getEmotionColor(anchor.eveningEmotion);
 
-        return GlassContainer(
-          opacity: 0.12,
-          radius: 32,
-          padding: const EdgeInsets.all(24),
-          margin: const EdgeInsets.all(16),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Tiêu đề Bottom Sheet
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        return Container(
+          constraints: BoxConstraints(
+            maxHeight: MediaQuery.of(context).size.height * 0.85,
+          ),
+          child: GlassContainer(
+            opacity: 0.12,
+            radius: 32,
+            padding: const EdgeInsets.all(24),
+            margin: const EdgeInsets.all(16),
+            child: SingleChildScrollView(
+              physics: const BouncingScrollPhysics(),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(
-                    "Ngày $day tháng ${_currentMonth.month}",
-                    style: GoogleFonts.lora(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: ZenTheme.creamWhite,
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: emotionColor.withOpacity(0.12),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: emotionColor.withOpacity(0.25),
-                        width: 1.0,
+                  // Tiêu đề Bottom Sheet
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "Ngày $day tháng ${_currentMonth.month}",
+                        style: GoogleFonts.lora(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: ZenTheme.creamWhite,
+                        ),
                       ),
-                    ),
-                    child: Text(
-                      emotionText,
-                      style: GoogleFonts.nunito(
-                        fontSize: 12,
-                        color: emotionColor,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 16),
-              const Divider(color: Colors.white10),
-              const SizedBox(height: 16),
-
-              // 1. Ý định ngày mới
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(
-                    Icons.brightness_5_outlined,
-                    color: ZenTheme.sageGreen,
-                    size: 18,
-                  ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Ý định ngày mới",
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 10,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: emotionColor.withOpacity(0.12),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: emotionColor.withOpacity(0.25),
+                            width: 1.0,
+                          ),
+                        ),
+                        child: Text(
+                          emotionText,
                           style: GoogleFonts.nunito(
                             fontSize: 12,
-                            color: ZenTheme.softGray.withOpacity(0.6),
+                            color: emotionColor,
                             fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 4),
-                        Text(
-                          "\"${anchor.intention}\"",
-                          style: GoogleFonts.lora(
-                            fontSize: 14,
-                            fontStyle: FontStyle.italic,
-                            color: ZenTheme.creamWhite,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-
-              const SizedBox(height: 20),
-
-              // 2. Nhật ký tối (nếu có)
-              if (anchor.eveningCompleted &&
-                  anchor.eveningNote != null &&
-                  anchor.eveningNote!.isNotEmpty) ...[
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const Icon(
-                      Icons.nightlight_round_outlined,
-                      color: ZenTheme.inkBlue,
-                      size: 18,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Nhìn lại buổi tối",
-                            style: GoogleFonts.nunito(
-                              fontSize: 12,
-                              color: ZenTheme.softGray.withOpacity(0.6),
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            anchor.eveningNote!,
-                            style: GoogleFonts.nunito(
-                              fontSize: 14,
-                              color: ZenTheme.creamWhite.withOpacity(0.9),
-                            ),
-                          ),
-                        ],
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-              ],
-
-              // 3. Chiêm nghiệm trong ngày
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Icon(
-                    Icons.spa_outlined,
-                    color: ZenTheme.softGold,
-                    size: 18,
+                    ],
                   ),
-                  const SizedBox(width: 10),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          "Gợi ý chiêm nghiệm mang theo",
-                          style: GoogleFonts.nunito(
-                            fontSize: 12,
-                            color: ZenTheme.softGray.withOpacity(0.6),
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          anchor.affirmationText,
-                          style: GoogleFonts.nunito(
-                            fontSize: 13,
-                            color: ZenTheme.softGray,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
 
-              const SizedBox(height: 24),
+                  const SizedBox(height: 16),
+                  const Divider(color: Colors.white10),
+                  const SizedBox(height: 16),
 
-              // 4. Hạt mầm ngủ ngon (nếu có)
-              if (anchor.sleepSeedCollected) ...[
-                const Divider(color: Colors.white10),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    const Text("🌱", style: TextStyle(fontSize: 18)),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "Hạt mầm ngủ ngon",
-                            style: GoogleFonts.nunito(
-                              fontSize: 12,
-                              color: ZenTheme.sageGreen,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          if (anchor.sleepSeedSownAt != null)
+                  // 1. Ý định ngày mới
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.brightness_5_outlined,
+                        color: ZenTheme.sageGreen,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
                             Text(
-                              "Gieo lúc ${_formatTimeFromIso(anchor.sleepSeedSownAt!)}",
+                              "Ý định ngày mới",
                               style: GoogleFonts.nunito(
                                 fontSize: 12,
-                                color: ZenTheme.softGray.withOpacity(0.65),
+                                color: ZenTheme.softGray.withOpacity(0.6),
+                                fontWeight: FontWeight.bold,
                               ),
                             ),
-                        ],
+                            const SizedBox(height: 4),
+                            Text(
+                              "\"${anchor.intention}\"",
+                              style: GoogleFonts.lora(
+                                fontSize: 14,
+                                fontStyle: FontStyle.italic,
+                                color: ZenTheme.creamWhite,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-              ],
+                    ],
+                  ),
 
-              ZenButton(text: "Đóng", onPressed: () => Navigator.pop(context)),
-            ],
+                  const SizedBox(height: 20),
+
+                  // 2. Nhật ký tối (nếu có)
+                  if (anchor.eveningCompleted &&
+                      anchor.eveningNote != null &&
+                      anchor.eveningNote!.isNotEmpty) ...[
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Icon(
+                          Icons.nightlight_round_outlined,
+                          color: ZenTheme.inkBlue,
+                          size: 18,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Nhìn lại buổi tối",
+                                style: GoogleFonts.nunito(
+                                  fontSize: 12,
+                                  color: ZenTheme.softGray.withOpacity(0.6),
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 4),
+                              Text(
+                                anchor.eveningNote!,
+                                style: GoogleFonts.nunito(
+                                  fontSize: 14,
+                                  color: ZenTheme.creamWhite.withOpacity(0.9),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                  ],
+
+                  // 3. Chiêm nghiệm trong ngày
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(
+                        Icons.spa_outlined,
+                        color: ZenTheme.softGold,
+                        size: 18,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Gợi ý chiêm nghiệm mang theo",
+                              style: GoogleFonts.nunito(
+                                fontSize: 12,
+                                color: ZenTheme.softGray.withOpacity(0.6),
+                                fontWeight: FontWeight.bold,
+                                ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(
+                              anchor.affirmationText,
+                              style: GoogleFonts.nunito(
+                                fontSize: 13,
+                                color: ZenTheme.softGray,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 24),
+
+                  // 4. Hạt mầm ngủ ngon (nếu có)
+                  if (anchor.sleepSeedCollected) ...[
+                    const Divider(color: Colors.white10),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        const Text("🌱", style: TextStyle(fontSize: 18)),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Hạt mầm ngủ ngon",
+                                style: GoogleFonts.nunito(
+                                  fontSize: 12,
+                                  color: ZenTheme.sageGreen,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              if (anchor.sleepSeedSownAt != null)
+                                Text(
+                                  "Gieo lúc ${_formatTimeFromIso(anchor.sleepSeedSownAt!)}",
+                                  style: GoogleFonts.nunito(
+                                    fontSize: 12,
+                                    color: ZenTheme.softGray.withOpacity(0.65),
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                  ],
+
+                  ZenButton(text: "Đóng", onPressed: () => Navigator.pop(context)),
+                ],
+              ),
+            ),
           ),
         );
       },

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/constants.dart';
 import '../../../../core/theme.dart';
 import '../../../../shared/widgets/glass_container.dart';
 import '../../../../shared/widgets/zen_button.dart';
@@ -44,20 +45,13 @@ class _SilenceViewState extends State<SilenceView> {
     super.dispose();
   }
 
-  final List<Map<String, String>> _zenReadings = [
-    {
-      'title': 'Buông bỏ ngoại cảnh',
-      'content': 'Trút bỏ bớt gánh nặng. Những gì thuộc về ngoài kia, hãy để chúng tự nhiên diễn ra. Lúc này, bạn chỉ cần chịu trách nhiệm cho hơi thở và sự bình yên của chính mình.',
-    },
-    {
-      'title': 'Neo giữ hơi thở',
-      'content': 'Hơi thở là điểm tựa tự nhiên nhất của bạn. Không cần cố gắng điều chỉnh nhịp thở nhanh hay chậm. Chỉ cần cảm nhận luồng khí nhẹ nhàng đi vào, đi ra và nhận biết cơ thể đang sống.',
-    },
-    {
-      'title': 'An trú hiện tại',
-      'content': 'Quá khứ đã qua, tương lai chưa tới. Khoảnh khắc này là thực tại duy nhất bạn có. Hãy cho phép bản thân tạm dừng mọi lo toan, chỉ tồn tại trọn vẹn trong khoảng lặng này.',
-    },
-  ];
+  // Lấy danh sách bài thiền từ ZenConstants.endogenMeditations
+  List<Map<String, dynamic>> get _zenReadings =>
+      ZenConstants.endogenMeditations.map((m) => {
+            'title': m['title'] as String,
+            'content': '${m['intro']}\n\n${(m['steps'] as List).map((s) => "• ${(s as Map)['phase']}: ${s['content']}").join('\n\n')}',
+          }).toList();
+
   int _currentReadingIndex = 0;
 
   void _showCompletionDialog() {

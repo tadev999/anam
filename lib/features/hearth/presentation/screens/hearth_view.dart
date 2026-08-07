@@ -17,9 +17,15 @@ class HearthView extends StatefulWidget {
 }
 
 class _HearthViewState extends State<HearthView> {
+  // Silent Presence Counter — số lượt hiện diện ẩn danh cạnh bếp lửa
+  late int _silentPresenceCount;
+
   @override
   void initState() {
     super.initState();
+    // Tạo số người ngẫu nhiên từ seed theo giờ trong ngày
+    final hour = DateTime.now().hour;
+    _silentPresenceCount = 3 + ((hour * 7 + DateTime.now().minute ~/ 10) % 18);
     _loadReleases();
   }
 
@@ -151,6 +157,36 @@ class _HearthViewState extends State<HearthView> {
                     ),
                     const SizedBox(height: 8),
 
+                    // Silent Presence Counter Banner
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          color: ZenTheme.sageGreen.withOpacity(0.05),
+                          border: Border.all(color: ZenTheme.sageGreen.withOpacity(0.15)),
+                        ),
+                        child: Row(
+                          children: [
+                            const Text('🕯️', style: TextStyle(fontSize: 14)),
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'Đang có $_silentPresenceCount lữ khách khác cùng ngồi bên bếp lửa lúc này',
+                                style: textTheme.bodyMedium!.copyWith(
+                                  color: ZenTheme.sageGreen.withOpacity(0.8),
+                                  fontSize: 12,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
                     Expanded(
                       child: isLoading
                           ? const Center(child: CircularProgressIndicator(color: ZenTheme.sageGreen))
@@ -177,7 +213,10 @@ class _HearthViewState extends State<HearthView> {
                                                   height: 1.5,
                                                 ),
                                               ),
-                                              const SizedBox(height: 16),
+                                              const SizedBox(height: 10),
+                                              // Topic Tags tự động
+                                              _buildTopicTags(release.content, textTheme),
+                                              const SizedBox(height: 12),
                                               
                                               Row(
                                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -244,6 +283,81 @@ class _HearthViewState extends State<HearthView> {
           ),
         ],
       ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Topic Tags — Tự động phân loại nội dung theo chủ đề Endogenism
+  // ---------------------------------------------------------------------------
+  static const Map<String, Map<String, dynamic>> _topicConfig = {
+    'Áp lực thành tích': {
+      'keywords': ['thành công', 'thất bại', 'điểm', 'bằng cấp', 'thi', 'áp lực', 'cố gắng', 'cạnh tranh'],
+      'icon': '🎓',
+      'color': 0xffc98b8b,
+    },
+    'Lo âu & Kiệt sức': {
+      'keywords': ['mệt', 'kiệt sức', 'stress', 'lo', 'sợ', 'lo lắng', 'burn out', 'burnout'],
+      'icon': '🌊',
+      'color': 0xff6a8caf,
+    },
+    'Cô đơn & Kết nối': {
+      'keywords': ['cô đơn', 'lạc lõng', 'một mình', 'không ai', 'bạn bè', 'gia đình', 'yêu'],
+      'icon': '🌙',
+      'color': 0xff8fa89b,
+    },
+    'Giá trị bản thân': {
+      'keywords': ['giá trị', 'xứng đáng', 'tôi là', 'bản thân', 'không đủ', 'kém', 'tệ'],
+      'icon': '✨',
+      'color': 0xffd4af37,
+    },
+    'Buông bỏ': {
+      'keywords': ['buông', 'tha thứ', 'quá khứ', 'không còn', 'từ bỏ', 'chấp nhận'],
+      'icon': '🍃',
+      'color': 0xffb5c7be,
+    },
+  };
+
+  Widget _buildTopicTags(String content, TextTheme textTheme) {
+    final lowerContent = content.toLowerCase();
+    final matchedTopics = <Map<String, dynamic>>[];
+
+    _topicConfig.forEach((topic, config) {
+      final keywords = config['keywords'] as List<String>;
+      final matched = keywords.any((kw) => lowerContent.contains(kw));
+      if (matched) matchedTopics.add({'name': topic, ...config});
+    });
+
+    if (matchedTopics.isEmpty) return const SizedBox.shrink();
+
+    return Wrap(
+      spacing: 6,
+      runSpacing: 4,
+      children: matchedTopics.take(2).map((topic) {
+        final color = Color(topic['color'] as int);
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(10),
+            border: Border.all(color: color.withOpacity(0.25)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(topic['icon'] as String, style: const TextStyle(fontSize: 10)),
+              const SizedBox(width: 4),
+              Text(
+                topic['name'] as String,
+                style: textTheme.bodyMedium!.copyWith(
+                  color: color,
+                  fontSize: 10,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        );
+      }).toList(),
     );
   }
 

@@ -138,6 +138,49 @@ class _AuthViewState extends State<AuthView> {
                             backgroundColor: ZenTheme.mistRed,
                           ),
                         );
+                      } else if (state is PasswordResetSent) {
+                        showDialog(
+                          context: context,
+                          builder: (dialogCtx) => AlertDialog(
+                            backgroundColor: ZenTheme.slateDark,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(24),
+                              side: BorderSide(
+                                color: ZenTheme.sageGreen.withOpacity(0.3),
+                                width: 1,
+                              ),
+                            ),
+                            title: const Row(
+                              children: [
+                                Icon(Icons.mark_email_read_outlined, color: ZenTheme.sageGreen, size: 28),
+                                SizedBox(width: 12),
+                                Text(
+                                  "Đã gửi email khôi phục",
+                                  style: TextStyle(color: ZenTheme.creamWhite, fontSize: 18),
+                                ),
+                              ],
+                            ),
+                            content: Text(
+                              "Liên kết đặt lại mật khẩu đã được gửi tới ${state.email}.\n\nVui lòng kiểm tra hộp thư của bạn (bao gồm cả thư mục Spam/Rác nếu không thấy trong Hộp thư đến).",
+                              style: const TextStyle(color: ZenTheme.softGray, fontSize: 14, height: 1.4),
+                            ),
+                            actions: [
+                              ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: ZenTheme.sageGreen,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                                onPressed: () => Navigator.of(dialogCtx).pop(),
+                                child: const Text(
+                                  "Đã hiểu",
+                                  style: TextStyle(color: ZenTheme.slateDark, fontWeight: FontWeight.bold),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
                       }
                     },
                     builder: (context, state) {
@@ -189,7 +232,22 @@ class _AuthViewState extends State<AuthView> {
                                 validator: (v) => v == null || v.length < 6 ? "Mật khẩu tối thiểu 6 ký tự" : null,
                               ),
                               
-                              const SizedBox(height: 24),
+                              if (!_isSignUp) ...[
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: TextButton(
+                                    onPressed: isLoading ? null : () => _showForgotPasswordDialog(context),
+                                    child: const Text(
+                                      "Quên mật khẩu?",
+                                      style: TextStyle(
+                                        color: ZenTheme.softGray,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ] else
+                                const SizedBox(height: 24),
                               
                               ZenButton(
                                 text: _isSignUp ? "Bắt đầu hành trình" : "Bước vào không gian an trú",
@@ -228,6 +286,80 @@ class _AuthViewState extends State<AuthView> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showForgotPasswordDialog(BuildContext parentContext) {
+    final resetEmailController = TextEditingController(text: _emailController.text);
+    final formKey = GlobalKey<FormState>();
+
+    showDialog(
+      context: parentContext,
+      builder: (dialogContext) {
+        return AlertDialog(
+          backgroundColor: ZenTheme.slateDark,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+            side: BorderSide(
+              color: ZenTheme.sageGreen.withOpacity(0.3),
+              width: 1,
+            ),
+          ),
+          title: const Text(
+            "Khôi phục mật khẩu",
+            style: TextStyle(color: ZenTheme.creamWhite, fontSize: 18),
+          ),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  "Nhập email đã đăng ký của bạn để nhận liên kết đặt lại mật khẩu.",
+                  style: TextStyle(color: ZenTheme.softGray, fontSize: 13),
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: resetEmailController,
+                  style: const TextStyle(color: ZenTheme.creamWhite),
+                  decoration: _inputDecoration("Địa chỉ email"),
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (v) => v == null || !v.contains('@') ? "Email không hợp lệ" : null,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(dialogContext).pop(),
+              child: const Text(
+                "Hủy",
+                style: TextStyle(color: ZenTheme.softGray),
+              ),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: ZenTheme.sageGreen,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () {
+                if (formKey.currentState!.validate()) {
+                  final email = resetEmailController.text.trim();
+                  BlocProvider.of<AuthBloc>(parentContext).add(PasswordResetRequested(email));
+                  Navigator.of(dialogContext).pop();
+                }
+              },
+              child: const Text(
+                "Gửi liên kết",
+                style: TextStyle(color: ZenTheme.slateDark, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        );
+      },
     );
   }
 

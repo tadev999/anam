@@ -23,6 +23,8 @@ class _ReflectionViewState extends State<ReflectionView> {
   final FocusNode _focusNode = FocusNode();
 
   late String _prompt;
+  int? _selectedCircuitId; // null = auto theo mindState
+  bool _isCircuitSelecting = true; // Bước 1: chọn Mạch
   bool _isFocusMode = false;
   bool _showFlowReminder = false;
   bool _isDissolving = false;
@@ -31,13 +33,25 @@ class _ReflectionViewState extends State<ReflectionView> {
   @override
   void initState() {
     super.initState();
-    _prompt = _selectPromptByMindState();
+    _prompt = _selectPromptByMindState(null); // auto at start
 
     _controller.addListener(_onTextChanged);
     _focusNode.addListener(_onFocusChanged);
   }
 
-  String _selectPromptByMindState() {
+  String _selectPromptByMindState(int? circuitId) {
+    // Nếu chọn mạch cụ thể, lấy từ wisdomFlashcards
+    if (circuitId != null) {
+      final cards = ZenConstants.wisdomFlashcards
+          .where((c) => c['circuit'] == circuitId)
+          .toList();
+      if (cards.isNotEmpty) {
+        final card = cards[Random().nextInt(cards.length)];
+        return card['question'] as String;
+      }
+    }
+
+    // Auto: dựa theo mindState
     final dbRepo = RepositoryProvider.of<BaseDatabaseRepository>(
       context,
       listen: false,
@@ -184,45 +198,59 @@ class _ReflectionViewState extends State<ReflectionView> {
             ),
 
             SafeArea(
-              child: GestureDetector(
-                onTap: () {
-                  // Exit focus mode on clicking background
-                  _focusNode.unfocus();
-                },
-                behavior: HitTestBehavior.opaque,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 22.0,
-                    vertical: 16.0,
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Prompt Question Card
-                      Text(
-                        "Câu hỏi tự thấu hiểu hôm nay",
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.nunito(
-                          fontSize: 12,
-                           color: ZenTheme.softGray.withValues(alpha: 0.6),
-                          letterSpacing: 1.5,
+              child: _isCircuitSelecting
+                  ? _buildCircuitSelector()
+                  : GestureDetector(
+                      onTap: () => _focusNode.unfocus(),
+                      behavior: HitTestBehavior.opaque,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 22.0,
+                          vertical: 16.0,
                         ),
-                      ),
-                      const SizedBox(height: 8),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                        child: Text(
-                          "\"$_prompt\"",
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.lora(
-                            fontSize: 19,
-                            fontStyle: FontStyle.italic,
-                            color: ZenTheme.creamWhite,
-                            height: 1.4,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            // Circuit Badge (nếu đã chọn Mạch)
+                            if (_selectedCircuitId != null) ...[
+                              _buildCircuitBadgeWidget(),
+                              const SizedBox(height: 10),
+                            ],
+
+                            // Prompt Question Card
+                            AnimatedOpacity(
+                              opacity: _isFocusMode ? 0.3 : 1.0,
+                              duration: const Duration(milliseconds: 300),
+                              child: Column(
+                                children: [
+                                  Text(
+                                    "Câu hỏi tự thấu hiểu hôm nay",
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.nunito(
+                                      fontSize: 12,
+                                      color: ZenTheme.softGray.withValues(alpha: 0.6),
+                                      letterSpacing: 1.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                    child: Text(
+                                      "\"$_prompt\"",
+                                      textAlign: TextAlign.center,
+                                      style: GoogleFonts.lora(
+                                        fontSize: 18,
+                                        fontStyle: FontStyle.italic,
+                                        color: ZenTheme.creamWhite,
+                                        height: 1.45,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+
 
                       const Divider(color: Colors.white10),
                       const SizedBox(height: 16),
@@ -375,6 +403,172 @@ class _ReflectionViewState extends State<ReflectionView> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildCircuitBadgeWidget() {
+    final circuit = ZenConstants.endogenCircuits
+        .firstWhere((c) => c['id'] == _selectedCircuitId);
+    final color = Color(circuit['color'] as int);
+    return GestureDetector(
+      onTap: _isFocusMode
+          ? null
+          : () => setState(() => _isCircuitSelecting = true),
+      child: Center(
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: color.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: color.withOpacity(0.3)),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(circuit['icon'] as String, style: const TextStyle(fontSize: 12)),
+              const SizedBox(width: 5),
+              Text(
+                'Mạch ${circuit['id']} — ${circuit['name']}',
+                style: GoogleFonts.nunito(
+                  color: color,
+                  fontSize: 10,
+                  letterSpacing: 0.6,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const SizedBox(width: 4),
+              Icon(Icons.edit_outlined, color: color.withOpacity(0.5), size: 10),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // Circuit Selector Screen
+  // ---------------------------------------------------------------------------
+  Widget _buildCircuitSelector() {
+    final textTheme = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          const SizedBox(height: 12),
+          Text(
+            'Gương tự vấn',
+            textAlign: TextAlign.center,
+            style: textTheme.titleLarge!.copyWith(
+              fontFamily: 'Lora',
+              fontWeight: FontWeight.normal,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Chọn Mạch nội tâm bạn muốn khám phá hôm nay',
+            textAlign: TextAlign.center,
+            style: textTheme.bodyMedium!.copyWith(
+              color: ZenTheme.softGray,
+              fontSize: 13,
+            ),
+          ),
+          const SizedBox(height: 28),
+
+          // Circuit options
+          Expanded(
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  ...ZenConstants.endogenCircuits.map((circuit) {
+                    final color = Color(circuit['color'] as int);
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _selectedCircuitId = circuit['id'] as int;
+                          _prompt = _selectPromptByMindState(_selectedCircuitId);
+                          _isCircuitSelecting = false;
+                        });
+                      },
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        margin: const EdgeInsets.only(bottom: 10),
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(16),
+                          color: color.withOpacity(0.07),
+                          border: Border.all(color: color.withOpacity(0.3), width: 1),
+                        ),
+                        child: Row(
+                          children: [
+                            Text(circuit['icon'] as String, style: const TextStyle(fontSize: 22)),
+                            const SizedBox(width: 14),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Mạch ${circuit['id']} — ${circuit['name']}',
+                                    style: textTheme.titleLarge!.copyWith(
+                                      fontSize: 14,
+                                      color: color,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 3),
+                                  Text(
+                                    circuit['desc'] as String,
+                                    style: textTheme.bodyMedium!.copyWith(fontSize: 12),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(Icons.arrow_forward_ios, color: color.withOpacity(0.5), size: 14),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
+
+                  const SizedBox(height: 8),
+                  // Auto option
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _selectedCircuitId = null;
+                        _prompt = _selectPromptByMindState(null);
+                        _isCircuitSelecting = false;
+                      });
+                    },
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(16),
+                        color: ZenTheme.creamWhite.withOpacity(0.04),
+                        border: Border.all(color: ZenTheme.creamWhite.withOpacity(0.1)),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.auto_awesome, color: ZenTheme.softGray, size: 16),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Tự động theo tâm trạng của tôi',
+                            style: GoogleFonts.nunito(
+                              fontSize: 13,
+                              color: ZenTheme.softGray,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

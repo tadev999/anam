@@ -10,6 +10,7 @@ abstract class BaseAuthRepository {
   Future<UserModel?> signUp(String displayName, String email, String password);
   Future<UserModel?> signIn(String email, String password);
   Future<void> signOut();
+  Future<void> sendPasswordResetEmail(String email);
   Future<void> updateEmpathyPoints(int points);
   Future<void> updateStreak(int streak, String date);
   Stream<UserModel?> get onAuthStateChanged;
@@ -65,6 +66,11 @@ class MockAuthRepository extends BaseAuthRepository {
     await Future.delayed(const Duration(milliseconds: 400));
     _currentUser = null;
     _authStateController.add(null);
+  }
+
+  @override
+  Future<void> sendPasswordResetEmail(String email) async {
+    await Future.delayed(const Duration(milliseconds: 800));
   }
 
   @override
@@ -175,6 +181,16 @@ class FirebaseAuthRepository extends BaseAuthRepository {
     await _auth.signOut();
     _currentUser = null;
     _authStateController.add(null);
+  }
+
+  @override
+  Future<void> sendPasswordResetEmail(String email) async {
+    try {
+      await _auth.sendPasswordResetEmail(email: email);
+    } catch (e) {
+      debugPrint("Lỗi gửi email reset password: $e");
+      rethrow;
+    }
   }
 
   @override

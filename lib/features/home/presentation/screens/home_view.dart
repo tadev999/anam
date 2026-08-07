@@ -414,6 +414,9 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                         ));
                       }
 
+                      // Daily Wisdom Card — Thẻ tri thức ngày
+                      children.add(_buildDailyWisdomCard(textTheme));
+
                       // Connection Row
                       children.add(Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -958,6 +961,97 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  // Daily Wisdom Card — Thẻ tri thức Endogenism theo thời điểm trong ngày
+  Widget _buildDailyWisdomCard(TextTheme textTheme) {
+    // Chọn flashcard phù hợp với giờ trong ngày
+    final hour = DateTime.now().hour;
+    final targetCircuit = hour >= 5 && hour < 11
+        ? 3 // sáng: Hành Động Nhỏ
+        : hour >= 11 && hour < 16
+            ? 2 // trưa: Xây Nền Tảng
+            : hour >= 16 && hour < 20
+                ? 4 // chiều: Nhận Ra Giá Trị
+                : 1; // tối: Gọi Tên
+
+    final cards = ZenConstants.wisdomFlashcards
+        .where((c) => c['circuit'] == targetCircuit)
+        .toList();
+    if (cards.isEmpty) return const SizedBox.shrink();
+
+    final card = cards[DateTime.now().day % cards.length];
+    final circuit = ZenConstants.endogenCircuits
+        .firstWhere((c) => c['id'] == targetCircuit);
+    final circuitColor = Color(circuit['color'] as int);
+
+    return GlassContainer(
+      opacity: 0.05,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text('✨', style: TextStyle(fontSize: 14)),
+              const SizedBox(width: 6),
+              Text(
+                "Thẻ tri thức hôm nay",
+                style: textTheme.bodyMedium!.copyWith(
+                  fontSize: 11,
+                  color: ZenTheme.softGray.withOpacity(0.7),
+                  letterSpacing: 1.2,
+                ),
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: circuitColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: circuitColor.withOpacity(0.3)),
+                ),
+                child: Text(
+                  '${circuit['icon']} Mạch ${circuit['id']}',
+                  style: textTheme.bodyMedium!.copyWith(
+                    color: circuitColor,
+                    fontSize: 9,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            '"${card['quote']}"',
+            style: textTheme.bodyLarge!.copyWith(
+              fontStyle: FontStyle.italic,
+              fontSize: 14,
+              color: ZenTheme.creamWhite.withOpacity(0.9),
+              height: 1.55,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Icon(Icons.help_outline_rounded, color: ZenTheme.softGold, size: 13),
+              const SizedBox(width: 5),
+              Expanded(
+                child: Text(
+                  card['question'] as String,
+                  style: textTheme.bodyMedium!.copyWith(
+                    fontSize: 12,
+                    color: ZenTheme.creamWhite.withOpacity(0.65),
+                    height: 1.4,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
     );
   }

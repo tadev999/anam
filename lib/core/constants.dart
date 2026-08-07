@@ -420,4 +420,500 @@ class ZenConstants {
     'peaceful':     ['gratitude_msg', 'nature_look', 'empathy_hug'],
     'neutral':      ['breathe', 'tidy_desk', 'stretch'],
   };
+
+  // -----------------------------------------------------------------------
+  // 5 Mạch Endogenism — Bản đồ hành trình nội tâm
+  // -----------------------------------------------------------------------
+  static const List<Map<String, dynamic>> endogenCircuits = [
+    {
+      'id': 1,
+      'name': 'Gọi Tên',
+      'icon': '🏷️',
+      'desc': 'Nhận diện những cạm bẫy tâm lý đang giữ bạn lại',
+      'color': 0xffc98b8b, // mistRed
+    },
+    {
+      'id': 2,
+      'name': 'Xây Nền Tảng',
+      'icon': '🏛️',
+      'desc': 'Giá trị vô điều kiện — nền móng không thể lung lay',
+      'color': 0xff8fa89b, // sageGreen
+    },
+    {
+      'id': 3,
+      'name': 'Hành Động Nhỏ',
+      'icon': '🌱',
+      'desc': 'Nghi lễ nhỏ nuôi dưỡng tâm hồn mỗi ngày',
+      'color': 0xffd4af37, // softGold
+    },
+    {
+      'id': 4,
+      'name': 'Nhận Ra Giá Trị',
+      'icon': '🔭',
+      'desc': 'Nhìn thấy điều thật sự quan trọng với bạn',
+      'color': 0xff6a8caf, // inkBlue
+    },
+    {
+      'id': 5,
+      'name': 'Thánh Đường Thể Tục',
+      'icon': '🕯️',
+      'desc': 'Không gian sống nội sinh bền vững, trọn vẹn',
+      'color': 0xffb5c7be, // sageLight
+    },
+  ];
+
+  // -----------------------------------------------------------------------
+  // Bộ 3 Câu Hỏi Nội Sinh Hàng Ngày (Triday Questions)
+  // Dựa trên 3 câu hỏi cốt lõi của Endogenism (index.md)
+  // -----------------------------------------------------------------------
+  static const Map<String, String> tridayQuestions = {
+    'morning': 'Hôm nay bạn hành động từ nỗi sợ thiếu hụt, hay từ nền tảng vững chắc bên trong?',
+    'afternoon': 'Thứ gì đang thật sự nuôi dưỡng bạn — không phải kích thích bạn?',
+    'evening': 'Bạn là ai khi không có ai nhìn?',
+  };
+
+  // -----------------------------------------------------------------------
+  // 3 Chủ Đề Buông Đa Giác Quan (Release Ritual Themes)
+  // Dựa trên kỹ thuật Cognitive Defusion trong ACT
+  // -----------------------------------------------------------------------
+  static const List<Map<String, dynamic>> releaseRitualThemes = [
+    {
+      'id': 'fire',
+      'name': 'Thiêu hóa',
+      'icon': '🔥',
+      'desc': 'Dòng chữ hóa thành tàn lửa bay lên bầu trời đêm',
+      'accentColor': 0xffE07A5F,
+    },
+    {
+      'id': 'wave',
+      'name': 'Sóng biển',
+      'icon': '🌊',
+      'desc': 'Sóng nhẹ nhàng liếm trôi dòng chữ trên bãi cát',
+      'accentColor': 0xff6a8caf,
+    },
+    {
+      'id': 'leaf',
+      'name': 'Lá rơi',
+      'icon': '🍂',
+      'desc': 'Chiếc lá thu mang theo nỗi lo trôi theo dòng suối',
+      'accentColor': 0xffC68B3A,
+    },
+  ];
+
+  // -----------------------------------------------------------------------
+  // Thẻ Bài Tri Thức Nội Sinh (Wisdom Flashcards)
+  // Mỗi thẻ: quote, câu hỏi nhanh, mạch tương ứng, cảm xúc phù hợp
+  // Trích từ 150+ bài viết endo-book
+  // -----------------------------------------------------------------------
+  static const List<Map<String, dynamic>> wisdomFlashcards = [
+    // Mạch 1 — Gọi Tên: Nhận diện cạm bẫy
+    {
+      'quote': 'Bạn là ai khi không có ai nhìn?',
+      'question': 'Lúc này bạn có đang đóng một vai diễn không thực sự thuộc về mình?',
+      'circuit': 1,
+      'source': 'Câu hỏi cốt lõi Endogenism',
+      'emotions': ['lonely', 'empty', 'neutral'],
+    },
+    {
+      'quote': 'Cố gắng không phải lời nguyền — nhưng cố gắng để chứng minh giá trị thì có.',
+      'question': 'Bạn đang cố gắng vì bạn muốn tạo ra điều gì đó, hay vì sợ bị coi là không đủ tốt?',
+      'circuit': 1,
+      'source': 'Bài 01 — Cố gắng thành lời nguyền',
+      'emotions': ['burnout', 'overthinking'],
+    },
+    {
+      'quote': 'Không phải bạn thất bại. Bạn chỉ đang chơi một trò chơi được thiết kế để không ai thắng được.',
+      'question': 'Tiêu chí "thành công" bạn đang dùng là của bạn, hay của ai đó khác áp đặt?',
+      'circuit': 1,
+      'source': 'Bài 04 — Định nghĩa lại sự thất bại',
+      'emotions': ['burnout', 'empty', 'overthinking'],
+    },
+    {
+      'quote': 'Nỗi sợ bị bỏ lại phía sau là dấu hiệu bạn đang chạy trong cuộc đua không phải của mình.',
+      'question': 'Ai đang ngồi đặt ra đích đến của cuộc đua bạn đang chạy?',
+      'circuit': 1,
+      'source': 'Bài 06 — Nỗi sợ bị bỏ lại phía sau',
+      'emotions': ['overthinking', 'lonely'],
+    },
+    {
+      'quote': 'Cô đơn giữa đám đông là vì bạn đang cố đóng một vai diễn không thuộc về mình.',
+      'question': 'Khi ở một mình, bạn cảm thấy nhẹ nhõm hay cô đơn hơn?',
+      'circuit': 1,
+      'source': 'Bài 08 — Cô đơn giữa thế giới kết nối',
+      'emotions': ['lonely', 'empty'],
+    },
+    {
+      'quote': 'Có tất cả mà vẫn trong rỗng — đó không phải vô ơn. Đó là tín hiệu rằng bạn đang tìm nhầm nơi.',
+      'question': 'Thứ bạn đang tìm kiếm — nó có đang ở nơi bạn đang tìm không?',
+      'circuit': 1,
+      'source': 'Bài 09 — Có tất cả mà vẫn trong rỗng',
+      'emotions': ['empty', 'burnout'],
+    },
+    {
+      'quote': 'Toxic positivity không chữa lành — nó chỉ ép bạn diễn vai người ổn khi bạn chưa ổn.',
+      'question': 'Bạn có đang ép mình "phải tích cực" trong khi thực ra đang cần được lắng nghe?',
+      'circuit': 1,
+      'source': 'Bài 10 — Toxic positivity không còn tác dụng',
+      'emotions': ['burnout', 'lonely'],
+    },
+    {
+      'quote': 'Hội chứng kẻ giả mạo thì thầm: "Rồi họ sẽ biết mình chỉ là một kẻ giả dối."',
+      'question': 'Thành tích của bạn có thực sự không đủ, hay bạn chỉ chưa quen tin vào khả năng của mình?',
+      'circuit': 1,
+      'source': 'Bài 11 — Hội chứng kẻ giả mạo',
+      'emotions': ['overthinking', 'burnout'],
+    },
+    {
+      'quote': 'Khi không làm gì mà cảm thấy tội lỗi, đó là dấu hiệu bạn đã gắn giá trị bản thân vào năng suất.',
+      'question': 'Giá trị của bạn có giảm đi khi bạn nghỉ ngơi không?',
+      'circuit': 1,
+      'source': 'Bài 05 — Tại sao không làm gì cảm thấy tội lỗi',
+      'emotions': ['burnout', 'empty'],
+    },
+    {
+      'quote': 'Áp lực từ mạng xã hội không đến từ người khác — nó đến từ thuật toán được thiết kế để bạn luôn cảm thấy thiếu.',
+      'question': 'Sau 10 phút lướt mạng xã hội, bạn thường cảm thấy thế nào về bản thân?',
+      'circuit': 1,
+      'source': 'Bài 03 — Áp lực đồng lứa & mạng xã hội',
+      'emotions': ['overthinking', 'empty', 'lonely'],
+    },
+    // Mạch 2 — Xây Nền Tảng
+    {
+      'quote': 'Thứ bạn đang tìm kiếm không nằm ở phía trước bạn. Nó đã có trong bạn — đang chờ được tin vào.',
+      'question': 'Khi bạn không cần chứng minh gì với ai, bạn cảm thấy thế nào về chính mình?',
+      'circuit': 2,
+      'source': 'Endogenism — Tiên đề cốt lõi',
+      'emotions': ['empty', 'peaceful', 'neutral'],
+    },
+    {
+      'quote': 'Giá trị của bạn không tăng khi bạn thành công và không giảm khi bạn thất bại.',
+      'question': 'Nếu kết quả hôm nay không thay đổi giá trị của bạn, bạn có hành động khác đi không?',
+      'circuit': 2,
+      'source': 'Endogenism — Trụ cột 1: Giá trị vô điều kiện',
+      'emotions': ['burnout', 'overthinking', 'peaceful'],
+    },
+    {
+      'quote': 'Cảm giác khó chịu không phải vấn đề cần giải quyết — nó là dữ liệu cần được đọc.',
+      'question': 'Cảm xúc khó chịu nhất của bạn lúc này đang cố nói với bạn điều gì?',
+      'circuit': 2,
+      'source': 'Endogenism — Trụ cột 2: Cảm xúc là thông tin',
+      'emotions': ['burnout', 'lonely', 'overthinking'],
+    },
+    {
+      'quote': 'Hành động từ nỗi sợ thiếu hụt thì kiệt sức. Hành động từ nền tảng vững chắc thì nuôi dưỡng.',
+      'question': 'Hành động quan trọng nhất bạn sẽ làm hôm nay — nó đến từ đâu?',
+      'circuit': 2,
+      'source': 'Endogenism — Hai loại giá trị',
+      'emotions': ['burnout', 'neutral', 'peaceful'],
+    },
+    {
+      'quote': 'Bạn không phải kiếm lấy quyền được tồn tại.',
+      'question': 'Nếu không cần chứng minh mình xứng đáng, bạn sẽ dành năng lượng đó làm gì?',
+      'circuit': 2,
+      'source': 'Endogenism — Trụ cột 1',
+      'emotions': ['burnout', 'empty', 'peaceful'],
+    },
+    {
+      'quote': 'Pháo đài tâm lý không phải là nơi tránh né thế giới. Nó là nơi bạn trú lại trong chính mình.',
+      'question': 'Bạn đang đứng vững từ bên trong, hay đang phụ thuộc vào sự ổn định bên ngoài?',
+      'circuit': 2,
+      'source': 'Bài 50 — Pháo đài tâm lý',
+      'emotions': ['peaceful', 'overthinking', 'burnout'],
+    },
+    {
+      'quote': 'Bạn không phải là cảm xúc của bạn. Bạn là người đang quan sát cảm xúc đó trôi qua.',
+      'question': 'Thay vì "Tôi lo lắng", thử nghĩ "Tôi đang nhận thấy cảm giác lo lắng" — cảm giác thế nào?',
+      'circuit': 2,
+      'source': 'Bài 43 — Bạn không phải là cảm xúc',
+      'emotions': ['overthinking', 'burnout', 'lonely'],
+    },
+    {
+      'quote': 'Ý nghĩa không được tìm thấy — nó được xây từ những lựa chọn nhỏ mỗi ngày.',
+      'question': 'Một lựa chọn nhỏ nào hôm nay phản ánh đúng nhất con người bạn muốn trở thành?',
+      'circuit': 2,
+      'source': 'Endogenism — Trụ cột 3: Ý nghĩa được xây từ dưới lên',
+      'emotions': ['empty', 'peaceful', 'neutral'],
+    },
+    // Mạch 3 — Hành Động Nhỏ
+    {
+      'quote': 'Một nghi lễ nhỏ không thay đổi thế giới. Nhưng nó thay đổi cách bạn bước vào thế giới đó.',
+      'question': 'Một hành động nhỏ nào bạn có thể làm ngay bây giờ để chăm sóc bản thân?',
+      'circuit': 3,
+      'source': 'Bài 57 — Nghi lễ nhỏ neo giữ tâm hồn',
+      'emotions': ['burnout', 'neutral', 'peaceful'],
+    },
+    {
+      'quote': 'Viết nhật ký không phải để trở nên tốt hơn. Là để gặp lại chính mình mỗi ngày.',
+      'question': 'Nếu viết một câu thật lòng về hôm nay, câu đó sẽ là gì?',
+      'circuit': 3,
+      'source': 'Bài 51 — Viết nhật ký',
+      'emotions': ['lonely', 'empty', 'peaceful'],
+    },
+    {
+      'quote': 'Chú tâm trọn vẹn không cần ngồi thiền. Nó có thể bắt đầu từ việc uống một ly nước thật chậm.',
+      'question': 'Một việc nhỏ bạn thường làm vội vội hôm nay — nếu làm chậm lại thì sao?',
+      'circuit': 3,
+      'source': 'Bài 33 — Chánh niệm không cần ngồi thiền',
+      'emotions': ['burnout', 'overthinking', 'peaceful'],
+    },
+    {
+      'quote': 'Nghi lễ của sự tĩnh lặng giữa lòng thành phố — một tách cà phê không điện thoại là đủ.',
+      'question': 'Khi nào lần cuối bạn làm một việc gì đó mà không đồng thời cầm điện thoại?',
+      'circuit': 3,
+      'source': 'Bài 39 — Sự tĩnh lặng giữa lòng thành phố',
+      'emotions': ['burnout', 'overthinking'],
+    },
+    {
+      'quote': 'Sống chậm lại không phải là làm ít đi. Là làm từng việc với sự hiện diện trọn vẹn hơn.',
+      'question': 'Nếu hôm nay bạn chỉ làm một việc thật sự chú tâm — bạn sẽ chọn việc gì?',
+      'circuit': 3,
+      'source': 'Bài 59 — Sống chậm lại',
+      'emotions': ['burnout', 'peaceful', 'neutral'],
+    },
+    // Mạch 4 — Nhận Ra Giá Trị
+    {
+      'quote': 'Định luật bảo toàn năng lượng tinh thần: Bạn không thể cho những gì bạn không có.',
+      'question': 'Bạn đang dùng năng lượng tinh thần của mình vào đâu nhiều nhất?',
+      'circuit': 4,
+      'source': 'Bài 48 — Định luật bảo toàn năng lượng tinh thần',
+      'emotions': ['burnout', 'overthinking'],
+    },
+    {
+      'quote': 'Biết đủ là đủ — không phải buông xuôi, mà là nhận ra thứ gì thực sự quan trọng với bạn.',
+      'question': 'Nếu bạn "đủ" rồi — ngay lúc này — bạn sẽ cảm thấy tự do theo cách nào?',
+      'circuit': 4,
+      'source': 'Bài 52 — Biết đủ là đủ',
+      'emotions': ['burnout', 'empty', 'peaceful'],
+    },
+    {
+      'quote': 'Đừng so sánh chương 1 của mình với chương 20 của người khác.',
+      'question': 'Bạn đang ở chương mấy trong câu chuyện riêng của mình?',
+      'circuit': 4,
+      'source': 'Bài 45 — Ngừng so sánh chương 1 với chương 20',
+      'emotions': ['burnout', 'lonely', 'overthinking'],
+    },
+    {
+      'quote': 'Tìm kiếm ý nghĩa trong những điều tầm thường là kỹ năng cao nhất của người sống nội sinh.',
+      'question': 'Một điều rất nhỏ bé hôm nay đã mang lại cho bạn khoảnh khắc dù chỉ thoáng qua của sự bình yên?',
+      'circuit': 4,
+      'source': 'Bài 58 — Tìm kiếm ý nghĩa trong tầm thường',
+      'emotions': ['empty', 'peaceful', 'neutral'],
+    },
+    {
+      'quote': 'Sở thích cũ không còn làm bạn mỉm cười — đó không phải lười biếng, đó là tín hiệu bạn cần nuôi dưỡng lại.',
+      'question': 'Có điều gì bạn từng yêu thích mà bạn đã bỏ lại không? Tại sao?',
+      'circuit': 4,
+      'source': 'Bài 25 — Sở thích cũ không còn làm bạn mỉm cười',
+      'emotions': ['empty', 'lonely'],
+    },
+    // Mạch 5 — Thánh Đường Thể Tục
+    {
+      'quote': 'Tâm thế người lữ hành: Không chiếm hữu, không phán xét, chỉ trân trọng.',
+      'question': 'Nếu nhìn ngày hôm nay với đôi mắt của một người lữ hành đang ghé thăm, bạn sẽ thấy gì?',
+      'circuit': 5,
+      'source': 'Bài 60 — Tâm thế người lữ hành',
+      'emotions': ['peaceful', 'empty', 'neutral'],
+    },
+    {
+      'quote': 'Memento Mori — nhớ rằng bạn sẽ chết. Không để sợ hãi, mà để sống trọn vẹn hơn.',
+      'question': 'Nếu hôm nay là ngày cuối trong cuộc đời, bạn có muốn làm gì khác đi không?',
+      'circuit': 5,
+      'source': 'Bài 35 — Memento Mori',
+      'emotions': ['empty', 'peaceful'],
+    },
+    {
+      'quote': 'Amor Fati — yêu thương số phận, không phải chấp nhận thụ động, mà là biến cả những điều khó chịu thành chất liệu sống.',
+      'question': 'Một khó khăn bạn đang trải qua — nếu xem nó là thầy, nó đang dạy bạn điều gì?',
+      'circuit': 5,
+      'source': 'Bài 36 — Amor Fati',
+      'emotions': ['burnout', 'overthinking', 'peaceful'],
+    },
+    {
+      'quote': 'Tự do nội tâm không phải khi không còn ràng buộc — mà là khi những ràng buộc không còn xác định bạn.',
+      'question': 'Điều gì bên ngoài đang giữ quyền năng định nghĩa giá trị của bạn nhiều nhất?',
+      'circuit': 5,
+      'source': 'Bài 49 — Tự do nội tâm',
+      'emotions': ['burnout', 'overthinking', 'peaceful'],
+    },
+    {
+      'quote': 'Giới hạn của bạn không phải dấu hiệu yếu đuối. Nhận ra giới hạn là bước đầu của sự khôn ngoan.',
+      'question': 'Một điều bạn cần nói không hôm nay để bảo vệ năng lượng tinh thần của mình?',
+      'circuit': 5,
+      'source': 'Bài 38 — Tại sao nói không',
+      'emotions': ['burnout', 'neutral'],
+    },
+    {
+      'quote': 'Tha thứ cho chính mình không phải bào chữa — là giải phóng bản thân khỏi án tù tự tạo.',
+      'question': 'Có điều gì bạn đang còn tự trách mình mà thực ra đã đến lúc buông bỏ chưa?',
+      'circuit': 5,
+      'source': 'Bài 54 — Tha thứ cho chính mình',
+      'emotions': ['burnout', 'lonely', 'empty'],
+    },
+  ];
+
+  // -----------------------------------------------------------------------
+  // Nghi Lễ Nhỏ Nội Sinh — Micro-Rituals (Mạch 3)
+  // Mỗi nghi lễ: tiêu đề, hướng dẫn chi tiết, thời gian, mạch tương ứng, cảm xúc
+  // -----------------------------------------------------------------------
+  static const List<Map<String, dynamic>> endogenMicroRituals = [
+    {
+      'id': 'tea_mindful',
+      'title': 'Pha trà định tâm',
+      'instruction': 'Pha một tách trà. Không cầm điện thoại. Cảm nhận hơi nóng tỏa ra từ tách trà, mùi thơm, và tiếng nước rót. Uống từng ngụm thật chậm.',
+      'duration': '5 phút',
+      'circuit': 3,
+      'emotions': ['burnout', 'overthinking'],
+    },
+    {
+      'id': 'slow_water',
+      'title': 'Ly nước trong lặng',
+      'instruction': 'Rót một ly nước. Uống thật chậm rãi trong im lặng hoàn toàn. Cảm nhận từng ngụm nước mát chạm vào cổ họng. Không vừa uống vừa làm việc khác.',
+      'duration': '2 phút',
+      'circuit': 3,
+      'emotions': ['burnout', 'neutral'],
+    },
+    {
+      'id': 'window_gaze',
+      'title': 'Ngắm nhìn bầu trời',
+      'instruction': 'Nhìn ra cửa sổ và quan sát bầu trời trong 2 phút. Không phán xét, không nghĩ về việc cần làm. Chỉ đơn giản là nhìn và cảm nhận.',
+      'duration': '2 phút',
+      'circuit': 3,
+      'emotions': ['overthinking', 'empty'],
+    },
+    {
+      'id': 'gratitude_moment',
+      'title': 'Một điều biết ơn',
+      'instruction': 'Đặt tay lên ngực. Nghĩ về một điều rất nhỏ bé hôm nay mà bạn biết ơn — có thể chỉ là ánh nắng buổi sáng hay một cuộc trò chuyện ngắn. Cảm nhận sự biết ơn đó trong 1 phút.',
+      'duration': '3 phút',
+      'circuit': 3,
+      'emotions': ['empty', 'peaceful', 'neutral'],
+    },
+    {
+      'id': 'stretch_release',
+      'title': 'Vươn người buông thả',
+      'instruction': 'Đứng dậy. Vươn người lên cao hết mức. Giữ 5 giây. Thả lỏng hoàn toàn. Lắc nhẹ cánh tay. Cảm nhận cơ thể trở về trạng thái tự nhiên.',
+      'duration': '3 phút',
+      'circuit': 3,
+      'emotions': ['burnout', 'overthinking'],
+    },
+    {
+      'id': 'breath_anchor',
+      'title': 'Neo giữ hơi thở',
+      'instruction': 'Hít vào trong 4 giây, giữ 2 giây, thở ra trong 6 giây. Làm 5 lần. Đây là kỹ thuật kích hoạt hệ thần kinh đối giao cảm — cơ chế thư giãn tự nhiên của cơ thể.',
+      'duration': '3 phút',
+      'circuit': 3,
+      'emotions': ['overthinking', 'burnout', 'lonely'],
+    },
+    {
+      'id': 'one_line_journal',
+      'title': 'Một dòng nhật ký thật lòng',
+      'instruction': 'Viết đúng một câu — câu thật lòng nhất về khoảnh khắc hiện tại của bạn. Không cần hay, không cần chỉnh sửa. Chỉ cần thật.',
+      'duration': '2 phút',
+      'circuit': 3,
+      'emotions': ['lonely', 'empty', 'peaceful'],
+    },
+    {
+      'id': 'silence_room',
+      'title': 'Một phút tĩnh lặng',
+      'instruction': 'Đặt điện thoại xuống. Nhắm mắt. Không làm gì trong 1 phút. Cứ để suy nghĩ trôi qua như những đám mây. Bạn chỉ cần ngồi đây và thở.',
+      'duration': '1 phút',
+      'circuit': 3,
+      'emotions': ['burnout', 'overthinking', 'neutral'],
+    },
+  ];
+
+  // -----------------------------------------------------------------------
+  // Thiền Dẫn Nhập Nội Sinh (Guided Endogen Meditations)
+  // Thay thế zenReadings trong SilenceView
+  // -----------------------------------------------------------------------
+  static const List<Map<String, dynamic>> endogenMeditations = [
+    // Loại 1: Thiền ngắn 5 phút — Nhận ra giá trị vô điều kiện
+    {
+      'id': 'value_meditation',
+      'title': 'Nhận ra giá trị vô điều kiện',
+      'duration_minutes': 5,
+      'intro': 'Bài thiền 5 phút giúp bạn chạm vào giá trị sẵn có trong mình — không phụ thuộc vào bất kỳ thành tích hay sự công nhận nào.',
+      'steps': [
+        {
+          'phase': 'Đặt nền',
+          'content': 'Hãy để cơ thể chìm xuống, thoải mái. Không cần cố gắng làm bất cứ điều gì. Chỉ cần ở đây. Hít một hơi thật sâu — và nhận ra rằng: hơi thở này là bằng chứng bạn đang sống, và điều đó đã là đủ rồi.',
+        },
+        {
+          'phase': 'Nhận thức',
+          'content': 'Bạn có giá trị vô điều kiện — không phải vì bạn làm việc tốt, không phải vì ai đó nói vậy, mà vì bạn đang tồn tại. Hãy để câu đó thấm vào từng hơi thở: *"Tôi đủ rồi, ngay lúc này."*',
+        },
+        {
+          'phase': 'Buông thả',
+          'content': 'Hãy nghĩ đến một kỳ vọng đang đặt lên vai bạn. Hít vào. Và khi thở ra, tưởng tượng bạn nhẹ nhàng đặt kỳ vọng đó xuống — không phủ nhận, chỉ đơn giản là không mang theo nó lúc này.',
+        },
+      ],
+    },
+    // Loại 2: Thiền trung 7 phút — Trở thành người quan sát cảm xúc
+    {
+      'id': 'observer_meditation',
+      'title': 'Trở thành người quan sát',
+      'duration_minutes': 7,
+      'intro': 'Bài thiền 7 phút giúp bạn tách mình khỏi những cảm xúc đang cuốn bạn đi, trở thành người quan sát bình thản.',
+      'steps': [
+        {
+          'phase': 'Nhận diện',
+          'content': 'Hãy chú ý đến cảm xúc đang hiện diện lúc này — không cần gọi tên nó là tốt hay xấu. Chỉ cần nhận ra: *"Tôi đang cảm thấy điều gì đó."* Bạn không phải là cảm xúc đó. Bạn là người đang quan sát nó.',
+        },
+        {
+          'phase': 'Tách rời',
+          'content': 'Hãy tưởng tượng cảm xúc của bạn như những đám mây trôi qua bầu trời. Bạn là bầu trời — luôn ở đó, rộng lớn, không bị cuốn theo đám mây nào. Những đám mây có thể dày hay mỏng, nhưng bầu trời không thay đổi.',
+        },
+        {
+          'phase': 'Đọc thông điệp',
+          'content': 'Bây giờ hãy hỏi cảm xúc đó một cách dịu dàng: *"Bạn đang cố nói với tôi điều gì?"* Đừng cố trả lời bằng lý trí. Chỉ nghe. Có thể chưa có câu trả lời — và điều đó hoàn toàn ổn.',
+        },
+      ],
+    },
+    // Loại 3: Thiền sâu 10 phút — Trả tự do cho những kỳ vọng
+    {
+      'id': 'freedom_meditation',
+      'title': 'Trả tự do cho kỳ vọng',
+      'duration_minutes': 10,
+      'intro': 'Bài thiền 10 phút giúp bạn nhận ra và nhẹ nhàng đặt xuống những kỳ vọng — của xã hội, gia đình, và của chính mình — để thở tự do hơn.',
+      'steps': [
+        {
+          'phase': 'Khám phá',
+          'content': 'Có bao nhiêu "phải" đang ngồi trên vai bạn lúc này? *Phải thành công, phải không phàn nàn, phải làm người khác hài lòng...* Hãy để chúng lần lượt hiện ra — không phán xét, chỉ nhận biết.',
+        },
+        {
+          'phase': 'Phân loại',
+          'content': 'Trong những "phải" đó — cái nào thực sự là của bạn? Cái nào là của người khác gán vào? Không cần tranh luận với chúng. Chỉ cần nhận ra khoảng cách giữa *tiếng nói của bạn* và *tiếng nói của kỳ vọng bên ngoài*.',
+        },
+        {
+          'phase': 'Buông thả',
+          'content': 'Hãy chọn một kỳ vọng không thực sự thuộc về bạn. Hít vào thật sâu. Khi thở ra, tưởng tượng bạn đang trả nó về cho người đã trao cho bạn — nhẹ nhàng, không giận dỗi. *"Tôi trả tự do cho anh/chị, và tôi trả tự do cho chính mình."*',
+        },
+        {
+          'phase': 'Neo giữ',
+          'content': 'Bây giờ đặt tay lên ngực. Cảm nhận nhịp tim. Đây là nhịp của bạn — không ai có thể thiết lập nhịp này cho bạn. Hãy ở lại với nhịp tim của riêng mình thêm vài hơi thở, rồi từ từ trở về với không gian hiện tại.',
+        },
+      ],
+    },
+    // Loại 4: Thiền ngắn buổi tối 5 phút — Nghi lễ kết thúc ngày
+    {
+      'id': 'day_closing_meditation',
+      'title': 'Khép lại ngày bình yên',
+      'duration_minutes': 5,
+      'intro': 'Bài thiền 5 phút cho buổi tối — nhẹ nhàng khép lại một ngày mà không mang theo gánh nặng vào giấc ngủ.',
+      'steps': [
+        {
+          'phase': 'Nhìn lại',
+          'content': 'Ngày hôm nay đã qua. Không cần điểm số, không cần đánh giá. Chỉ đơn giản là: *bạn đã sống ngày hôm nay.* Điều đó đã đủ để ghi nhận.',
+        },
+        {
+          'phase': 'Tha thứ',
+          'content': 'Có điều gì trong ngày hôm nay bạn cảm thấy chưa hài lòng? Hãy nhìn nó một cách dịu dàng — như nhìn một người bạn đã cố gắng hết sức mình. Và nói: *"Hôm nay bạn đã làm tốt nhất bạn có thể. Đó là đủ rồi."*',
+        },
+        {
+          'phase': 'Thả neo',
+          'content': 'Mọi lo lắng về ngày mai, hãy để chúng nằm yên đó đến sáng mai. Bây giờ, hơi thở của bạn là điều duy nhất cần chú ý. Thở vào sự bình yên — thở ra mọi gánh nặng của ngày.',
+        },
+      ],
+    },
+  ];
 }

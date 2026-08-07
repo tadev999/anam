@@ -34,6 +34,13 @@ class SignUpRequested extends AuthEvent {
 
 class SignOutRequested extends AuthEvent {}
 
+class PasswordResetRequested extends AuthEvent {
+  final String email;
+  const PasswordResetRequested(this.email);
+  @override
+  List<Object?> get props => [email];
+}
+
 class EmpathyPointsUpdated extends AuthEvent {
   final int points;
   const EmpathyPointsUpdated(this.points);
@@ -85,6 +92,13 @@ class AuthFailure extends AuthState {
   List<Object?> get props => [message];
 }
 
+class PasswordResetSent extends AuthState {
+  final String email;
+  const PasswordResetSent(this.email);
+  @override
+  List<Object?> get props => [email];
+}
+
 // ==========================================
 // 3. BLOC IMPLEMENTATION
 // ==========================================
@@ -101,6 +115,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<SignInRequested>(_onSignInRequested);
     on<SignUpRequested>(_onSignUpRequested);
     on<SignOutRequested>(_onSignOutRequested);
+    on<PasswordResetRequested>(_onPasswordResetRequested);
     on<EmpathyPointsUpdated>(_onEmpathyPointsUpdated);
     on<StreakUpdated>(_onStreakUpdated);
     on<_AuthUserChanged>(_onAuthUserChanged);
@@ -167,6 +182,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(Authenticated(event.user!));
     } else {
       emit(Unauthenticated());
+    }
+  }
+
+  Future<void> _onPasswordResetRequested(PasswordResetRequested event, Emitter<AuthState> emit) async {
+    emit(AuthLoading());
+    try {
+      await _authRepository.sendPasswordResetEmail(event.email);
+      emit(PasswordResetSent(event.email));
+    } catch (e) {
+      emit(AuthFailure(e.toString()));
     }
   }
 

@@ -27,6 +27,7 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
   int _currentStep = 0;
 
   late String _selectedAffirmation;
+  late Map<String, dynamic> _selectedFlashcard;
   String? _selectedOfferingId;
   final _intentionController = TextEditingController();
 
@@ -53,6 +54,7 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
 
     // Affirmation buổi sáng — dùng pool chung (không cần emotion)
     _selectedAffirmation = _pickRandomAffirmation();
+    _selectedFlashcard = _pickFlashcard();
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _checkTodayAnchor();
@@ -65,8 +67,16 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
     )];
   }
 
+  Map<String, dynamic> _pickFlashcard() {
+    final cards = ZenConstants.wisdomFlashcards;
+    return cards[Random().nextInt(cards.length)];
+  }
+
   void _refreshAffirmation() {
-    setState(() => _selectedAffirmation = _pickRandomAffirmation());
+    setState(() {
+      _selectedAffirmation = _pickRandomAffirmation();
+      _selectedFlashcard = _pickFlashcard();
+    });
   }
 
   void _checkTodayAnchor() {
@@ -327,6 +337,15 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
   Widget _buildIntentionStep(TextTheme textTheme, bool isLoading) {
     final templates = ZenConstants.intentionTemplates['neutral']!;
 
+    // Triday Question — chọn theo giờ trong ngày
+    final hour = DateTime.now().hour;
+    final String tridayKey = hour >= 5 && hour < 12
+        ? 'morning'
+        : hour >= 12 && hour < 17
+            ? 'afternoon'
+            : 'evening';
+    final tridayQuestion = ZenConstants.tridayQuestions[tridayKey]!;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -349,7 +368,65 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
             ),
           ),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
+
+        // Triday Question Banner
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(16),
+            gradient: LinearGradient(
+              colors: [
+                ZenTheme.sageGreen.withOpacity(0.08),
+                ZenTheme.inkBlue.withOpacity(0.06),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            border: Border.all(
+              color: ZenTheme.sageGreen.withOpacity(0.2),
+              width: 1,
+            ),
+          ),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '🧭',
+                style: const TextStyle(fontSize: 18),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'La bàn nội sinh',
+                      style: textTheme.bodyMedium!.copyWith(
+                        color: ZenTheme.sageGreen,
+                        fontSize: 10,
+                        letterSpacing: 1.2,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      tridayQuestion,
+                      style: textTheme.bodyLarge!.copyWith(
+                        color: ZenTheme.creamWhite.withOpacity(0.88),
+                        fontSize: 13,
+                        fontStyle: FontStyle.italic,
+                        height: 1.5,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+
+        const SizedBox(height: 20),
         const Center(
           child: Icon(
             Icons.brightness_6_outlined,
@@ -570,56 +647,108 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
   }
 
   // ---------------------------------------------------------------------------
-  // Step 2: Gợi Ý Chiêm Nghiệm (Affirmation)
+  // Step 2: Flashcard Tri Thức Nội Sinh + Gợi Ý Chiêm Nghiệm
   // ---------------------------------------------------------------------------
   Widget _buildAffirmationStep(TextTheme textTheme) {
+    final circuit = ZenConstants.endogenCircuits
+        .firstWhere((c) => c['id'] == _selectedFlashcard['circuit']);
+    final circuitColor = Color(circuit['color'] as int);
+
     return Column(
       children: [
         const SizedBox(height: 20),
         Text(
-          'III. Gợi ý chiêm nghiệm',
+          'III. Thẻ tri thức nội sinh',
           style: textTheme.bodyMedium!.copyWith(
             color: ZenTheme.sageGreen,
             letterSpacing: 1.0,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 4),
         Text(
-          'Mang theo câu này trong suốt ngày hôm nay',
+          'Mang theo câu hỏi này trong suốt ngày hôm nay',
           textAlign: TextAlign.center,
           style: textTheme.bodyLarge!.copyWith(color: ZenTheme.softGray),
         ),
-        const SizedBox(height: 36),
+        const SizedBox(height: 24),
+
+        // Wisdom Flashcard
         Stack(
           children: [
             GlassContainer(
-              opacity: 0.05,
-              radius: 36,
-              padding: const EdgeInsets.fromLTRB(24, 48, 24, 48),
+              opacity: 0.06,
+              radius: 28,
+              padding: const EdgeInsets.fromLTRB(24, 36, 24, 32),
+              border: Border.all(
+                color: circuitColor.withOpacity(0.25),
+                width: 1,
+              ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
-                  const Icon(
-                    Icons.filter_vintage_outlined,
-                    color: ZenTheme.softGold,
-                    size: 24,
-                  ),
-                  const SizedBox(height: 24),
-                  Text(
-                    _selectedAffirmation,
-                    textAlign: TextAlign.center,
-                    style: textTheme.displayLarge!.copyWith(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w400,
-                      height: 1.6,
-                      color: ZenTheme.creamWhite,
+                  // Circuit badge
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: circuitColor.withOpacity(0.12),
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: circuitColor.withOpacity(0.3)),
+                    ),
+                    child: Text(
+                      '${circuit['icon']}  Mạch ${circuit['id']} — ${circuit['name']}',
+                      style: textTheme.bodyMedium!.copyWith(
+                        color: circuitColor,
+                        fontSize: 10,
+                        letterSpacing: 0.8,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 28),
+
+                  // Quote
                   Text(
-                    '— Anam Breath',
+                    '"${_selectedFlashcard['quote']}"',
+                    textAlign: TextAlign.center,
+                    style: textTheme.displayLarge!.copyWith(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w400,
+                      height: 1.65,
+                      color: ZenTheme.creamWhite,
+                      fontStyle: FontStyle.italic,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+                  Divider(color: circuitColor.withOpacity(0.15), height: 1),
+                  const SizedBox(height: 20),
+
+                  // Question
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Icon(Icons.help_outline_rounded, color: ZenTheme.softGold, size: 16),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          _selectedFlashcard['question'] as String,
+                          style: textTheme.bodyLarge!.copyWith(
+                            color: ZenTheme.creamWhite.withOpacity(0.82),
+                            fontSize: 14,
+                            height: 1.55,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+
+                  // Source
+                  Text(
+                    '— ${_selectedFlashcard['source']}',
                     style: textTheme.bodyMedium!.copyWith(
                       fontStyle: FontStyle.italic,
-                      color: ZenTheme.softGray.withOpacity(0.7),
+                      color: ZenTheme.softGray.withOpacity(0.55),
+                      fontSize: 11,
                     ),
                   ),
                 ],
@@ -629,7 +758,7 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
               top: 10,
               right: 10,
               child: Tooltip(
-                message: 'Gợi ý câu khác',
+                message: 'Thẻ khác',
                 child: GestureDetector(
                   onTap: _refreshAffirmation,
                   child: Container(
@@ -637,15 +766,9 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
                     decoration: BoxDecoration(
                       color: ZenTheme.creamWhite.withOpacity(0.06),
                       shape: BoxShape.circle,
-                      border: Border.all(
-                        color: ZenTheme.creamWhite.withOpacity(0.1),
-                      ),
+                      border: Border.all(color: ZenTheme.creamWhite.withOpacity(0.1)),
                     ),
-                    child: const Icon(
-                      Icons.refresh_rounded,
-                      color: ZenTheme.softGray,
-                      size: 16,
-                    ),
+                    child: const Icon(Icons.refresh_rounded, color: ZenTheme.softGray, size: 16),
                   ),
                 ),
               ),
@@ -695,7 +818,7 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
             height: 1.5,
           ),
         ),
-        const SizedBox(height: 36),
+        const SizedBox(height: 24),
         GlassContainer(
           opacity: 0.05,
           child: Column(
@@ -738,7 +861,71 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
             ],
           ),
         ),
+        const SizedBox(height: 16),
+
+        // Gợi ý Micro-Ritual từ Mạch 3
+        _buildMicroRitualSuggestion(textTheme),
       ],
+    );
+  }
+
+  Widget _buildMicroRitualSuggestion(TextTheme textTheme) {
+    if (ZenConstants.endogenMicroRituals.isEmpty) return const SizedBox();
+    final ritual = ZenConstants.endogenMicroRituals[
+        Random().nextInt(ZenConstants.endogenMicroRituals.length)];
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        color: ZenTheme.softGold.withOpacity(0.06),
+        border: Border.all(color: ZenTheme.softGold.withOpacity(0.2)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              const Text('🌱', style: TextStyle(fontSize: 16)),
+              const SizedBox(width: 8),
+              Text(
+                'Nghi lễ nhỏ gợi ý hôm nay',
+                style: textTheme.bodyMedium!.copyWith(
+                  color: ZenTheme.softGold,
+                  fontSize: 11,
+                  letterSpacing: 0.8,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              const Spacer(),
+              Text(
+                ritual['duration'] as String,
+                style: textTheme.bodyMedium!.copyWith(
+                  color: ZenTheme.softGray,
+                  fontSize: 10,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Text(
+            ritual['title'] as String,
+            style: textTheme.titleLarge!.copyWith(
+              fontSize: 14,
+              color: ZenTheme.creamWhite,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            ritual['instruction'] as String,
+            style: textTheme.bodyMedium!.copyWith(
+              fontSize: 12,
+              color: ZenTheme.softGray,
+              height: 1.4,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

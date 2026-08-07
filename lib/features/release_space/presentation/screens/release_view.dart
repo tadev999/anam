@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/constants.dart';
 import '../../../../core/theme.dart';
 import '../../../../shared/widgets/glass_container.dart';
 import '../../../../shared/widgets/zen_button.dart';
@@ -39,6 +40,8 @@ class _ReleaseViewState extends State<ReleaseView> {
   ReleaseStep _currentStep = ReleaseStep.write;
   ReflectionChip? _selectedChip;
   bool _isFocusMode = false;
+  String _selectedRitualTheme = 'fire'; // Mặc định: Thiêu hóa
+
 
   void _burnRelease() {
     if (_controller.text.trim().isEmpty) return;
@@ -62,6 +65,7 @@ class _ReleaseViewState extends State<ReleaseView> {
       _isBurning = false;
       _currentStep = ReleaseStep.write;
       _selectedChip = null;
+      _selectedRitualTheme = 'fire';
     });
   }
 
@@ -275,7 +279,79 @@ class _ReleaseViewState extends State<ReleaseView> {
                   key: const ValueKey('bottom_action'),
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 16),
+
+                    // Ritual Theme Picker
+                    if (!isLocked) ...[
+                      Text(
+                        'Chọn nghi lễ buông',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.nunito(
+                          fontSize: 11,
+                          color: ZenTheme.softGray.withOpacity(0.6),
+                          letterSpacing: 1.0,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: ZenConstants.releaseRitualThemes.map((theme) {
+                          final isSelected = _selectedRitualTheme == theme['id'];
+                          final accentColor = Color(theme['accentColor'] as int);
+                          return GestureDetector(
+                            onTap: () => setState(
+                              () => _selectedRitualTheme = theme['id'] as String,
+                            ),
+                            child: AnimatedContainer(
+                              duration: const Duration(milliseconds: 200),
+                              margin: const EdgeInsets.symmetric(horizontal: 6),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 14,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20),
+                                color: isSelected
+                                    ? accentColor.withOpacity(0.15)
+                                    : ZenTheme.creamWhite.withOpacity(0.04),
+                                border: Border.all(
+                                  color: isSelected
+                                      ? accentColor.withOpacity(0.5)
+                                      : ZenTheme.creamWhite.withOpacity(0.1),
+                                  width: isSelected ? 1.5 : 1.0,
+                                ),
+                              ),
+                              child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    theme['icon'] as String,
+                                    style: TextStyle(
+                                      fontSize: isSelected ? 20 : 16,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    theme['name'] as String,
+                                    style: GoogleFonts.nunito(
+                                      fontSize: 10,
+                                      color: isSelected
+                                          ? accentColor
+                                          : ZenTheme.softGray,
+                                      fontWeight: isSelected
+                                          ? FontWeight.w700
+                                          : FontWeight.normal,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+
                     if (!isLocked)
                       ZenButton(
                         text: "Gửi vào hư vô",
@@ -303,6 +379,7 @@ class _ReleaseViewState extends State<ReleaseView> {
       ],
     );
   }
+
 
   Widget _buildTransitionView(TextTheme textTheme) {
     return LayoutBuilder(

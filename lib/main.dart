@@ -112,7 +112,9 @@ class AnamApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Anam - Secular Sanctuary',
-      theme: ZenTheme.darkTheme,
+      theme: ZenTheme.lightTheme,
+      darkTheme: ZenTheme.darkTheme,
+      themeMode: ZenTheme.getCircadianThemeMode(),
       debugShowCheckedModeBanner: false,
       home: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {

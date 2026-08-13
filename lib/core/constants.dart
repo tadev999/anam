@@ -430,35 +430,35 @@ class ZenConstants {
       'name': 'Gọi Tên',
       'icon': '🏷️',
       'desc': 'Nhận diện những cạm bẫy tâm lý đang giữ bạn lại',
-      'color': 0xffc98b8b, // mistRed
+      'color': 0xff789ec6, // inkBlue
     },
     {
       'id': 2,
       'name': 'Xây Nền Tảng',
       'icon': '🏛️',
       'desc': 'Giá trị vô điều kiện — nền móng không thể lung lay',
-      'color': 0xff8fa89b, // sageGreen
+      'color': 0xff9cbbaa, // sageGreen
     },
     {
       'id': 3,
       'name': 'Hành Động Nhỏ',
       'icon': '🌱',
       'desc': 'Nghi lễ nhỏ nuôi dưỡng tâm hồn mỗi ngày',
-      'color': 0xffd4af37, // softGold
+      'color': 0xffe5bf45, // softGold
     },
     {
       'id': 4,
       'name': 'Nhận Ra Giá Trị',
       'icon': '🔭',
       'desc': 'Nhìn thấy điều thật sự quan trọng với bạn',
-      'color': 0xff6a8caf, // inkBlue
+      'color': 0xffd99b9b, // mistRed
     },
     {
       'id': 5,
       'name': 'Thánh Đường Thể Tục',
       'icon': '🕯️',
       'desc': 'Không gian sống nội sinh bền vững, trọn vẹn',
-      'color': 0xffb5c7be, // sageLight
+      'color': 0xffb8c4bc, // sageLight
     },
   ];
 

@@ -7,12 +7,12 @@ class ZenTheme {
   static const Color slateMedium = Color(0xff1d1918); // Nền phụ tối ấm
   static const Color slateLight = Color(0xff272321); // Màu của card/container tối
   
-  static const Color sageGreen = Color(0xff8fa89b); // Xanh xô thơm tĩnh lặng
+  static const Color sageGreen = Color(0xff9cbbaa); // Xanh xô thơm ánh ngọc mượt mà (Sage Pearl)
   static const Color sageLight = Color(0xffb5c7be); // Xanh nhạt
   
-  static const Color softGold = Color(0xffd4af37); // Vàng hổ phách ấm áp
+  static const Color softGold = Color(0xffe5bf45); // Vàng hổ phách mật ong (Amber Honey Glow)
   static const Color creamWhite = Color(0xfff4f1eb); // Trắng kem giấy dó mềm mại
-  static const Color softGray = Color(0xffa39b95); // Xám xơ linen sáng hơn để tăng tương phản, hỗ trợ đọc dễ dàng
+  static const Color softGray = Color(0xffa39b95); // Xám xơ linen nâng tương phản
 
   // Bảng màu Wabi-Sabi sáng tinh tế (Linen & Sand)
   static const Color sandLight = Color(0xfffaf8f5); // Nền card sáng mịn màng
@@ -22,9 +22,75 @@ class ZenTheme {
   static const Color charcoalBrown = Color(0xff2c2825); // Chữ chính sáng (không dùng đen tuyền)
   static const Color clayGray = Color(0xff7d756e); // Chữ phụ sáng mộc mạc
 
-  // Bảng màu phụ cho trạng thái cảm xúc
-  static const Color mistRed = Color(0xffc98b8b); // Đỏ đất nung nhẹ
-  static const Color inkBlue = Color(0xff6a8caf); // Xanh mực thâm trầm
+  // Bảng màu phụ cho trạng thái cảm xúc & Mạch Nội Sinh
+  static const Color mistRed = Color(0xffd99b9b); // Đỏ đất nung ấm (Terracotta Rose)
+  static const Color inkBlue = Color(0xff789ec6); // Xanh chàm tĩnh lặng (Serene Indigo)
+
+  // 🗺️ Màu định danh cho 5 Mạch Nội Sinh
+  static Color getCircuitColor(int circuitId) {
+    switch (circuitId) {
+      case 1:
+        return const Color(0xff789ec6); // Mạch 1: Gọi Tên — Xanh chàm
+      case 2:
+        return const Color(0xff9cbbaa); // Mạch 2: Xây Nền Tảng — Xanh xô thơm
+      case 3:
+        return const Color(0xffe5bf45); // Mạch 3: Hành Động Nhỏ — Vàng hổ phách
+      case 4:
+        return const Color(0xffd99b9b); // Mạch 4: Nhận Ra Giá Trị — Đỏ đất nung
+      case 5:
+        return const Color(0xffb8c4bc); // Mạch 5: Buông Bỏ — Xám khói linen
+      default:
+        return sageGreen;
+    }
+  }
+
+  // 🌅 Gradient nhịp sinh học theo thời gian thực (Circadian Ambient Gradient)
+  static LinearGradient getCircadianGradient({DateTime? time}) {
+    final now = time ?? DateTime.now();
+    final hour = now.hour;
+
+    if (hour >= 5 && hour < 11) {
+      // 🌅 Sáng hừng đông (Warm Clay Sunrise)
+      return const LinearGradient(
+        colors: [Color(0xff171412), Color(0xff1e1916)],
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+      );
+    } else if (hour >= 11 && hour < 16) {
+      // ☀️ Giữa ngày thanh mát (Sage Dew)
+      return const LinearGradient(
+        colors: [Color(0xff131715), Color(0xff161f1b)],
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+      );
+    } else if (hour >= 16 && hour < 19) {
+      // 🌆 Hoàng hôn ấm áp (Amber Twilight)
+      return const LinearGradient(
+        colors: [Color(0xff181411), Color(0xff211a14)],
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+      );
+    } else {
+      // 🌙 Đêm trầm tĩnh (Ink Midnight)
+      return const LinearGradient(
+        colors: [Color(0xff121417), Color(0xff0d1014)],
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+      );
+    }
+  }
+
+  // Tiện ích lấy ThemeMode tự động theo nhịp sinh học ban ngày / đêm (Warm Dark First + Circadian Adaptive)
+  static ThemeMode getCircadianThemeMode({DateTime? time}) {
+    final hour = (time ?? DateTime.now()).hour;
+    // Ban ngày (5h sáng - 17h chiều): Dùng Light Mode Giấy Dó (Linen Sand Wabi-Sabi)
+    // Ban đêm (17h chiều - 5h sáng): Dùng Warm Dark Mode Đất Sét (Warm Charcoal)
+    if (hour >= 5 && hour < 17) {
+      return ThemeMode.light;
+    } else {
+      return ThemeMode.dark;
+    }
+  }
 
   // Cấu hình Dark Theme (Tối ấm áp Wabi-Sabi)
   static ThemeData get darkTheme {
@@ -51,34 +117,34 @@ class ZenTheme {
       ),
       textTheme: TextTheme(
         displayLarge: GoogleFonts.lora(
-          fontSize: 34, // Tăng từ 32 lên 34
+          fontSize: 34,
           fontWeight: FontWeight.bold,
           color: creamWhite,
           letterSpacing: -0.5,
         ),
         displayMedium: GoogleFonts.lora(
-          fontSize: 26, // Tăng từ 24 lên 26
+          fontSize: 26,
           fontWeight: FontWeight.w600,
           color: creamWhite,
         ),
         titleLarge: GoogleFonts.nunito(
-          fontSize: 22, // Tăng từ 20 lên 22
+          fontSize: 22,
           fontWeight: FontWeight.w600,
           color: creamWhite,
         ),
         bodyLarge: GoogleFonts.nunito(
-          fontSize: 17, // Tăng từ 16 lên 17
+          fontSize: 17,
           fontWeight: FontWeight.normal,
           color: creamWhite.withValues(alpha: 0.9),
-          height: 1.6, // Tăng từ 1.5 để văn bản tiếng Việt dễ đọc, thoáng đạt hơn
+          height: 1.6,
         ),
         bodyMedium: GoogleFonts.nunito(
-          fontSize: 15, // Tăng từ 14 lên 15
+          fontSize: 15,
           color: softGray,
-          height: 1.5, // Tăng từ 1.4 để các dòng chữ không chồng lấn dấu thanh
+          height: 1.5,
         ),
         labelLarge: GoogleFonts.nunito(
-          fontSize: 15, // Tăng từ 14 lên 15
+          fontSize: 15,
           fontWeight: FontWeight.bold,
           color: creamWhite,
           letterSpacing: 1.0,
@@ -119,34 +185,34 @@ class ZenTheme {
       ),
       textTheme: TextTheme(
         displayLarge: GoogleFonts.lora(
-          fontSize: 34, // Tăng từ 32 lên 34
+          fontSize: 34,
           fontWeight: FontWeight.bold,
           color: charcoalBrown,
           letterSpacing: -0.5,
         ),
         displayMedium: GoogleFonts.lora(
-          fontSize: 26, // Tăng từ 24 lên 26
+          fontSize: 26,
           fontWeight: FontWeight.w600,
           color: charcoalBrown,
         ),
         titleLarge: GoogleFonts.nunito(
-          fontSize: 22, // Tăng từ 20 lên 22
+          fontSize: 22,
           fontWeight: FontWeight.w600,
           color: charcoalBrown,
         ),
         bodyLarge: GoogleFonts.nunito(
-          fontSize: 17, // Tăng từ 16 lên 17
+          fontSize: 17,
           fontWeight: FontWeight.normal,
           color: charcoalBrown.withValues(alpha: 0.9),
-          height: 1.6, // Tăng từ 1.5 để văn bản tiếng Việt dễ đọc, thoáng đạt hơn
+          height: 1.6,
         ),
         bodyMedium: GoogleFonts.nunito(
-          fontSize: 15, // Tăng từ 14 lên 15
+          fontSize: 15,
           color: clayGray,
-          height: 1.5, // Tăng từ 1.4 để các dòng chữ không chồng lấn dấu thanh
+          height: 1.5,
         ),
         labelLarge: GoogleFonts.nunito(
-          fontSize: 15, // Tăng từ 14 lên 15
+          fontSize: 15,
           fontWeight: FontWeight.bold,
           color: charcoalBrown,
           letterSpacing: 1.0,
@@ -162,26 +228,22 @@ class ZenTheme {
     );
   }
 
-  // Tiện ích lấy Background Gradient thích ứng động
+  // Tiện ích lấy Background Gradient thích ứng động theo nhịp sinh học
   static LinearGradient getBackgroundGradient(BuildContext context, {bool isConfessional = false}) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     if (isDark) {
       if (isConfessional) {
         return const LinearGradient(
-          colors: [slateDark, Color(0xff1d1212)], // Dark Earthy Clay + Warm Terracotta Mud
+          colors: [slateDark, Color(0xff1d1212)],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         );
       }
-      return const LinearGradient(
-        colors: [slateDark, Color(0xff0d0c0c)],
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-      );
+      return getCircadianGradient();
     } else {
       if (isConfessional) {
         return const LinearGradient(
-          colors: [sandMedium, Color(0xffeddcd3)], // Linen + Soft Clay Terracotta Glow
+          colors: [sandMedium, Color(0xffeddcd3)],
           begin: Alignment.topCenter,
           end: Alignment.bottomCenter,
         );

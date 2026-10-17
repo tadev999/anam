@@ -254,8 +254,8 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
                         height: 200,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: ZenTheme.sageGreen.withOpacity(
-                            _rippleOpacity.value,
+                          color: ZenTheme.sageGreen.withValues(
+                            alpha: _rippleOpacity.value,
                           ),
                         ),
                       ),
@@ -286,7 +286,7 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
                 decoration: BoxDecoration(
                   color: active
                       ? ZenTheme.sageGreen
-                      : ZenTheme.creamWhite.withOpacity(0.1),
+                      : ZenTheme.creamWhite.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -305,8 +305,8 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
                   fontSize: 9,
                   letterSpacing: 0.4,
                   color: active
-                      ? ZenTheme.sageGreen.withOpacity(0.9)
-                      : ZenTheme.softGray.withOpacity(0.35),
+                      ? ZenTheme.sageGreen.withValues(alpha: 0.9)
+                      : ZenTheme.softGray.withValues(alpha: 0.35),
                   fontWeight: active ? FontWeight.w600 : FontWeight.normal,
                 ),
               ),
@@ -342,8 +342,8 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
     final String tridayKey = hour >= 5 && hour < 12
         ? 'morning'
         : hour >= 12 && hour < 17
-            ? 'afternoon'
-            : 'evening';
+        ? 'afternoon'
+        : 'evening';
     final tridayQuestion = ZenConstants.tridayQuestions[tridayKey]!;
 
     return Column(
@@ -354,14 +354,16 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
             decoration: BoxDecoration(
-              color: ZenTheme.creamWhite.withOpacity(0.05),
+              color: ZenTheme.creamWhite.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: ZenTheme.creamWhite.withOpacity(0.08)),
+              border: Border.all(
+                color: ZenTheme.creamWhite.withValues(alpha: 0.08),
+              ),
             ),
             child: Text(
               '☀️  Định hướng ngày mới  ·  ~3 phút',
               style: textTheme.bodyMedium!.copyWith(
-                color: ZenTheme.softGray.withOpacity(0.7),
+                color: ZenTheme.softGray.withValues(alpha: 0.7),
                 fontSize: 11,
                 letterSpacing: 0.5,
               ),
@@ -377,24 +379,21 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
             borderRadius: BorderRadius.circular(16),
             gradient: LinearGradient(
               colors: [
-                ZenTheme.sageGreen.withOpacity(0.08),
-                ZenTheme.inkBlue.withOpacity(0.06),
+                ZenTheme.sageGreen.withValues(alpha: 0.08),
+                ZenTheme.inkBlue.withValues(alpha: 0.06),
               ],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             border: Border.all(
-              color: ZenTheme.sageGreen.withOpacity(0.2),
+              color: ZenTheme.sageGreen.withValues(alpha: 0.2),
               width: 1,
             ),
           ),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                '🧭',
-                style: const TextStyle(fontSize: 18),
-              ),
+              Text('🧭', style: const TextStyle(fontSize: 18)),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
@@ -413,7 +412,7 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
                     Text(
                       tridayQuestion,
                       style: textTheme.bodyLarge!.copyWith(
-                        color: ZenTheme.creamWhite.withOpacity(0.88),
+                        color: ZenTheme.creamWhite.withValues(alpha: 0.88),
                         fontSize: 13,
                         fontStyle: FontStyle.italic,
                         height: 1.5,
@@ -471,9 +470,11 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
                   vertical: 7,
                 ),
                 decoration: BoxDecoration(
-                  color: ZenTheme.softGold.withOpacity(0.06),
+                  color: ZenTheme.softGold.withValues(alpha: 0.06),
                   borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: ZenTheme.softGold.withOpacity(0.2)),
+                  border: Border.all(
+                    color: ZenTheme.softGold.withValues(alpha: 0.2),
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
@@ -488,7 +489,7 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
                       child: Text(
                         t,
                         style: TextStyle(
-                          color: ZenTheme.softGold.withOpacity(0.9),
+                          color: ZenTheme.softGold.withValues(alpha: 0.9),
                           fontSize: 11,
                         ),
                       ),
@@ -520,7 +521,7 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
                 decoration: InputDecoration(
                   hintText: "Tiếp tục câu trên hoặc viết điều của riêng bạn...",
                   hintStyle: TextStyle(
-                    color: ZenTheme.softGray.withOpacity(0.45),
+                    color: ZenTheme.softGray.withValues(alpha: 0.45),
                     fontSize: 13,
                   ),
                   border: InputBorder.none,
@@ -577,7 +578,7 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
                 border: Border.all(
                   color: isSelected
                       ? ZenTheme.sageGreen
-                      : ZenTheme.creamWhite.withOpacity(0.05),
+                      : ZenTheme.creamWhite.withValues(alpha: 0.05),
                   width: isSelected ? 1.5 : 1.0,
                 ),
                 child: Row(
@@ -587,8 +588,8 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: isSelected
-                            ? ZenTheme.sageGreen.withOpacity(0.2)
-                            : Colors.black.withOpacity(0.2),
+                            ? ZenTheme.sageGreen.withValues(alpha: 0.2)
+                            : Colors.black.withValues(alpha: 0.2),
                       ),
                       child: Icon(
                         isSelected ? Icons.check : Icons.spa_outlined,
@@ -650,8 +651,9 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
   // Step 2: Flashcard Tri Thức Nội Sinh + Gợi Ý Chiêm Nghiệm
   // ---------------------------------------------------------------------------
   Widget _buildAffirmationStep(TextTheme textTheme) {
-    final circuit = ZenConstants.endogenCircuits
-        .firstWhere((c) => c['id'] == _selectedFlashcard['circuit']);
+    final circuit = ZenConstants.endogenCircuits.firstWhere(
+      (c) => c['id'] == _selectedFlashcard['circuit'],
+    );
     final circuitColor = Color(circuit['color'] as int);
 
     return Column(
@@ -680,7 +682,7 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
               radius: 28,
               padding: const EdgeInsets.fromLTRB(24, 36, 24, 32),
               border: Border.all(
-                color: circuitColor.withOpacity(0.25),
+                color: circuitColor.withValues(alpha: 0.25),
                 width: 1,
               ),
               child: Column(
@@ -688,11 +690,16 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
                 children: [
                   // Circuit badge
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
-                      color: circuitColor.withOpacity(0.12),
+                      color: circuitColor.withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: circuitColor.withOpacity(0.3)),
+                      border: Border.all(
+                        color: circuitColor.withValues(alpha: 0.3),
+                      ),
                     ),
                     child: Text(
                       '${circuit['icon']}  Mạch ${circuit['id']} — ${circuit['name']}',
@@ -719,20 +726,27 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
                     ),
                   ),
                   const SizedBox(height: 20),
-                  Divider(color: circuitColor.withOpacity(0.15), height: 1),
+                  Divider(
+                    color: circuitColor.withValues(alpha: 0.15),
+                    height: 1,
+                  ),
                   const SizedBox(height: 20),
 
                   // Question
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.help_outline_rounded, color: ZenTheme.softGold, size: 16),
+                      Icon(
+                        Icons.help_outline_rounded,
+                        color: ZenTheme.softGold,
+                        size: 16,
+                      ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
                           _selectedFlashcard['question'] as String,
                           style: textTheme.bodyLarge!.copyWith(
-                            color: ZenTheme.creamWhite.withOpacity(0.82),
+                            color: ZenTheme.creamWhite.withValues(alpha: 0.82),
                             fontSize: 14,
                             height: 1.55,
                           ),
@@ -747,7 +761,7 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
                     '— ${_selectedFlashcard['source']}',
                     style: textTheme.bodyMedium!.copyWith(
                       fontStyle: FontStyle.italic,
-                      color: ZenTheme.softGray.withOpacity(0.55),
+                      color: ZenTheme.softGray.withValues(alpha: 0.55),
                       fontSize: 11,
                     ),
                   ),
@@ -764,11 +778,17 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: ZenTheme.creamWhite.withOpacity(0.06),
+                      color: ZenTheme.creamWhite.withValues(alpha: 0.06),
                       shape: BoxShape.circle,
-                      border: Border.all(color: ZenTheme.creamWhite.withOpacity(0.1)),
+                      border: Border.all(
+                        color: ZenTheme.creamWhite.withValues(alpha: 0.1),
+                      ),
                     ),
-                    child: const Icon(Icons.refresh_rounded, color: ZenTheme.softGray, size: 16),
+                    child: const Icon(
+                      Icons.refresh_rounded,
+                      color: ZenTheme.softGray,
+                      size: 16,
+                    ),
                   ),
                 ),
               ),
@@ -791,7 +811,7 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
           height: 90,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: ZenTheme.sageGreen.withOpacity(0.08),
+            color: ZenTheme.sageGreen.withValues(alpha: 0.08),
             border: Border.all(color: ZenTheme.sageGreen, width: 1.5),
           ),
           child: const Icon(
@@ -871,15 +891,17 @@ class _AnchorViewState extends State<AnchorView> with TickerProviderStateMixin {
 
   Widget _buildMicroRitualSuggestion(TextTheme textTheme) {
     if (ZenConstants.endogenMicroRituals.isEmpty) return const SizedBox();
-    final ritual = ZenConstants.endogenMicroRituals[
-        Random().nextInt(ZenConstants.endogenMicroRituals.length)];
+    final ritual =
+        ZenConstants.endogenMicroRituals[Random().nextInt(
+          ZenConstants.endogenMicroRituals.length,
+        )];
 
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(16),
-        color: ZenTheme.softGold.withOpacity(0.06),
-        border: Border.all(color: ZenTheme.softGold.withOpacity(0.2)),
+        color: ZenTheme.softGold.withValues(alpha: 0.06),
+        border: Border.all(color: ZenTheme.softGold.withValues(alpha: 0.2)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

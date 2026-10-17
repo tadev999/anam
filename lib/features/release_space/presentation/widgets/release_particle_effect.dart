@@ -59,18 +59,24 @@ class _ReleaseParticleEffectState extends State<ReleaseParticleEffect>
   void _startBurning() {
     _particles.clear();
     for (int i = 0; i < 120; i++) {
-      _particles.add(_Particle(
-        x: _random.nextDouble() * 320 + 20,
-        y: _random.nextDouble() * 150 + 50,
-        vx: (_random.nextDouble() - 0.5) * 1.5,
-        vy: -(_random.nextDouble() * 2.0 + 1.0),
-        size: _random.nextDouble() * 3.5 + 1.0,
-        color: _random.nextDouble() > 0.4
-            ? ZenTheme.softGold.withOpacity(_random.nextDouble() * 0.7 + 0.3)
-            : ZenTheme.sageGreen.withOpacity(_random.nextDouble() * 0.6 + 0.2),
-        life: 1.0,
-        decay: 0.008 + _random.nextDouble() * 0.015,
-      ));
+      _particles.add(
+        _Particle(
+          x: _random.nextDouble() * 320 + 20,
+          y: _random.nextDouble() * 150 + 50,
+          vx: (_random.nextDouble() - 0.5) * 1.5,
+          vy: -(_random.nextDouble() * 2.0 + 1.0),
+          size: _random.nextDouble() * 3.5 + 1.0,
+          color: _random.nextDouble() > 0.4
+              ? ZenTheme.softGold.withValues(
+                  alpha: _random.nextDouble() * 0.7 + 0.3,
+                )
+              : ZenTheme.sageGreen.withValues(
+                  alpha: _random.nextDouble() * 0.6 + 0.2,
+                ),
+          life: 1.0,
+          decay: 0.008 + _random.nextDouble() * 0.015,
+        ),
+      );
     }
 
     setState(() {
@@ -99,9 +105,7 @@ class _ReleaseParticleEffectState extends State<ReleaseParticleEffect>
         if (widget.isBurning)
           Positioned.fill(
             child: IgnorePointer(
-              child: CustomPaint(
-                painter: _ParticlePainter(_particles),
-              ),
+              child: CustomPaint(painter: _ParticlePainter(_particles)),
             ),
           ),
       ],
@@ -149,22 +153,14 @@ class _ParticlePainter extends CustomPainter {
 
     for (var p in particles) {
       if (p.life > 0) {
-        paint.color = p.color.withOpacity(p.color.opacity * p.life);
-        canvas.drawCircle(
-          Offset(p.x, p.y),
-          p.size * p.life,
-          paint,
-        );
-        
+        paint.color = p.color.withValues(alpha: p.color.a * p.life);
+        canvas.drawCircle(Offset(p.x, p.y), p.size * p.life, paint);
+
         if (p.size > 2.5) {
           final glowPaint = Paint()
-            ..color = p.color.withOpacity(p.color.opacity * p.life * 0.3)
+            ..color = p.color.withValues(alpha: p.color.a * p.life * 0.3)
             ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3);
-          canvas.drawCircle(
-            Offset(p.x, p.y),
-            p.size * 2 * p.life,
-            glowPaint,
-          );
+          canvas.drawCircle(Offset(p.x, p.y), p.size * 2 * p.life, glowPaint);
         }
       }
     }

@@ -171,6 +171,44 @@ class SilenceBloc extends Bloc<SilenceEvent, SilenceState> {
     }
   }
 
+  String _getSoundSource(String soundName) {
+    switch (soundName) {
+      case 'Tiếng Sóng':
+        return 'assets/audio/waves.m4a';
+      case 'Chuông Thiền':
+        return 'assets/audio/bell.m4a';
+      case 'Suối Rừng':
+        return 'assets/audio/stream.m4a';
+      case 'Mưa Rơi':
+      default:
+        return 'assets/audio/rain_sleep.m4a';
+    }
+  }
+
+  String _getOnlineFallback(String source) {
+    if (source.contains('waves')) {
+      return 'https://archive.org/download/beachfront-ocean-waves-relaxing-nature-sounds-3-hours/Beachfront%20Ocean%20Waves%20-%20Relaxing%20Nature%20Sounds%203%20Hours.mp3';
+    } else if (source.contains('fire')) {
+      return 'https://archive.org/download/SSE_Library_FIRE/BURNING%2FFIREBurn_Heavy%20fire%20crackle_CS_USC.mp3';
+    }
+    return 'https://archive.org/download/soundrainforsleep/Sound%20Rain%20For%20Sleep.mp3';
+  }
+
+  Future<void> _playSource(String source) async {
+    try {
+      if (source.startsWith('assets/')) {
+        await _audioPlayer.setAsset(source);
+      } else {
+        await _audioPlayer.setUrl(source);
+      }
+    } catch (e) {
+      debugPrint("Asset load issue ($e), switching to online nature stream fallback...");
+      final fallbackUrl = _getOnlineFallback(source);
+      await _audioPlayer.setUrl(fallbackUrl);
+    }
+    await _audioPlayer.setLoopMode(LoopMode.one);
+  }
+
   Future<void> _onToggleSoundRequested(ToggleSoundRequested event, Emitter<SilenceState> emit) async {
     try {
       if (state.isPlayingSound) {
@@ -179,14 +217,8 @@ class SilenceBloc extends Bloc<SilenceEvent, SilenceState> {
       } else {
         emit(state.copyWith(isPlayingSound: true));
         _audioPlayer.setVolume(1.0);
-        // Play the default sound or currently selected sound URL
-        final soundUrl = state.currentSound == 'Tiếng Sóng'
-            ? 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3'
-            : state.currentSound == 'Chuông Thiền'
-                ? 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3'
-                : 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3';
-        await _audioPlayer.setUrl(soundUrl);
-        await _audioPlayer.setLoopMode(LoopMode.one);
+        final soundSource = _getSoundSource(state.currentSound);
+        await _playSource(soundSource);
         if (!state.isPlayingSound) {
           await _audioPlayer.stop();
           return;
@@ -203,8 +235,8 @@ class SilenceBloc extends Bloc<SilenceEvent, SilenceState> {
       _audioPlayer.setVolume(1.0);
       await _audioPlayer.stop();
       emit(state.copyWith(currentSound: event.soundName, isPlayingSound: true));
-      await _audioPlayer.setUrl(event.soundUrl);
-      await _audioPlayer.setLoopMode(LoopMode.one);
+      final soundSource = event.soundUrl.isNotEmpty ? event.soundUrl : _getSoundSource(event.soundName);
+      await _playSource(soundSource);
       if (!state.isPlayingSound) {
         await _audioPlayer.stop();
         return;

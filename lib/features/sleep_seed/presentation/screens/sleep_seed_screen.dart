@@ -18,9 +18,10 @@ class SleepSeedScreen extends StatefulWidget {
   State<SleepSeedScreen> createState() => _SleepSeedScreenState();
 }
 
-class _SleepSeedScreenState extends State<SleepSeedScreen> with TickerProviderStateMixin {
+class _SleepSeedScreenState extends State<SleepSeedScreen>
+    with TickerProviderStateMixin {
   late final AudioPlayer _audioPlayer;
-  
+
   // States for sowing interaction
   bool _isSowing = false;
   double _sowProgress = 0.0; // 0.0 to 1.0
@@ -47,31 +48,43 @@ class _SleepSeedScreenState extends State<SleepSeedScreen> with TickerProviderSt
   final List<Map<String, dynamic>> _sounds = [
     {
       'id': 'rain',
-      'label': 'Tiếng mưa Anam',
+      'label': 'Mưa đêm Anam',
       'icon': Icons.grain_outlined,
-      'url': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
+      'url': 'assets/audio/rain_sleep.m4a',
     },
     {
       'id': 'fire',
       'label': 'Bếp lửa an trú',
       'icon': Icons.local_fire_department_outlined,
-      'url': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3'
-    },
-    {
-      'id': 'wind',
-      'label': 'Gió ngàn',
-      'icon': Icons.air_outlined,
-      'url': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3'
+      'url': 'assets/audio/fire.m4a',
     },
     {
       'id': 'waves',
-      'label': 'Sóng lặng',
+      'label': 'Sóng đêm vỗ bờ',
       'icon': Icons.waves_outlined,
-      'url': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-4.mp3'
+      'url': 'assets/audio/waves.m4a',
+    },
+    {
+      'id': 'wind',
+      'label': 'Gió ngàn rừng thông',
+      'icon': Icons.air_outlined,
+      'url': 'assets/audio/wind.m4a',
+    },
+    {
+      'id': 'stream',
+      'label': 'Suối nguồn thanh tịnh',
+      'icon': Icons.water_outlined,
+      'url': 'assets/audio/stream.m4a',
     },
   ];
 
-  final List<int> _durations = [1, 15, 30, 45, 60]; // 1 minute is for demo/testing
+  final List<int> _durations = [
+    1,
+    15,
+    30,
+    45,
+    60,
+  ]; // 1 minute is for demo/testing
 
   @override
   void initState() {
@@ -147,7 +160,7 @@ class _SleepSeedScreenState extends State<SleepSeedScreen> with TickerProviderSt
     _sowTimer?.cancel();
     _hapticTimer?.cancel();
     HapticFeedback.mediumImpact();
-    
+
     // Dispatch Bloc Event
     final authState = BlocProvider.of<AuthBloc>(context).state;
     if (authState is Authenticated) {
@@ -188,7 +201,18 @@ class _SleepSeedScreenState extends State<SleepSeedScreen> with TickerProviderSt
         _isFadeOutActive = false;
       });
       await _audioPlayer.setVolume(1.0);
-      await _audioPlayer.setUrl(sound['url']);
+      final source = sound['url'] as String;
+      try {
+        if (source.startsWith('assets/')) {
+          await _audioPlayer.setAsset(source);
+        } else {
+          await _audioPlayer.setUrl(source);
+        }
+      } catch (assetErr) {
+        debugPrint("Asset load issue ($assetErr), switching to online nature stream fallback...");
+        final fallback = _getOnlineFallback(source);
+        await _audioPlayer.setUrl(fallback);
+      }
       await _audioPlayer.setLoopMode(LoopMode.one);
       _audioPlayer.play();
 
@@ -199,6 +223,15 @@ class _SleepSeedScreenState extends State<SleepSeedScreen> with TickerProviderSt
         _isPlaying = false;
       });
     }
+  }
+
+  String _getOnlineFallback(String source) {
+    if (source.contains('waves')) {
+      return 'https://archive.org/download/beachfront-ocean-waves-relaxing-nature-sounds-3-hours/Beachfront%20Ocean%20Waves%20-%20Relaxing%20Nature%20Sounds%203%20Hours.mp3';
+    } else if (source.contains('fire')) {
+      return 'https://archive.org/download/SSE_Library_FIRE/BURNING%2FFIREBurn_Heavy%20fire%20crackle_CS_USC.mp3';
+    }
+    return 'https://archive.org/download/soundrainforsleep/Sound%20Rain%20For%20Sleep.mp3';
   }
 
   Future<void> _stopPlaying() async {
@@ -282,9 +315,9 @@ class _SleepSeedScreenState extends State<SleepSeedScreen> with TickerProviderSt
     return BlocListener<SleepSeedBloc, SleepSeedState>(
       listener: (context, state) {
         if (state is SleepSeedFailure) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Lỗi: ${state.error}')),
-          );
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text('Lỗi: ${state.error}')));
         }
       },
       child: Scaffold(
@@ -314,21 +347,21 @@ class _SleepSeedScreenState extends State<SleepSeedScreen> with TickerProviderSt
                     height: 250,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: ZenTheme.sageGreen.withOpacity(
-                        _isSowing 
-                            ? (0.15 + _sowProgress * 0.15) 
-                            : (0.05 + 0.03 * _seedGlowController.value)
+                      color: ZenTheme.sageGreen.withValues(
+                        alpha: _isSowing
+                            ? (0.15 + _sowProgress * 0.15)
+                            : (0.05 + 0.03 * _seedGlowController.value),
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: ZenTheme.sageGreen.withOpacity(
-                            _isSowing 
-                                ? (0.2 + _sowProgress * 0.2) 
-                                : (0.08 + 0.04 * _seedGlowController.value)
+                          color: ZenTheme.sageGreen.withValues(
+                            alpha: _isSowing
+                                ? (0.2 + _sowProgress * 0.2)
+                                : (0.08 + 0.04 * _seedGlowController.value),
                           ),
                           blurRadius: 100,
                           spreadRadius: _isSowing ? 20 + _sowProgress * 30 : 10,
-                        )
+                        ),
                       ],
                     ),
                   );
@@ -340,9 +373,11 @@ class _SleepSeedScreenState extends State<SleepSeedScreen> with TickerProviderSt
             SafeArea(
               child: AnimatedSwitcher(
                 duration: const Duration(milliseconds: 500),
-                child: _isNightMode 
-                    ? _buildNightModeUI() 
-                    : (_sownCompleted ? _buildPlayerUI(textTheme) : _buildSowUI(textTheme)),
+                child: _isNightMode
+                    ? _buildNightModeUI()
+                    : (_sownCompleted
+                          ? _buildPlayerUI(textTheme)
+                          : _buildSowUI(textTheme)),
               ),
             ),
 
@@ -360,9 +395,13 @@ class _SleepSeedScreenState extends State<SleepSeedScreen> with TickerProviderSt
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: Colors.white.withOpacity(0.05),
+                      color: Colors.white.withValues(alpha: 0.05),
                     ),
-                    child: const Icon(Icons.close_rounded, color: Colors.white60, size: 22),
+                    child: const Icon(
+                      Icons.close_rounded,
+                      color: Colors.white60,
+                      size: 22,
+                    ),
                   ),
                 ),
               ),
@@ -397,7 +436,7 @@ class _SleepSeedScreenState extends State<SleepSeedScreen> with TickerProviderSt
                 'Không cần điểm số, không cần đo lường.\nChỉ cần chạm giữ để gieo hạt, buông bỏ suy nghĩ và cho phép cơ thể nghỉ ngơi.',
                 textAlign: TextAlign.center,
                 style: textTheme.bodyMedium!.copyWith(
-                  color: ZenTheme.softGray.withOpacity(0.7),
+                  color: ZenTheme.softGray.withValues(alpha: 0.7),
                   height: 1.5,
                   fontSize: 14,
                 ),
@@ -406,7 +445,7 @@ class _SleepSeedScreenState extends State<SleepSeedScreen> with TickerProviderSt
           ),
         ),
         const Spacer(),
-        
+
         // Touch holding area
         Center(
           child: GestureDetector(
@@ -422,11 +461,13 @@ class _SleepSeedScreenState extends State<SleepSeedScreen> with TickerProviderSt
                   child: CircularProgressIndicator(
                     value: _sowProgress,
                     strokeWidth: 2,
-                    backgroundColor: Colors.white.withOpacity(0.05),
-                    valueColor: const AlwaysStoppedAnimation<Color>(ZenTheme.sageGreen),
+                    backgroundColor: Colors.white.withValues(alpha: 0.05),
+                    valueColor: const AlwaysStoppedAnimation<Color>(
+                      ZenTheme.sageGreen,
+                    ),
                   ),
                 ),
-                
+
                 // Seed glowing button
                 AnimatedContainer(
                   duration: const Duration(milliseconds: 150),
@@ -434,9 +475,13 @@ class _SleepSeedScreenState extends State<SleepSeedScreen> with TickerProviderSt
                   height: _isSowing ? 110 : 120,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.white.withOpacity(_isSowing ? 0.08 : 0.03),
+                    color: Colors.white.withValues(
+                      alpha: _isSowing ? 0.08 : 0.03,
+                    ),
                     border: Border.all(
-                      color: ZenTheme.sageGreen.withOpacity(_isSowing ? 0.4 : 0.15),
+                      color: ZenTheme.sageGreen.withValues(
+                        alpha: _isSowing ? 0.4 : 0.15,
+                      ),
                       width: 1,
                     ),
                   ),
@@ -454,15 +499,19 @@ class _SleepSeedScreenState extends State<SleepSeedScreen> with TickerProviderSt
         ),
         const SizedBox(height: 24),
         Text(
-          _isSowing ? 'Đang gieo mầm bình yên...' : 'Chạm và giữ 3 giây để gieo hạt',
+          _isSowing
+              ? 'Đang gieo mầm bình yên...'
+              : 'Chạm và giữ 3 giây để gieo hạt',
           textAlign: TextAlign.center,
           style: textTheme.bodyMedium!.copyWith(
-            color: _isSowing ? ZenTheme.sageGreen : ZenTheme.softGray.withOpacity(0.5),
+            color: _isSowing
+                ? ZenTheme.sageGreen
+                : ZenTheme.softGray.withValues(alpha: 0.5),
             fontSize: 13,
             letterSpacing: 0.5,
           ),
         ),
-        
+
         const Spacer(),
         const SizedBox(height: 60),
       ],
@@ -478,7 +527,7 @@ class _SleepSeedScreenState extends State<SleepSeedScreen> with TickerProviderSt
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           const SizedBox(height: 70),
-          
+
           // Pulsing Breathing Dot
           Center(
             child: ScaleTransition(
@@ -488,9 +537,9 @@ class _SleepSeedScreenState extends State<SleepSeedScreen> with TickerProviderSt
                 height: 70,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: ZenTheme.sageGreen.withOpacity(0.12),
+                  color: ZenTheme.sageGreen.withValues(alpha: 0.12),
                   border: Border.all(
-                    color: ZenTheme.sageGreen.withOpacity(0.2),
+                    color: ZenTheme.sageGreen.withValues(alpha: 0.2),
                     width: 1,
                   ),
                 ),
@@ -505,7 +554,7 @@ class _SleepSeedScreenState extends State<SleepSeedScreen> with TickerProviderSt
             ),
           ),
           const SizedBox(height: 28),
-          
+
           Text(
             'Hạt mầm đã gieo yên bình',
             textAlign: TextAlign.center,
@@ -541,8 +590,10 @@ class _SleepSeedScreenState extends State<SleepSeedScreen> with TickerProviderSt
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: ZenTheme.sageGreen.withOpacity(0.15),
-                  border: Border.all(color: ZenTheme.sageGreen.withOpacity(0.3)),
+                  color: ZenTheme.sageGreen.withValues(alpha: 0.15),
+                  border: Border.all(
+                    color: ZenTheme.sageGreen.withValues(alpha: 0.3),
+                  ),
                 ),
                 child: Icon(
                   _isPlaying ? Icons.pause_rounded : Icons.play_arrow_rounded,
@@ -558,7 +609,7 @@ class _SleepSeedScreenState extends State<SleepSeedScreen> with TickerProviderSt
           Text(
             'Âm thanh ru ngủ',
             style: textTheme.bodyMedium!.copyWith(
-              color: ZenTheme.softGray.withOpacity(0.5),
+              color: ZenTheme.softGray.withValues(alpha: 0.5),
               fontWeight: FontWeight.w600,
               fontSize: 12,
               letterSpacing: 1.0,
@@ -576,26 +627,35 @@ class _SleepSeedScreenState extends State<SleepSeedScreen> with TickerProviderSt
                   opacity: isSelected ? 0.12 : 0.03,
                   border: Border.all(
                     color: isSelected
-                        ? ZenTheme.sageGreen.withOpacity(0.4)
-                        : Colors.white.withOpacity(0.08),
+                        ? ZenTheme.sageGreen.withValues(alpha: 0.4)
+                        : Colors.white.withValues(alpha: 0.08),
                   ),
                   radius: 20,
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
                         sound['icon'] as IconData,
-                        color: isSelected ? ZenTheme.sageGreen : ZenTheme.softGray,
+                        color: isSelected
+                            ? ZenTheme.sageGreen
+                            : ZenTheme.softGray,
                         size: 16,
                       ),
                       const SizedBox(width: 8),
                       Text(
                         sound['label'] as String,
                         style: TextStyle(
-                          color: isSelected ? ZenTheme.creamWhite : ZenTheme.softGray,
+                          color: isSelected
+                              ? ZenTheme.creamWhite
+                              : ZenTheme.softGray,
                           fontSize: 13,
-                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
                         ),
                       ),
                     ],
@@ -610,7 +670,7 @@ class _SleepSeedScreenState extends State<SleepSeedScreen> with TickerProviderSt
           Text(
             'Hẹn giờ tự tắt',
             style: textTheme.bodyMedium!.copyWith(
-              color: ZenTheme.softGray.withOpacity(0.5),
+              color: ZenTheme.softGray.withValues(alpha: 0.5),
               fontWeight: FontWeight.w600,
               fontSize: 12,
               letterSpacing: 1.0,
@@ -628,17 +688,24 @@ class _SleepSeedScreenState extends State<SleepSeedScreen> with TickerProviderSt
                   opacity: isSelected ? 0.12 : 0.03,
                   border: Border.all(
                     color: isSelected
-                        ? ZenTheme.sageGreen.withOpacity(0.4)
-                        : Colors.white.withOpacity(0.08),
+                        ? ZenTheme.sageGreen.withValues(alpha: 0.4)
+                        : Colors.white.withValues(alpha: 0.08),
                   ),
                   radius: 18,
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 10,
+                  ),
                   child: Text(
                     label,
                     style: TextStyle(
-                      color: isSelected ? ZenTheme.creamWhite : ZenTheme.softGray,
+                      color: isSelected
+                          ? ZenTheme.creamWhite
+                          : ZenTheme.softGray,
                       fontSize: 12,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                     ),
                   ),
                 ),
@@ -690,13 +757,13 @@ class _SleepSeedScreenState extends State<SleepSeedScreen> with TickerProviderSt
                 height: 90,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: ZenTheme.sageGreen.withOpacity(0.015),
+                  color: ZenTheme.sageGreen.withValues(alpha: 0.015),
                   boxShadow: [
                     BoxShadow(
-                      color: ZenTheme.sageGreen.withOpacity(0.01),
+                      color: ZenTheme.sageGreen.withValues(alpha: 0.01),
                       blurRadius: 40,
                       spreadRadius: 5,
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -705,11 +772,11 @@ class _SleepSeedScreenState extends State<SleepSeedScreen> with TickerProviderSt
             Text(
               'Chạm bất kỳ đâu để đánh thức màn hình',
               style: TextStyle(
-                color: Colors.white.withOpacity(0.08),
+                color: Colors.white.withValues(alpha: 0.08),
                 fontSize: 11,
                 fontStyle: FontStyle.italic,
               ),
-            )
+            ),
           ],
         ),
       ),

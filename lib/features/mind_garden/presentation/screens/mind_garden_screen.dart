@@ -61,10 +61,12 @@ class _MindGardenScreenState extends State<MindGardenScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.close, color: ZenTheme.creamWhite, size: 22),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: const Icon(Icons.close, color: ZenTheme.creamWhite, size: 22),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
         title: GlassContainer(
           opacity: 0.08,
           radius: 12,
@@ -156,8 +158,8 @@ class _MindGardenScreenState extends State<MindGardenScreen> {
                   child: Text(
                     "Khu vườn này là không gian an toàn phản chiếu những dấu chân cảm xúc của bạn. Không có đúng sai hay áp lực, chỉ có sự tĩnh lặng của hiện tại.",
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.nunito(
-                      color: ZenTheme.softGray.withOpacity(0.7),
+                    style: GoogleFonts.plusJakartaSans(
+                      color: ZenTheme.softGray.withValues(alpha: 0.7),
                       fontSize: 12.5,
                       height: 1.45,
                     ),
@@ -217,13 +219,13 @@ class _MindGardenScreenState extends State<MindGardenScreen> {
                                   width: size,
                                   height: size,
                                   decoration: BoxDecoration(
-                                    color: ZenTheme.creamWhite.withOpacity(
-                                      0.02,
+                                    color: ZenTheme.creamWhite.withValues(
+                                      alpha: 0.02,
                                     ),
                                     shape: BoxShape.circle,
                                     border: Border.all(
-                                      color: ZenTheme.creamWhite.withOpacity(
-                                        0.04,
+                                      color: ZenTheme.creamWhite.withValues(
+                                        alpha: 0.04,
                                       ),
                                       width: 1.0,
                                     ),
@@ -302,16 +304,17 @@ class _MindGardenScreenState extends State<MindGardenScreen> {
 
     for (final a in completed) {
       final e = a.eveningEmotion;
-      if (e == 'peaceful')
+      if (e == 'peaceful') {
         peaceful++;
-      else if (e == 'grateful')
+      } else if (e == 'grateful') {
         grateful++;
-      else if (e == 'burnout')
+      } else if (e == 'burnout') {
         burnout++;
-      else if (e == 'overthinking')
+      } else if (e == 'overthinking') {
         overthinking++;
-      else if (e == 'lonely' || e == 'empty')
+      } else if (e == 'lonely' || e == 'empty') {
         lonely++;
+      }
     }
 
     String title = "Góc tự thấu hiểu";
@@ -361,7 +364,7 @@ class _MindGardenScreenState extends State<MindGardenScreen> {
                 children: [
                   Text(
                     title,
-                    style: GoogleFonts.lora(
+                    style: GoogleFonts.plusJakartaSans(
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                       color: ZenTheme.creamWhite,
@@ -370,9 +373,9 @@ class _MindGardenScreenState extends State<MindGardenScreen> {
                   const SizedBox(height: 4),
                   Text(
                     message,
-                    style: GoogleFonts.nunito(
+                    style: GoogleFonts.plusJakartaSans(
                       fontSize: 12,
-                      color: ZenTheme.softGray.withOpacity(0.85),
+                      color: ZenTheme.softGray.withValues(alpha: 0.85),
                       height: 1.45,
                     ),
                   ),
@@ -420,9 +423,9 @@ class _MindGardenScreenState extends State<MindGardenScreen> {
         const SizedBox(width: 6),
         Text(
           label,
-          style: GoogleFonts.nunito(
+          style: GoogleFonts.plusJakartaSans(
             fontSize: 11,
-            color: ZenTheme.softGray.withOpacity(0.8),
+            color: ZenTheme.softGray.withValues(alpha: 0.8),
           ),
         ),
       ],
@@ -432,7 +435,7 @@ class _MindGardenScreenState extends State<MindGardenScreen> {
   void _showExplanationDialog(BuildContext context) {
     showDialog(
       context: context,
-      barrierColor: Colors.black.withOpacity(0.5),
+      barrierColor: Colors.black.withValues(alpha: 0.5),
       builder: (context) {
         return Center(
           child: Material(
@@ -457,7 +460,7 @@ class _MindGardenScreenState extends State<MindGardenScreen> {
                         const SizedBox(width: 10),
                         Text(
                           "Giải nghĩa Vườn Tâm Trí",
-                          style: GoogleFonts.lora(
+                          style: GoogleFonts.plusJakartaSans(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: ZenTheme.creamWhite,
@@ -503,7 +506,7 @@ class _MindGardenScreenState extends State<MindGardenScreen> {
       children: [
         Text(
           title,
-          style: GoogleFonts.nunito(
+          style: GoogleFonts.plusJakartaSans(
             fontSize: 13,
             fontWeight: FontWeight.bold,
             color: ZenTheme.softGold,
@@ -512,9 +515,9 @@ class _MindGardenScreenState extends State<MindGardenScreen> {
         const SizedBox(height: 4),
         Text(
           desc,
-          style: GoogleFonts.nunito(
+          style: GoogleFonts.plusJakartaSans(
             fontSize: 12,
-            color: ZenTheme.softGray.withOpacity(0.85),
+            color: ZenTheme.softGray.withValues(alpha: 0.85),
             height: 1.4,
           ),
         ),
@@ -534,13 +537,13 @@ class _MindGardenScreenState extends State<MindGardenScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 color: !_isCalendarView
-                    ? ZenTheme.creamWhite.withOpacity(0.08)
+                    ? ZenTheme.creamWhite.withValues(alpha: 0.08)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 "Vườn tâm trí",
-                style: GoogleFonts.nunito(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 12,
                   color: !_isCalendarView
                       ? ZenTheme.creamWhite
@@ -559,13 +562,13 @@ class _MindGardenScreenState extends State<MindGardenScreen> {
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
                 color: _isCalendarView
-                    ? ZenTheme.creamWhite.withOpacity(0.08)
+                    ? ZenTheme.creamWhite.withValues(alpha: 0.08)
                     : Colors.transparent,
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
                 "Lịch tháng",
-                style: GoogleFonts.nunito(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 12,
                   color: _isCalendarView
                       ? ZenTheme.creamWhite
@@ -611,8 +614,8 @@ class _MindGardenScreenState extends State<MindGardenScreen> {
           return Center(
             child: Text(
               days[index],
-              style: GoogleFonts.nunito(
-                color: ZenTheme.softGray.withOpacity(0.5),
+              style: GoogleFonts.plusJakartaSans(
+                color: ZenTheme.softGray.withValues(alpha: 0.5),
                 fontWeight: FontWeight.bold,
                 fontSize: 12,
               ),
@@ -633,21 +636,21 @@ class _MindGardenScreenState extends State<MindGardenScreen> {
         final emotion = anchor?.eveningEmotion;
 
         Color cellBg = Colors.transparent;
-        Color borderCol = ZenTheme.creamWhite.withOpacity(0.04);
+        Color borderCol = ZenTheme.creamWhite.withValues(alpha: 0.04);
         Widget? iconWidget;
 
         if (hasData) {
           if (!completed) {
-            cellBg = ZenTheme.softGold.withOpacity(0.06);
-            borderCol = ZenTheme.softGold.withOpacity(0.2);
+            cellBg = ZenTheme.softGold.withValues(alpha: 0.06);
+            borderCol = ZenTheme.softGold.withValues(alpha: 0.2);
             iconWidget = const ZenLegendIcon(
               emotion: 'clay',
               size: Size(16, 16),
             );
           } else {
             final color = _getEmotionColor(emotion);
-            cellBg = color.withOpacity(0.08);
-            borderCol = color.withOpacity(0.3);
+            cellBg = color.withValues(alpha: 0.08);
+            borderCol = color.withValues(alpha: 0.3);
             iconWidget = ZenLegendIcon(
               emotion: emotion!,
               size: const Size(16, 16),
@@ -675,11 +678,11 @@ class _MindGardenScreenState extends State<MindGardenScreen> {
                   left: 6,
                   child: Text(
                     '$day',
-                    style: GoogleFonts.nunito(
+                    style: GoogleFonts.plusJakartaSans(
                       fontSize: 10,
                       color: hasData
                           ? ZenTheme.creamWhite
-                          : ZenTheme.softGray.withOpacity(0.4),
+                          : ZenTheme.softGray.withValues(alpha: 0.4),
                       fontWeight: hasData ? FontWeight.bold : FontWeight.normal,
                     ),
                   ),
@@ -737,7 +740,7 @@ class _MindGardenScreenState extends State<MindGardenScreen> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withOpacity(0.4),
+      barrierColor: Colors.black.withValues(alpha: 0.4),
       isScrollControlled: true,
       builder: (context) {
         final emotionText = _getEmotionLabel(anchor.eveningEmotion);
@@ -764,7 +767,7 @@ class _MindGardenScreenState extends State<MindGardenScreen> {
                     children: [
                       Text(
                         "Ngày $day tháng ${_currentMonth.month}",
-                        style: GoogleFonts.lora(
+                        style: GoogleFonts.plusJakartaSans(
                           fontSize: 20,
                           fontWeight: FontWeight.bold,
                           color: ZenTheme.creamWhite,
@@ -776,16 +779,16 @@ class _MindGardenScreenState extends State<MindGardenScreen> {
                           vertical: 4,
                         ),
                         decoration: BoxDecoration(
-                          color: emotionColor.withOpacity(0.12),
+                          color: emotionColor.withValues(alpha: 0.12),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: emotionColor.withOpacity(0.25),
+                            color: emotionColor.withValues(alpha: 0.25),
                             width: 1.0,
                           ),
                         ),
                         child: Text(
                           emotionText,
-                          style: GoogleFonts.nunito(
+                          style: GoogleFonts.plusJakartaSans(
                             fontSize: 12,
                             color: emotionColor,
                             fontWeight: FontWeight.bold,
@@ -815,16 +818,16 @@ class _MindGardenScreenState extends State<MindGardenScreen> {
                           children: [
                             Text(
                               "Ý định ngày mới",
-                              style: GoogleFonts.nunito(
+                              style: GoogleFonts.plusJakartaSans(
                                 fontSize: 12,
-                                color: ZenTheme.softGray.withOpacity(0.6),
+                                color: ZenTheme.softGray.withValues(alpha: 0.6),
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               "\"${anchor.intention}\"",
-                              style: GoogleFonts.lora(
+                              style: GoogleFonts.plusJakartaSans(
                                 fontSize: 14,
                                 fontStyle: FontStyle.italic,
                                 color: ZenTheme.creamWhite,
@@ -857,18 +860,22 @@ class _MindGardenScreenState extends State<MindGardenScreen> {
                             children: [
                               Text(
                                 "Nhìn lại buổi tối",
-                                style: GoogleFonts.nunito(
+                                style: GoogleFonts.plusJakartaSans(
                                   fontSize: 12,
-                                  color: ZenTheme.softGray.withOpacity(0.6),
+                                  color: ZenTheme.softGray.withValues(
+                                    alpha: 0.6,
+                                  ),
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 anchor.eveningNote!,
-                                style: GoogleFonts.nunito(
+                                style: GoogleFonts.plusJakartaSans(
                                   fontSize: 14,
-                                  color: ZenTheme.creamWhite.withOpacity(0.9),
+                                  color: ZenTheme.creamWhite.withValues(
+                                    alpha: 0.9,
+                                  ),
                                 ),
                               ),
                             ],
@@ -895,16 +902,16 @@ class _MindGardenScreenState extends State<MindGardenScreen> {
                           children: [
                             Text(
                               "Gợi ý chiêm nghiệm mang theo",
-                              style: GoogleFonts.nunito(
+                              style: GoogleFonts.plusJakartaSans(
                                 fontSize: 12,
-                                color: ZenTheme.softGray.withOpacity(0.6),
+                                color: ZenTheme.softGray.withValues(alpha: 0.6),
                                 fontWeight: FontWeight.bold,
-                                ),
+                              ),
                             ),
                             const SizedBox(height: 4),
                             Text(
                               anchor.affirmationText,
-                              style: GoogleFonts.nunito(
+                              style: GoogleFonts.plusJakartaSans(
                                 fontSize: 13,
                                 color: ZenTheme.softGray,
                               ),
@@ -931,7 +938,7 @@ class _MindGardenScreenState extends State<MindGardenScreen> {
                             children: [
                               Text(
                                 "Hạt mầm ngủ ngon",
-                                style: GoogleFonts.nunito(
+                                style: GoogleFonts.plusJakartaSans(
                                   fontSize: 12,
                                   color: ZenTheme.sageGreen,
                                   fontWeight: FontWeight.bold,
@@ -940,9 +947,11 @@ class _MindGardenScreenState extends State<MindGardenScreen> {
                               if (anchor.sleepSeedSownAt != null)
                                 Text(
                                   "Gieo lúc ${_formatTimeFromIso(anchor.sleepSeedSownAt!)}",
-                                  style: GoogleFonts.nunito(
+                                  style: GoogleFonts.plusJakartaSans(
                                     fontSize: 12,
-                                    color: ZenTheme.softGray.withOpacity(0.65),
+                                    color: ZenTheme.softGray.withValues(
+                                      alpha: 0.65,
+                                    ),
                                   ),
                                 ),
                             ],
@@ -953,7 +962,10 @@ class _MindGardenScreenState extends State<MindGardenScreen> {
                     const SizedBox(height: 12),
                   ],
 
-                  ZenButton(text: "Đóng", onPressed: () => Navigator.pop(context)),
+                  ZenButton(
+                    text: "Đóng",
+                    onPressed: () => Navigator.pop(context),
+                  ),
                 ],
               ),
             ),
@@ -984,7 +996,7 @@ class _MindGardenScreenState extends State<MindGardenScreen> {
   }
 
   Color _getEmotionColor(String? emotion) {
-    if (emotion == null) return ZenTheme.softGray.withOpacity(0.6);
+    if (emotion == null) return ZenTheme.softGray.withValues(alpha: 0.6);
     switch (emotion) {
       case 'burnout':
         return ZenTheme.mistRed;

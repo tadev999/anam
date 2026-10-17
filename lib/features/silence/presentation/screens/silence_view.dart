@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/constants.dart';
 import '../../../../core/theme.dart';
 import '../../../../shared/widgets/glass_container.dart';
@@ -112,31 +114,37 @@ class _SilenceViewState extends State<SilenceView> {
                 children: [
                   Text(
                     "Chọn nhạc nền định tâm",
-                    style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                          fontFamily: 'Lora',
-                          fontSize: 18,
-                          color: ZenTheme.creamWhite,
-                        ),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textPrimary,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 20),
                   ...[
                     {
                       'name': 'Mưa Rơi',
-                      'icon': Icons.water_drop,
-                      'url': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+                      'icon': Icons.water_drop_outlined,
+                      'url': 'assets/audio/rain_sleep.m4a',
                       'desc': 'Tiếng mưa rơi nhẹ nhàng gột rửa tâm trí',
                     },
                     {
+                      'name': 'Suối Rừng',
+                      'icon': Icons.forest_outlined,
+                      'url': 'assets/audio/stream.m4a',
+                      'desc': 'Dòng suối róc rách trong veo giữa rừng thanh vắng',
+                    },
+                    {
                       'name': 'Tiếng Sóng',
-                      'icon': Icons.waves,
-                      'url': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3',
+                      'icon': Icons.waves_outlined,
+                      'url': 'assets/audio/waves.m4a',
                       'desc': 'Sóng biển rì rào đưa tâm hồn về bến lặng',
                     },
                     {
                       'name': 'Chuông Thiền',
-                      'icon': Icons.spa,
-                      'url': 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-3.mp3',
+                      'icon': Icons.spa_outlined,
+                      'url': 'assets/audio/bell.m4a',
                       'desc': 'Chuông đồng ngân vang thanh lọc mọi xao động',
                     },
                   ].map((sound) {
@@ -148,45 +156,49 @@ class _SilenceViewState extends State<SilenceView> {
                       margin: const EdgeInsets.only(bottom: 12),
                       decoration: BoxDecoration(
                         color: isSelected
-                            ? ZenTheme.sageGreen.withValues(alpha: 0.12)
-                            : ZenTheme.creamWhite.withValues(alpha: 0.03),
+                            ? AppColors.primary.withValues(alpha: 0.14)
+                            : AppColors.surfaceLight.withValues(alpha: 0.5),
                         borderRadius: BorderRadius.circular(16),
                         border: Border.all(
                           color: isSelected
-                              ? ZenTheme.sageGreen.withValues(alpha: 0.3)
-                              : Colors.transparent,
+                              ? AppColors.primary.withValues(alpha: 0.4)
+                              : AppColors.glassBorder,
                         ),
                       ),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-                        leading: Icon(
-                          sound['icon'] as IconData,
-                          color: isSelected ? ZenTheme.sageGreen : ZenTheme.softGray,
-                        ),
-                        title: Text(
-                          soundName,
-                          style: TextStyle(
-                            color: isSelected ? ZenTheme.creamWhite : ZenTheme.creamWhite.withValues(alpha: 0.8),
-                            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                            fontSize: 15,
+                      child: Material(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(16),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                          leading: Icon(
+                            sound['icon'] as IconData,
+                            color: isSelected ? AppColors.primary : AppColors.textMuted,
                           ),
-                        ),
-                        subtitle: Text(
-                          sound['desc'] as String,
-                          style: TextStyle(
-                            color: ZenTheme.softGray.withValues(alpha: 0.7),
-                            fontSize: 12,
+                          title: Text(
+                            soundName,
+                            style: GoogleFonts.plusJakartaSans(
+                              color: isSelected ? AppColors.textPrimary : AppColors.textSecondary,
+                              fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+                              fontSize: 15,
+                            ),
                           ),
+                          subtitle: Text(
+                            sound['desc'] as String,
+                            style: GoogleFonts.plusJakartaSans(
+                              color: AppColors.textMuted,
+                              fontSize: 12,
+                            ),
+                          ),
+                          trailing: isSelected
+                              ? const Icon(Icons.check_rounded, color: AppColors.primary)
+                              : null,
+                          onTap: () {
+                            BlocProvider.of<SilenceBloc>(context).add(
+                              SelectSoundRequested(soundName: soundName, soundUrl: soundUrl),
+                            );
+                            Navigator.pop(sheetCtx);
+                          },
                         ),
-                        trailing: isSelected
-                            ? const Icon(Icons.check, color: ZenTheme.sageGreen)
-                            : null,
-                        onTap: () {
-                          BlocProvider.of<SilenceBloc>(context).add(
-                            SelectSoundRequested(soundName: soundName, soundUrl: soundUrl),
-                          );
-                          Navigator.pop(sheetCtx);
-                        },
                       ),
                     );
                   }),

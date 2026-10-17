@@ -42,7 +42,6 @@ class _ReleaseViewState extends State<ReleaseView> {
   bool _isFocusMode = false;
   String _selectedRitualTheme = 'fire'; // Mặc định: Thiêu hóa
 
-
   void _burnRelease() {
     if (_controller.text.trim().isEmpty) return;
 
@@ -238,7 +237,7 @@ class _ReleaseViewState extends State<ReleaseView> {
                       focusNode: _focusNode,
                       maxLines: null,
                       enabled: !isLocked,
-                      style: GoogleFonts.nunito(
+                      style: GoogleFonts.plusJakartaSans(
                         color: ZenTheme.creamWhite,
                         height: 1.6,
                         fontSize: 17,
@@ -246,7 +245,7 @@ class _ReleaseViewState extends State<ReleaseView> {
                       decoration: InputDecoration(
                         hintText:
                             "Thành thật với chính mình. Không ai phán xét bạn ở đây...",
-                        hintStyle: GoogleFonts.nunito(
+                        hintStyle: GoogleFonts.plusJakartaSans(
                           color: ZenTheme.softGray.withValues(alpha: 0.4),
                           height: 1.6,
                           fontSize: 17,
@@ -268,7 +267,7 @@ class _ReleaseViewState extends State<ReleaseView> {
               opacity: animation,
               child: SizeTransition(
                 sizeFactor: animation,
-                axisAlignment: -1.0,
+                alignment: Alignment.topCenter,
                 child: child,
               ),
             );
@@ -286,9 +285,9 @@ class _ReleaseViewState extends State<ReleaseView> {
                       Text(
                         'Chọn nghi lễ buông',
                         textAlign: TextAlign.center,
-                        style: GoogleFonts.nunito(
+                        style: GoogleFonts.plusJakartaSans(
                           fontSize: 11,
-                          color: ZenTheme.softGray.withOpacity(0.6),
+                          color: ZenTheme.softGray.withValues(alpha: 0.6),
                           letterSpacing: 1.0,
                         ),
                       ),
@@ -296,11 +295,15 @@ class _ReleaseViewState extends State<ReleaseView> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: ZenConstants.releaseRitualThemes.map((theme) {
-                          final isSelected = _selectedRitualTheme == theme['id'];
-                          final accentColor = Color(theme['accentColor'] as int);
+                          final isSelected =
+                              _selectedRitualTheme == theme['id'];
+                          final accentColor = Color(
+                            theme['accentColor'] as int,
+                          );
                           return GestureDetector(
                             onTap: () => setState(
-                              () => _selectedRitualTheme = theme['id'] as String,
+                              () =>
+                                  _selectedRitualTheme = theme['id'] as String,
                             ),
                             child: AnimatedContainer(
                               duration: const Duration(milliseconds: 200),
@@ -312,12 +315,16 @@ class _ReleaseViewState extends State<ReleaseView> {
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(20),
                                 color: isSelected
-                                    ? accentColor.withOpacity(0.15)
-                                    : ZenTheme.creamWhite.withOpacity(0.04),
+                                    ? accentColor.withValues(alpha: 0.15)
+                                    : ZenTheme.creamWhite.withValues(
+                                        alpha: 0.04,
+                                      ),
                                 border: Border.all(
                                   color: isSelected
-                                      ? accentColor.withOpacity(0.5)
-                                      : ZenTheme.creamWhite.withOpacity(0.1),
+                                      ? accentColor.withValues(alpha: 0.5)
+                                      : ZenTheme.creamWhite.withValues(
+                                          alpha: 0.1,
+                                        ),
                                   width: isSelected ? 1.5 : 1.0,
                                 ),
                               ),
@@ -333,7 +340,7 @@ class _ReleaseViewState extends State<ReleaseView> {
                                   const SizedBox(height: 2),
                                   Text(
                                     theme['name'] as String,
-                                    style: GoogleFonts.nunito(
+                                    style: GoogleFonts.plusJakartaSans(
                                       fontSize: 10,
                                       color: isSelected
                                           ? accentColor
@@ -360,7 +367,9 @@ class _ReleaseViewState extends State<ReleaseView> {
                           if (_controller.text.trim().isEmpty) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(
-                                content: Text("Nhập chia sẻ trước khi gửi vào hư vô."),
+                                content: Text(
+                                  "Nhập chia sẻ trước khi gửi vào hư vô.",
+                                ),
                               ),
                             );
                             return;
@@ -370,7 +379,9 @@ class _ReleaseViewState extends State<ReleaseView> {
                       )
                     else if (_isBurning)
                       const Center(
-                        child: CircularProgressIndicator(color: ZenTheme.mistRed),
+                        child: CircularProgressIndicator(
+                          color: ZenTheme.mistRed,
+                        ),
                       ),
                     const SizedBox(height: 10),
                   ],
@@ -379,7 +390,6 @@ class _ReleaseViewState extends State<ReleaseView> {
       ],
     );
   }
-
 
   Widget _buildTransitionView(TextTheme textTheme) {
     return LayoutBuilder(
@@ -397,7 +407,7 @@ class _ReleaseViewState extends State<ReleaseView> {
                   Text(
                     "Nỗi lòng đã trôi vào hư vô.",
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.lora(
+                    style: GoogleFonts.plusJakartaSans(
                       fontSize: 20,
                       color: ZenTheme.creamWhite,
                       fontWeight: FontWeight.normal,
@@ -407,7 +417,7 @@ class _ReleaseViewState extends State<ReleaseView> {
                   Text(
                     "Trước khi bước tiếp — hãy dừng lại một giây.",
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.nunito(
+                    style: GoogleFonts.plusJakartaSans(
                       fontSize: 14,
                       color: ZenTheme.softGray,
                       fontStyle: FontStyle.italic,
@@ -425,7 +435,7 @@ class _ReleaseViewState extends State<ReleaseView> {
                         Text(
                           "Điều bạn vừa viết ra nói lên nhu cầu nào của bạn hôm nay?",
                           textAlign: TextAlign.center,
-                          style: GoogleFonts.lora(
+                          style: GoogleFonts.plusJakartaSans(
                             fontSize: 17,
                             color: ZenTheme.creamWhite,
                             height: 1.6,
@@ -462,12 +472,14 @@ class _ReleaseViewState extends State<ReleaseView> {
                         text: "Tiếp tục",
                         onPressed: () {
                           if (_selectedChip != null) {
-                            final dbRepo = RepositoryProvider.of<BaseDatabaseRepository>(
-                              context,
-                            );
+                            final dbRepo =
+                                RepositoryProvider.of<BaseDatabaseRepository>(
+                                  context,
+                                );
                             if (_selectedChip == ReflectionChip.langeNghe) {
                               dbRepo.currentMindState = 'lonely_state';
-                            } else if (_selectedChip == ReflectionChip.nghiNgoi) {
+                            } else if (_selectedChip ==
+                                ReflectionChip.nghiNgoi) {
                               dbRepo.currentMindState = 'burnout_state';
                             } else if (_selectedChip == ReflectionChip.thaThu) {
                               dbRepo.currentMindState = 'overthinking_state';
@@ -529,7 +541,7 @@ class _ReleaseViewState extends State<ReleaseView> {
                   Text(
                     headingText,
                     textAlign: TextAlign.center,
-                    style: GoogleFonts.lora(
+                    style: GoogleFonts.plusJakartaSans(
                       fontSize: 20,
                       color: ZenTheme.creamWhite,
                       fontWeight: FontWeight.normal,
@@ -541,7 +553,7 @@ class _ReleaseViewState extends State<ReleaseView> {
                     child: Text(
                       subText,
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.nunito(
+                      style: GoogleFonts.plusJakartaSans(
                         fontSize: 14,
                         color: ZenTheme.softGray,
                         height: 1.5,
@@ -561,7 +573,9 @@ class _ReleaseViewState extends State<ReleaseView> {
                         builder: (_) => BlocProvider<ReflectionBloc>(
                           create: (context) => ReflectionBloc(
                             databaseRepository:
-                                RepositoryProvider.of<BaseDatabaseRepository>(context),
+                                RepositoryProvider.of<BaseDatabaseRepository>(
+                                  context,
+                                ),
                           ),
                           child: const ReflectionView(),
                         ),
@@ -569,7 +583,7 @@ class _ReleaseViewState extends State<ReleaseView> {
                     ),
                     child: Text(
                       "Lòng bạn đã buông bỏ. Bạn có muốn dành 5 phút tự thấu hiểu cùng Gương tự vấn?",
-                      style: GoogleFonts.nunito(
+                      style: GoogleFonts.plusJakartaSans(
                         color: ZenTheme.sageGreen,
                         decoration: TextDecoration.underline,
                         fontSize: 14,
@@ -589,7 +603,7 @@ class _ReleaseViewState extends State<ReleaseView> {
                       onPressed: _resetFlow,
                       child: Text(
                         "Viết thêm một điều khác",
-                        style: GoogleFonts.nunito(
+                        style: GoogleFonts.plusJakartaSans(
                           color: ZenTheme.sageGreen,
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
@@ -648,7 +662,7 @@ class _ReleaseViewState extends State<ReleaseView> {
                 Expanded(
                   child: Text(
                     "Bạn muốn thử...",
-                    style: GoogleFonts.nunito(
+                    style: GoogleFonts.plusJakartaSans(
                       fontSize: 12,
                       color: ZenTheme.softGray,
                     ),
@@ -659,7 +673,7 @@ class _ReleaseViewState extends State<ReleaseView> {
             const SizedBox(height: 8),
             Text(
               actionText,
-              style: GoogleFonts.nunito(
+              style: GoogleFonts.plusJakartaSans(
                 fontSize: 14,
                 color: ZenTheme.creamWhite,
                 fontWeight: FontWeight.w500,
@@ -670,7 +684,7 @@ class _ReleaseViewState extends State<ReleaseView> {
               alignment: Alignment.bottomRight,
               child: Text(
                 "→ Đến đây",
-                style: GoogleFonts.nunito(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 13,
                   color: ZenTheme.sageGreen,
                   fontWeight: FontWeight.bold,
@@ -800,7 +814,7 @@ class _ReflectionChipWidgetState extends State<_ReflectionChipWidget> {
               ],
               Text(
                 chip.label,
-                style: GoogleFonts.nunito(
+                style: GoogleFonts.plusJakartaSans(
                   fontSize: 13,
                   color: isSelected ? accentColor : ZenTheme.softGray,
                   fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,

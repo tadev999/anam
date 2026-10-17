@@ -7,25 +7,22 @@ class ZenGardenPainter extends CustomPainter {
   final Map<int, AnchorModel> dayAnchors;
   final int daysInMonth;
 
-  ZenGardenPainter({
-    required this.dayAnchors,
-    required this.daysInMonth,
-  });
+  ZenGardenPainter({required this.dayAnchors, required this.daysInMonth});
 
   /// Hàm tĩnh để tính toán tọa độ (x, y) đồng đều và organic bằng thuật toán Fibonacci Spiral
   static Offset getDayOffset(int day, int totalDays, Size size) {
     final centerX = size.width / 2;
     final centerY = size.height / 2;
-    
+
     // Tối ưu bán kính tối đa của vườn
     final maxRadius = min(size.width, size.height) * 0.42;
-    
+
     if (day == 1) return Offset(centerX, centerY);
 
     // Thuật toán phân bổ Fibonacci Spiral (Xoắn ốc Fibonacci)
     final d = day - 1;
     final total = totalDays - 1;
-    
+
     final r = maxRadius * sqrt(d) / sqrt(total);
     final theta = d * 2.39996; // Góc vàng (Golden Angle) tính bằng radians
 
@@ -42,11 +39,15 @@ class ZenGardenPainter extends CustomPainter {
 
     // 1. Vẽ gợn sóng cát trắng Zen chủ đạo (Raked Sand Waves)
     final sandPaint = Paint()
-      ..color = ZenTheme.creamWhite.withOpacity(0.04)
+      ..color = ZenTheme.creamWhite.withValues(alpha: 0.04)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
 
-    for (double r = maxRadius * 0.2; r <= maxRadius * 1.1; r += maxRadius * 0.18) {
+    for (
+      double r = maxRadius * 0.2;
+      r <= maxRadius * 1.1;
+      r += maxRadius * 0.18
+    ) {
       canvas.drawCircle(Offset(centerX, centerY), r, sandPaint);
     }
 
@@ -58,7 +59,7 @@ class ZenGardenPainter extends CustomPainter {
       // Tình huống A: Chưa có nghi lễ hoặc quên check-in (Chỉ vẽ cát cào định vị)
       if (anchor == null || !anchor.morningCompleted) {
         final slotPaint = Paint()
-          ..color = ZenTheme.creamWhite.withOpacity(0.12)
+          ..color = ZenTheme.creamWhite.withValues(alpha: 0.12)
           ..style = PaintingStyle.stroke
           ..strokeWidth = 1.0;
         canvas.drawCircle(pos, 6, slotPaint);
@@ -110,9 +111,7 @@ class ZenGardenPainter extends CustomPainter {
     final textPainter = TextPainter(
       text: TextSpan(
         text: emoji,
-        style: TextStyle(
-          fontSize: size,
-        ),
+        style: TextStyle(fontSize: size),
       ),
       textDirection: TextDirection.ltr,
     )..layout();
@@ -127,7 +126,7 @@ class ZenGardenPainter extends CustomPainter {
       text: TextSpan(
         text: '$day',
         style: TextStyle(
-          color: ZenTheme.creamWhite.withOpacity(hasData ? 0.65 : 0.22),
+          color: ZenTheme.creamWhite.withValues(alpha: hasData ? 0.65 : 0.22),
           fontSize: 10.0,
           fontWeight: FontWeight.w400,
           fontFamily: 'Nunito',
@@ -140,6 +139,7 @@ class ZenGardenPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant ZenGardenPainter oldDelegate) {
-    return oldDelegate.dayAnchors != dayAnchors || oldDelegate.daysInMonth != daysInMonth;
+    return oldDelegate.dayAnchors != dayAnchors ||
+        oldDelegate.daysInMonth != daysInMonth;
   }
 }

@@ -3,9 +3,10 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/constants.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme.dart';
-import '../../../../core/repositories/database_repository.dart';
 import '../../../../shared/widgets/glass_container.dart';
 import '../../../../shared/widgets/zen_button.dart';
 import '../../../auth/bloc/auth_bloc.dart';
@@ -13,17 +14,11 @@ import '../../../daily_anchor/bloc/anchor_bloc.dart';
 import '../../../daily_anchor/data/models/anchor_model.dart';
 import '../../../daily_anchor/presentation/screens/anchor_view.dart';
 import '../../../daily_anchor/presentation/screens/evening_reflection_view.dart';
-import '../../../release_space/presentation/screens/release_view.dart';
-import '../../../hearth/presentation/screens/hearth_view.dart';
-import '../../../silence/presentation/screens/silence_view.dart';
-import '../../../reflection/bloc/reflection_bloc.dart';
-import '../../../reflection/presentation/screens/reflection_view.dart';
-import '../../../mind_garden/bloc/mind_garden_bloc.dart';
-import '../../../mind_garden/presentation/screens/mind_garden_screen.dart';
 import '../../../sleep_seed/bloc/sleep_seed_bloc.dart';
 import '../../../sleep_seed/bloc/sleep_seed_event.dart';
 import '../../../sleep_seed/bloc/sleep_seed_state.dart';
 import '../../../sleep_seed/presentation/screens/sleep_seed_screen.dart';
+import '../widgets/micro_ritual_sheet.dart';
 
 enum _CircadianPeriod { day, evening, night }
 
@@ -98,6 +93,20 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     }
   }
 
+  String _getFocalQuestion() {
+    final hour = DateTime.now().hour;
+    if (hour >= 5 && hour < 12) {
+      return ZenConstants.tridayQuestions['morning'] ??
+          "Hôm nay bạn hành động từ nỗi sợ thiếu hụt, hay từ nền tảng vững chắc bên trong?";
+    } else if (hour >= 12 && hour < 18) {
+      return ZenConstants.tridayQuestions['afternoon'] ??
+          "Thứ gì đang thật sự nuôi dưỡng bạn — không phải kích thích bạn?";
+    } else {
+      return ZenConstants.tridayQuestions['evening'] ??
+          "Bạn là ai khi không có ai nhìn?";
+    }
+  }
+
   _CircadianPeriod _getCircadianPeriod() {
     final hour = DateTime.now().hour;
     if (hour >= 5 && hour < 17) {
@@ -121,14 +130,19 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
+      backgroundColor: AppColors.background,
       body: Stack(
         children: [
-          // Nền Zen tối thâm trầm
+          // Nền Dark Luxury chuẩn an_match
           Positioned.fill(
             child: Container(
               decoration: const BoxDecoration(
                 gradient: LinearGradient(
-                  colors: [ZenTheme.slateDark, Color(0xff0d1115)],
+                  colors: [
+                    AppColors.background,
+                    Color(0xFF131A26),
+                    Color(0xFF0F151F),
+                  ],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                 ),
@@ -139,7 +153,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
           // Hiệu ứng hạt bụi sáng bay lơ lửng rất dịu nhẹ (0% CPU Rebuild overhead)
           const Positioned.fill(child: _AmbientFloatingDust()),
 
-          // Đốm sáng Bếp Lửa nhịp thở mờ nhẹ góc dưới
+          // Đốm sáng Hổ phách ấm áp nhịp thở mờ nhẹ góc dưới
           Positioned(
             bottom: -100,
             right: -100,
@@ -150,13 +164,13 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 height: 360,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: ZenTheme.softGold.withOpacity(0.09),
+                  color: AppColors.primary.withValues(alpha: 0.10),
                 ),
               ),
             ),
           ),
 
-          // Đốm sáng sage mờ góc trên trái — tạo chiều sâu thoáng
+          // Đốm sáng radar teal mờ góc trên trái — tạo chiều sâu thoáng chuẩn an_match
           Positioned(
             top: -60,
             left: -60,
@@ -165,7 +179,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
               height: 240,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: ZenTheme.sageGreen.withOpacity(0.07),
+                color: AppColors.radarActive.withValues(alpha: 0.08),
               ),
             ),
           ),
@@ -197,7 +211,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                       if (sleepState.canSprout &&
                           sleepState.yesterdayAnchor != null) {
                         Future.delayed(const Duration(milliseconds: 800), () {
-                          if (mounted) {
+                          if (mounted && context.mounted) {
                             _showMorningSproutDialog(
                               context,
                               sleepState.yesterdayAnchor!,
@@ -232,7 +246,9 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
               ],
               child: BlocBuilder<AuthBloc, AuthState>(
                 builder: (context, authState) {
-                  final user = (authState is Authenticated) ? authState.user : null;
+                  final user = (authState is Authenticated)
+                      ? authState.user
+                      : null;
 
                   return BlocBuilder<AnchorBloc, AnchorState>(
                     builder: (context, anchorState) {
@@ -244,262 +260,198 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                       } else if (anchorState is EveningReflectionSuccess) {
                         anchor = anchorState.anchor;
                       }
-                      final isEveningCompleted = anchor?.eveningCompleted ?? false;
+                      final isEveningCompleted =
+                          anchor?.eveningCompleted ?? false;
 
                       final period = _getCircadianPeriod();
                       final isNight = period == _CircadianPeriod.night;
 
-                      // Now we build our dynamic children list:
+                      // Xây dựng danh sách thành phần Home tối giản, thanh nhã (Sanctuary Zen)
                       final List<Widget> children = [];
 
-                      // 1. Header
-                      children.add(Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
+                      // 1. Header tinh tế
+                      children.add(
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  _getGreetingPrefix(),
+                                  style: textTheme.bodyMedium!.copyWith(
+                                    fontSize: 13,
+                                    color: AppColors.textSecondary,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  user?.displayName ?? "Lữ khách",
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.textPrimary,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 6,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.surfaceLight,
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: AppColors.glassBorder),
+                              ),
+                              child: Text(
+                                "Hôm nay",
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+
+                      // 2. Câu hỏi định tâm nội sinh (Focal Triday Question)
+                      final focalQuestion = _getFocalQuestion();
+                      children.add(
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Center(
+                            child: Column(
+                              children: [
+                                Text(
+                                  "CÂU HỎI ĐỊNH TÂM",
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w700,
+                                    letterSpacing: 2.0,
+                                    color: AppColors.primaryLight,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  "\"$focalQuestion\"",
+                                  textAlign: TextAlign.center,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 16.5,
+                                    fontWeight: FontWeight.w600,
+                                    color: AppColors.textPrimary,
+                                    fontStyle: FontStyle.italic,
+                                    height: 1.5,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      );
+
+                      // 3. Tiêu điểm hành động duy nhất theo thời khắc (Single Primary Hero Card)
+                      children.add(
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              isNight ? "GIẤC NGỦ & LẮNG ĐỌNG" : "Ý NIỆM TRONG NGÀY",
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.primary,
+                                letterSpacing: 2.0,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            _buildHeroAnchorCard(
+                              context,
+                              anchor,
+                              isNight,
+                              isEveningCompleted,
+                            ),
+                          ],
+                        ),
+                      );
+
+                      // 4. Hành động vi mô nhẹ nhàng (Micro-offerings)
+                      children.add(
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Text(
+                              "HÀNH ĐỘNG NUÔI DƯỠNG NHỎ",
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 11.5,
+                                fontWeight: FontWeight.w700,
+                                color: AppColors.textMuted,
+                                letterSpacing: 1.8,
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            _buildMicroOfferingsRow(context),
+                          ],
+                        ),
+                      );
+
+                      // 5. Bếp lửa sưởi ấm (Lời nhắn an ủi tâm hồn)
+                      children.add(
+                        GlassContainer(
+                          radius: 20,
+                          padding: const EdgeInsets.all(18),
+                          child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(
-                                _getGreetingPrefix(),
-                                style: textTheme.bodyMedium,
-                              ),
-                              Text(
-                                user?.displayName ?? "Lữ khách",
-                                style: textTheme.displayMedium!.copyWith(
-                                  fontSize: 22,
-                                  fontWeight: FontWeight.w400,
-                                ),
-                              ),
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              IconButton(
-                                icon: const Icon(
-                                  Icons.logout,
-                                  color: ZenTheme.softGray,
-                                  size: 20,
-                                ),
-                                onPressed: () {
-                                  BlocProvider.of<AuthBloc>(context).add(SignOutRequested());
-                                },
-                                tooltip: "Rời chốn bình yên",
-                              ),
-                            ],
-                          ),
-                        ],
-                      ));
-
-                      if (isNight) {
-                        if (!isEveningCompleted) {
-                          // Night Mode, Evening reflection NOT completed
-                          // Primary: Daily Anchor (Evening Reflection Card)
-                          children.add(Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Text(
-                                "Khoảnh khắc trong ngày",
-                                style: textTheme.displaySmall!.copyWith(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: ZenTheme.sageGreen,
-                                  letterSpacing: 2.0,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              _buildMainAnchorCard(context),
-                            ],
-                          ));
-
-                          // Secondary Primary: Prominent Sleep Seed
-                          children.add(Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Text(
-                                "Giấc ngủ bình yên",
-                                style: textTheme.displaySmall!.copyWith(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: ZenTheme.sageGreen,
-                                  letterSpacing: 2.0,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              _buildSleepSeedCard(context, isNight: true),
-                            ],
-                          ));
-
-                          // Self Care Suite
-                          children.add(_buildSelfCareSuite(context, period));
-                        } else {
-                          // Night Mode, Evening reflection COMPLETED
-                          // Primary: Prominent Sleep Seed
-                          children.add(Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Text(
-                                "Giấc ngủ bình yên",
-                                style: textTheme.displaySmall!.copyWith(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: ZenTheme.sageGreen,
-                                  letterSpacing: 2.0,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              _buildSleepSeedCard(context, isNight: true),
-                            ],
-                          ));
-
-                          // Self Care Suite
-                          children.add(_buildSelfCareSuite(context, period));
-
-                          // Daily Anchor (Completed Card)
-                          children.add(Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              Text(
-                                "Khoảnh khắc trong ngày",
-                                style: textTheme.displaySmall!.copyWith(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: ZenTheme.sageGreen,
-                                  letterSpacing: 2.0,
-                                ),
-                              ),
-                              const SizedBox(height: 10),
-                              _buildMainAnchorCard(context),
-                            ],
-                          ));
-                        }
-                      } else {
-                        // Day or Evening Mode
-                        // Primary: Daily Anchor
-                        children.add(Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(
-                              "Khoảnh khắc trong ngày",
-                              style: textTheme.displaySmall!.copyWith(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: ZenTheme.sageGreen,
-                                letterSpacing: 2.0,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            _buildMainAnchorCard(context),
-                          ],
-                        ));
-
-                        // Self Care Suite
-                        children.add(_buildSelfCareSuite(context, period));
-
-                        // Sleep Seed (locked/compact card)
-                        children.add(Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            Text(
-                              "Giấc ngủ bình yên",
-                              style: textTheme.displaySmall!.copyWith(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w600,
-                                color: ZenTheme.sageGreen,
-                                letterSpacing: 2.0,
-                              ),
-                            ),
-                            const SizedBox(height: 10),
-                            _buildSleepSeedCard(context, isNight: false),
-                          ],
-                        ));
-                      }
-
-                      // Daily Wisdom Card — Thẻ tri thức ngày
-                      children.add(_buildDailyWisdomCard(textTheme));
-
-                      // Connection Row
-                      children.add(Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
-                        children: [
-                          Text(
-                            "Kết nối & Nhìn lại",
-                            style: textTheme.bodyMedium!.copyWith(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                              color: ZenTheme.softGray.withOpacity(0.6),
-                              letterSpacing: 1.8,
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          _buildConnectionRow(context),
-                        ],
-                      ));
-
-                      // Bottom Ambient Hearth
-                      children.add(GlassContainer(
-                        opacity: 0.05,
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              children: [
-                                const Icon(
-                                  Icons.local_fire_department,
-                                  color: ZenTheme.softGold,
-                                  size: 20,
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  "Bếp lửa sưởi ấm",
-                                  style: textTheme.titleLarge!.copyWith(
-                                    fontSize: 16,
-                                    color: ZenTheme.softGold,
+                              Row(
+                                children: [
+                                  const Icon(
+                                    Icons.local_fire_department_rounded,
+                                    color: AppColors.secondary,
+                                    size: 18,
                                   ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              "\"$_comfortQuote\"",
-                              style: textTheme.bodyLarge!.copyWith(
-                                fontStyle: FontStyle.italic,
-                                fontSize: 15,
-                                color: ZenTheme.creamWhite.withOpacity(0.85),
+                                  const SizedBox(width: 8),
+                                  Text(
+                                    "Lời nhắn gửi hôm nay",
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: AppColors.secondary,
+                                    ),
+                                  ),
+                                ],
                               ),
-                            ),
-                            const SizedBox(height: 16),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "Vai trò: ${user?.spiritualRole.split(' ')[0] ?? 'Seeker'}",
-                                  style: textTheme.bodyMedium!.copyWith(
-                                    color: ZenTheme.sageGreen,
-                                  ),
+                              const SizedBox(height: 10),
+                              Text(
+                                "\"$_comfortQuote\"",
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontSize: 14,
+                                  fontStyle: FontStyle.italic,
+                                  color: AppColors.textPrimary.withValues(alpha: 0.9),
+                                  height: 1.5,
                                 ),
-                                Text(
-                                  "Điểm thấu cảm: ${user?.empathyPoints ?? 0} EP",
-                                  style: textTheme.bodyMedium!.copyWith(
-                                    color: ZenTheme.softGold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      ));
-
-                      // Footer tagline
-                      children.add(Center(
-                        child: Text(
-                          "Anam • A Secular Sanctuary for Mindful Souls",
-                          style: textTheme.bodyMedium!.copyWith(
-                            fontSize: 11,
-                            color: ZenTheme.softGray.withOpacity(0.5),
-                            letterSpacing: 1.5,
+                              ),
+                            ],
                           ),
                         ),
-                      ));
+                      );
+
+                      // 6. Footer Tagline
+                      children.add(
+                        Center(
+                          child: Text(
+                            "Anam • A Secular Sanctuary for Mindful Souls",
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              color: AppColors.textMuted,
+                              letterSpacing: 1.5,
+                            ),
+                          ),
+                        ),
+                      );
 
                       return SingleChildScrollView(
                         padding: const EdgeInsets.symmetric(
@@ -534,48 +486,135 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildMainAnchorCard(BuildContext context) {
+  Widget _buildHeroAnchorCard(
+    BuildContext context,
+    AnchorModel? anchor,
+    bool isNight,
+    bool isEveningCompleted,
+  ) {
     final textTheme = Theme.of(context).textTheme;
+    if (isNight) {
+      if (!isEveningCompleted && anchor != null && anchor.morningCompleted) {
+        return _buildEveningReflectionCard(
+          context,
+          textTheme,
+          anchor,
+        );
+      } else {
+        return _buildSleepSeedCard(context, isNight: true);
+      }
+    } else {
+      if (anchor == null || !anchor.morningCompleted) {
+        return _buildMorningAnchorCard(context, textTheme);
+      } else {
+        return _buildCompletedAnchorCard(context, textTheme, anchor);
+      }
+    }
+  }
 
-    return BlocBuilder<AnchorBloc, AnchorState>(
-      builder: (context, state) {
-        if (state is AnchorLoading) {
-          return GlassContainer(
-            opacity: 0.12,
-            radius: 24,
-            padding: const EdgeInsets.symmetric(vertical: 40),
-            child: const Center(
-              child: CircularProgressIndicator(
-                valueColor: AlwaysStoppedAnimation<Color>(ZenTheme.sageGreen),
+  Widget _buildMicroOfferingsRow(BuildContext context) {
+    final actions = [
+      {
+        'title': 'Uống nước',
+        'subtitle': 'Ấm áp • Tươi mới',
+        'icon': Icons.water_drop_outlined,
+        'type': MicroRitualType.water,
+      },
+      {
+        'title': '5 hơi thở',
+        'subtitle': 'Lắng dịu • Tự tại',
+        'icon': Icons.air_rounded,
+        'type': MicroRitualType.breathing,
+      },
+      {
+        'title': 'Thả lỏng vai',
+        'subtitle': 'Buông gánh nặng',
+        'icon': Icons.accessibility_new_rounded,
+        'type': MicroRitualType.shoulder,
+      },
+    ];
+
+    return Row(
+      children: actions.map((act) {
+        final type = act['type'] as MicroRitualType;
+        return Expanded(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.surface,
+                borderRadius: BorderRadius.circular(18),
+                border: Border.all(color: AppColors.glassBorder),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Material(
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(18),
+                child: InkWell(
+                  borderRadius: BorderRadius.circular(18),
+                  splashColor: AppColors.primary.withValues(alpha: 0.15),
+                  highlightColor: AppColors.primary.withValues(alpha: 0.08),
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    MicroRitualSheet.show(context, type);
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 16,
+                      horizontal: 8,
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(9),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: AppColors.primary.withValues(alpha: 0.12),
+                          ),
+                          child: Icon(
+                            act['icon'] as IconData,
+                            color: AppColors.primary,
+                            size: 22,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          act['title'] as String,
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 12.5,
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.textPrimary,
+                          ),
+                        ),
+                        const SizedBox(height: 3),
+                        Text(
+                          act['subtitle'] as String,
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontSize: 10,
+                            color: AppColors.textSecondary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
               ),
             ),
-          );
-        }
-
-        AnchorModel? anchor;
-        if (state is AnchorLoadSuccess) {
-          anchor = state.anchor;
-        } else if (state is AnchorSubmissionSuccess) {
-          anchor = state.anchor;
-        } else if (state is EveningReflectionSuccess) {
-          anchor = state.anchor;
-        }
-
-        // Tình huống 1: Chưa hoàn thành Morning Anchor
-        if (anchor == null || !anchor.morningCompleted) {
-          return _buildMorningAnchorCard(context, textTheme);
-        }
-
-        // Tình huống 2: Đã xong Morning nhưng chưa xong Evening
-        if (!anchor.eveningCompleted) {
-          return _buildEveningReflectionCard(context, textTheme, anchor);
-        }
-
-        // Tình huống 3: Đã hoàn thành cả hai
-        return _buildCompletedAnchorCard(context, textTheme, anchor);
-      },
+          ),
+        );
+      }).toList(),
     );
   }
+
 
   Widget _buildMorningAnchorCard(BuildContext context, TextTheme textTheme) {
     return _PebblePressCard(
@@ -598,7 +637,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: ZenTheme.sageGreen.withOpacity(0.15),
+                      color: ZenTheme.sageGreen.withValues(alpha: 0.15),
                     ),
                     child: const Icon(
                       Icons.wb_sunny_outlined,
@@ -624,7 +663,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                           "Định hình ý niệm & hành động",
                           style: textTheme.bodyMedium!.copyWith(
                             fontSize: 12,
-                            color: ZenTheme.sageGreen.withOpacity(0.8),
+                            color: ZenTheme.sageGreen.withValues(alpha: 0.8),
                           ),
                         ),
                       ],
@@ -638,7 +677,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      ZenTheme.sageGreen.withOpacity(0.3),
+                      ZenTheme.sageGreen.withValues(alpha: 0.3),
                       Colors.transparent,
                     ],
                   ),
@@ -660,10 +699,10 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   vertical: 12,
                 ),
                 decoration: BoxDecoration(
-                  color: ZenTheme.sageGreen.withOpacity(0.18),
+                  color: ZenTheme.sageGreen.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: ZenTheme.sageGreen.withOpacity(0.25),
+                    color: ZenTheme.sageGreen.withValues(alpha: 0.25),
                     width: 1.0,
                   ),
                 ),
@@ -719,7 +758,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: eveningColor.withOpacity(0.15),
+                      color: eveningColor.withValues(alpha: 0.15),
                     ),
                     child: const Icon(
                       Icons.nightlight_outlined,
@@ -745,7 +784,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                           "Lắng đọng & Ghi nhận bài học",
                           style: textTheme.bodyMedium!.copyWith(
                             fontSize: 12,
-                            color: eveningColor.withOpacity(0.8),
+                            color: eveningColor.withValues(alpha: 0.8),
                           ),
                         ),
                       ],
@@ -758,7 +797,10 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 height: 1,
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
-                    colors: [eveningColor.withOpacity(0.3), Colors.transparent],
+                    colors: [
+                      eveningColor.withValues(alpha: 0.3),
+                      Colors.transparent,
+                    ],
                   ),
                 ),
               ),
@@ -767,7 +809,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 Text(
                   "Sáng nay bạn đã đặt ý định:",
                   style: textTheme.bodyMedium!.copyWith(
-                    color: ZenTheme.softGray.withOpacity(0.7),
+                    color: ZenTheme.softGray.withValues(alpha: 0.7),
                     fontSize: 12,
                   ),
                 ),
@@ -779,16 +821,16 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                     vertical: 8,
                   ),
                   decoration: BoxDecoration(
-                    color: ZenTheme.creamWhite.withOpacity(0.04),
+                    color: ZenTheme.creamWhite.withValues(alpha: 0.04),
                     borderRadius: BorderRadius.circular(10),
                     border: Border.all(
-                      color: ZenTheme.creamWhite.withOpacity(0.06),
+                      color: ZenTheme.creamWhite.withValues(alpha: 0.06),
                     ),
                   ),
                   child: Text(
                     "\"${anchor.intention}\"",
                     style: textTheme.bodyMedium!.copyWith(
-                      color: ZenTheme.creamWhite.withOpacity(0.85),
+                      color: ZenTheme.creamWhite.withValues(alpha: 0.85),
                       fontStyle: FontStyle.italic,
                       fontSize: 14,
                     ),
@@ -811,10 +853,10 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   vertical: 12,
                 ),
                 decoration: BoxDecoration(
-                  color: eveningColor.withOpacity(0.18),
+                  color: eveningColor.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: eveningColor.withOpacity(0.25),
+                    color: eveningColor.withValues(alpha: 0.25),
                     width: 1.0,
                   ),
                 ),
@@ -870,7 +912,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: completedColor.withOpacity(0.15),
+                      color: completedColor.withValues(alpha: 0.15),
                     ),
                     child: const Icon(
                       Icons.check_circle_outline_rounded,
@@ -896,7 +938,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                           "Tâm trí đã sẵn sàng nghỉ ngơi",
                           style: textTheme.bodyMedium!.copyWith(
                             fontSize: 12,
-                            color: completedColor.withOpacity(0.8),
+                            color: completedColor.withValues(alpha: 0.8),
                           ),
                         ),
                       ],
@@ -910,7 +952,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 decoration: BoxDecoration(
                   gradient: LinearGradient(
                     colors: [
-                      completedColor.withOpacity(0.3),
+                      completedColor.withValues(alpha: 0.3),
                       Colors.transparent,
                     ],
                   ),
@@ -932,10 +974,10 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   vertical: 12,
                 ),
                 decoration: BoxDecoration(
-                  color: ZenTheme.sageGreen.withOpacity(0.18),
+                  color: ZenTheme.sageGreen.withValues(alpha: 0.18),
                   borderRadius: BorderRadius.circular(20),
                   border: Border.all(
-                    color: ZenTheme.sageGreen.withOpacity(0.25),
+                    color: ZenTheme.sageGreen.withValues(alpha: 0.25),
                     width: 1.0,
                   ),
                 ),
@@ -965,354 +1007,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     );
   }
 
-  // Daily Wisdom Card — Thẻ tri thức Endogenism theo thời điểm trong ngày
-  Widget _buildDailyWisdomCard(TextTheme textTheme) {
-    // Chọn flashcard phù hợp với giờ trong ngày
-    final hour = DateTime.now().hour;
-    final targetCircuit = hour >= 5 && hour < 11
-        ? 3 // sáng: Hành Động Nhỏ
-        : hour >= 11 && hour < 16
-            ? 2 // trưa: Xây Nền Tảng
-            : hour >= 16 && hour < 20
-                ? 4 // chiều: Nhận Ra Giá Trị
-                : 1; // tối: Gọi Tên
-
-    final cards = ZenConstants.wisdomFlashcards
-        .where((c) => c['circuit'] == targetCircuit)
-        .toList();
-    if (cards.isEmpty) return const SizedBox.shrink();
-
-    final card = cards[DateTime.now().day % cards.length];
-    final circuit = ZenConstants.endogenCircuits
-        .firstWhere((c) => c['id'] == targetCircuit);
-    final circuitColor = Color(circuit['color'] as int);
-
-    return GlassContainer(
-      opacity: 0.05,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Text('✨', style: TextStyle(fontSize: 14)),
-              const SizedBox(width: 6),
-              Text(
-                "Thẻ tri thức hôm nay",
-                style: textTheme.bodyMedium!.copyWith(
-                  fontSize: 11,
-                  color: ZenTheme.softGray.withOpacity(0.7),
-                  letterSpacing: 1.2,
-                ),
-              ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: circuitColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(color: circuitColor.withOpacity(0.3)),
-                ),
-                child: Text(
-                  '${circuit['icon']} Mạch ${circuit['id']}',
-                  style: textTheme.bodyMedium!.copyWith(
-                    color: circuitColor,
-                    fontSize: 9,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            '"${card['quote']}"',
-            style: textTheme.bodyLarge!.copyWith(
-              fontStyle: FontStyle.italic,
-              fontSize: 14,
-              color: ZenTheme.creamWhite.withOpacity(0.9),
-              height: 1.55,
-            ),
-          ),
-          const SizedBox(height: 10),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Icon(Icons.help_outline_rounded, color: ZenTheme.softGold, size: 13),
-              const SizedBox(width: 5),
-              Expanded(
-                child: Text(
-                  card['question'] as String,
-                  style: textTheme.bodyMedium!.copyWith(
-                    fontSize: 12,
-                    color: ZenTheme.creamWhite.withOpacity(0.65),
-                    height: 1.4,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Kết Nối & Nhìn Lại: Bếp lửa chung (trái) + Vườn Tâm Trí (phải)
-  Widget _buildConnectionRow(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: _buildSecondaryMenuCard(
-            context: context,
-            title: "Bếp lửa\nchung",
-            icon: Icons.people_outline_outlined,
-            color: ZenTheme.softGold,
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const HearthView()),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _buildSecondaryMenuCard(
-            context: context,
-            title: "Vườn\nTâm Trí",
-            icon: Icons.filter_vintage_outlined,
-            color: ZenTheme.sageGreen,
-            onTap: () => Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => BlocProvider<MindGardenBloc>(
-                  create: (context) => MindGardenBloc(
-                    databaseRepository:
-                        RepositoryProvider.of<BaseDatabaseRepository>(context),
-                  ),
-                  child: const MindGardenScreen(),
-                ),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSecondaryMenuCard({
-    required BuildContext context,
-    required String title,
-    required IconData icon,
-    required Color color,
-    required VoidCallback onTap,
-  }) {
-    return _PebblePressCard(
-      onTap: onTap,
-      child: GlassContainer(
-        opacity: 0.07,
-        radius: 26,
-        padding: const EdgeInsets.all(0),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 14.0, vertical: 16.0),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(9),
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: color.withOpacity(0.12),
-                ),
-                child: Icon(icon, color: color, size: 18),
-              ),
-              const SizedBox(height: 10),
-              Text(
-                title,
-                style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  height: 1.3,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSelfCareSuite(BuildContext context, _CircadianPeriod period) {
-    final textTheme = Theme.of(context).textTheme;
-    final isNight = period == _CircadianPeriod.night;
-
-    // Calculate a responsive card width so exactly 2.25 cards are visible,
-    // ensuring the third card always peeks by 25% to indicate scrollability.
-    final screenWidth = MediaQuery.of(context).size.width;
-    final cardWidth = (screenWidth - 44 - (12 * 2)) / 2.25;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Text(
-          "KHÔNG GIAN LẮNG DỊU",
-          style: textTheme.displaySmall!.copyWith(
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
-            color: ZenTheme.inkBlue,
-            letterSpacing: 2.0,
-          ),
-        ),
-        const SizedBox(height: 10),
-        SingleChildScrollView(
-          scrollDirection: Axis.horizontal,
-          physics: const BouncingScrollPhysics(),
-          child: Row(
-            children: [
-              _buildCompactSelfCareCard(
-                context: context,
-                title: "Khoảng lặng",
-                subtitle: "Thở & tĩnh lặng",
-                icon: Icons.spa_outlined,
-                color: ZenTheme.inkBlue,
-                width: cardWidth,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const SilenceView()),
-                ),
-              ),
-              const SizedBox(width: 12),
-              _buildCompactSelfCareCard(
-                context: context,
-                title: "Khoảng buông",
-                subtitle: "Xả bỏ nặng nề",
-                icon: Icons.blur_on_outlined,
-                color: ZenTheme.mistRed,
-                width: cardWidth,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const ReleaseView()),
-                ),
-              ),
-              const SizedBox(width: 12),
-              _buildCompactSelfCareCard(
-                context: context,
-                title: "Gương tự vấn",
-                subtitle: "Đối thoại sâu",
-                icon: Icons.visibility_outlined,
-                color: ZenTheme.softGold,
-                width: cardWidth,
-                isDimmed: isNight,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (_) => BlocProvider<ReflectionBloc>(
-                      create: (context) => ReflectionBloc(
-                        databaseRepository: RepositoryProvider.of<BaseDatabaseRepository>(
-                          context,
-                        ),
-                      ),
-                      child: const ReflectionView(),
-                    ),
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCompactSelfCareCard({
-    required BuildContext context,
-    required String title,
-    required String subtitle,
-    required IconData icon,
-    required Color color,
-    required VoidCallback onTap,
-    required double width,
-    bool isDimmed = false,
-  }) {
-    final textTheme = Theme.of(context).textTheme;
-
-    Widget cardContent = GlassContainer(
-      opacity: isDimmed ? 0.04 : 0.08,
-      radius: 24,
-      padding: const EdgeInsets.all(0),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(10),
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: color.withOpacity(0.12),
-                  ),
-                  child: Icon(
-                    icon,
-                    color: color,
-                    size: 20,
-                  ),
-                ),
-                Icon(
-                  Icons.chevron_right_rounded,
-                  color: color.withOpacity(isDimmed ? 0.3 : 0.8),
-                  size: 18,
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: textTheme.titleLarge!.copyWith(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: ZenTheme.creamWhite,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  isDimmed ? "Ưu tiên nghỉ ngơi" : subtitle,
-                  style: textTheme.bodyMedium!.copyWith(
-                    fontSize: 11,
-                    color: ZenTheme.creamWhite.withOpacity(isDimmed ? 0.4 : 0.65),
-                    height: 1.3,
-                  ),
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-
-    if (isDimmed) {
-      cardContent = Opacity(
-        opacity: 0.45,
-        child: cardContent,
-      );
-    }
-
-    return SizedBox(
-      width: width,
-      height: 135,
-      child: _PebblePressCard(
-        onTap: onTap,
-        child: cardContent,
-      ),
-    );
-  }
-
   Widget _buildSleepSeedCard(BuildContext context, {required bool isNight}) {
     final textTheme = Theme.of(context).textTheme;
 
@@ -1327,7 +1021,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
           radius: 24,
           padding: const EdgeInsets.all(0),
           border: Border.all(
-            color: ZenTheme.sageGreen.withOpacity(0.35),
+            color: ZenTheme.sageGreen.withValues(alpha: 0.35),
             width: 1.5,
           ),
           child: Padding(
@@ -1341,10 +1035,10 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        color: ZenTheme.sageGreen.withOpacity(0.18),
+                        color: ZenTheme.sageGreen.withValues(alpha: 0.18),
                         boxShadow: [
                           BoxShadow(
-                            color: ZenTheme.sageGreen.withOpacity(0.1),
+                            color: ZenTheme.sageGreen.withValues(alpha: 0.1),
                             blurRadius: 15,
                             spreadRadius: 2,
                           ),
@@ -1378,7 +1072,9 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                                   vertical: 2,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: ZenTheme.sageGreen.withOpacity(0.2),
+                                  color: ZenTheme.sageGreen.withValues(
+                                    alpha: 0.2,
+                                  ),
                                   borderRadius: BorderRadius.circular(10),
                                 ),
                                 child: Text(
@@ -1397,7 +1093,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                             "Buông bỏ & Chìm vào giấc ngủ tự nhiên",
                             style: textTheme.bodyMedium!.copyWith(
                               fontSize: 12,
-                              color: ZenTheme.sageGreen.withOpacity(0.8),
+                              color: ZenTheme.sageGreen.withValues(alpha: 0.8),
                             ),
                           ),
                         ],
@@ -1411,7 +1107,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        ZenTheme.sageGreen.withOpacity(0.3),
+                        ZenTheme.sageGreen.withValues(alpha: 0.3),
                         Colors.transparent,
                       ],
                     ),
@@ -1433,10 +1129,10 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                     vertical: 12,
                   ),
                   decoration: BoxDecoration(
-                    color: ZenTheme.sageGreen.withOpacity(0.22),
+                    color: ZenTheme.sageGreen.withValues(alpha: 0.22),
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: ZenTheme.sageGreen.withOpacity(0.35),
+                      color: ZenTheme.sageGreen.withValues(alpha: 0.35),
                       width: 1.0,
                     ),
                   ),
@@ -1477,14 +1173,17 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
             radius: 24,
             padding: const EdgeInsets.all(0),
             child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 20.0, vertical: 16.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 20.0,
+                vertical: 16.0,
+              ),
               child: Row(
                 children: [
                   Container(
                     padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
-                      color: ZenTheme.sageGreen.withOpacity(0.08),
+                      color: ZenTheme.sageGreen.withValues(alpha: 0.08),
                     ),
                     child: const Icon(
                       Icons.spa_outlined,
@@ -1503,7 +1202,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                           style: textTheme.titleLarge!.copyWith(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
-                            color: ZenTheme.creamWhite.withOpacity(0.9),
+                            color: ZenTheme.creamWhite.withValues(alpha: 0.9),
                           ),
                         ),
                         const SizedBox(height: 4),
@@ -1511,7 +1210,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                           "Chờ bóng tối màn đêm (Mở sau 21h00)",
                           style: textTheme.bodyMedium!.copyWith(
                             fontSize: 13,
-                            color: ZenTheme.softGray.withOpacity(0.8),
+                            color: ZenTheme.softGray.withValues(alpha: 0.8),
                           ),
                         ),
                       ],
@@ -1549,7 +1248,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 child: BackdropFilter(
                   filter: ImageFilter.blur(sigmaX: 15, sigmaY: 15),
                   child: Container(
-                    color: const Color(0xFF08080C).withOpacity(0.85),
+                    color: const Color(0xFF08080C).withValues(alpha: 0.85),
                   ),
                 ),
               ),
@@ -1558,12 +1257,14 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   margin: const EdgeInsets.symmetric(horizontal: 28),
                   padding: const EdgeInsets.all(32),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.03),
+                    color: Colors.white.withValues(alpha: 0.03),
                     borderRadius: BorderRadius.circular(36),
-                    border: Border.all(color: Colors.white.withOpacity(0.08)),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.08),
+                    ),
                     boxShadow: [
                       BoxShadow(
-                        color: ZenTheme.sageGreen.withOpacity(0.05),
+                        color: ZenTheme.sageGreen.withValues(alpha: 0.05),
                         blurRadius: 40,
                         spreadRadius: 5,
                       ),
@@ -1579,10 +1280,12 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                           height: 100,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            color: ZenTheme.sageGreen.withOpacity(0.12),
+                            color: ZenTheme.sageGreen.withValues(alpha: 0.12),
                             boxShadow: [
                               BoxShadow(
-                                color: ZenTheme.sageGreen.withOpacity(0.2),
+                                color: ZenTheme.sageGreen.withValues(
+                                  alpha: 0.2,
+                                ),
                                 blurRadius: 30,
                                 spreadRadius: 2,
                               ),
@@ -1608,7 +1311,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                         "Chào buổi sáng. Hạt mầm ngủ ngon bạn gieo đêm qua đã nảy mầm trong tĩnh lặng của màn đêm. Hãy đưa chiếc mầm này vào Vườn Tâm Trí của bạn.",
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          color: ZenTheme.softGray.withOpacity(0.8),
+                          color: ZenTheme.softGray.withValues(alpha: 0.8),
                           fontSize: 14,
                           height: 1.5,
                         ),
@@ -1847,7 +1550,9 @@ class _DustPainter extends CustomPainter {
 
       final opacity =
           seed.baseOpacity * (0.6 + 0.4 * sin(t * 4 * pi + seed.startX * 10));
-      paint.color = ZenTheme.softGold.withOpacity(opacity.clamp(0.0, 1.0));
+      paint.color = ZenTheme.softGold.withValues(
+        alpha: opacity.clamp(0.0, 1.0),
+      );
 
       canvas.drawCircle(Offset(dx, dy), seed.size, paint);
     }

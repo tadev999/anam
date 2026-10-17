@@ -7,38 +7,29 @@ import 'core/repositories/auth_repository.dart';
 import 'core/repositories/database_repository.dart';
 import 'features/auth/bloc/auth_bloc.dart';
 import 'features/auth/presentation/screens/auth_view.dart';
-import 'features/home/presentation/screens/home_view.dart';
+import 'features/navigation/presentation/screens/main_navigation_page.dart';
 import 'features/daily_anchor/bloc/anchor_bloc.dart';
 import 'features/release_space/bloc/release_bloc.dart';
 import 'features/hearth/bloc/hearth_bloc.dart';
 import 'features/silence/bloc/silence_bloc.dart';
 import 'features/sleep_seed/bloc/sleep_seed_bloc.dart';
+import 'features/mind_garden/bloc/mind_garden_bloc.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // ĐẶT THÀNH true NẾU BẠN MUỐN BẮT BUỘC CHẠY MOCK OFFLINE ĐỂ TEST GIAO DIỆN
-  bool forceMockMode = false;
-
   // KHỞI TẠO HỆ THỐNG AN TOÀN (SAFE BOOTSTRAP)
   bool useFirebase = false;
 
-  if (!forceMockMode) {
-    try {
-      await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform,
-      );
-      useFirebase = true;
-      debugPrint("Anam khởi tạo thành công ở chế độ Real Firebase!");
-    } catch (e) {
-      debugPrint(
-        "Anam đang chạy ở chế độ Mock Offline (Chưa cấu hình Firebase): $e",
-      );
-    }
-  } else {
-    // ignore: dead_code
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    useFirebase = true;
+    debugPrint("Anam khởi tạo thành công ở chế độ Real Firebase!");
+  } catch (e) {
     debugPrint(
-      "Anam đang chạy ở chế độ BẮT BUỘC MOCK OFFLINE theo yêu cầu cấu hình.",
+      "Anam đang chạy ở chế độ Mock Offline (Chưa cấu hình Firebase): $e",
     );
   }
 
@@ -98,6 +89,13 @@ void main() async {
               ),
             ),
           ),
+          BlocProvider<MindGardenBloc>(
+            create: (context) => MindGardenBloc(
+              databaseRepository: RepositoryProvider.of<BaseDatabaseRepository>(
+                context,
+              ),
+            ),
+          ),
         ],
         child: const AnamApp(),
       ),
@@ -119,7 +117,7 @@ class AnamApp extends StatelessWidget {
       home: BlocBuilder<AuthBloc, AuthState>(
         builder: (context, state) {
           if (state is Authenticated) {
-            return const HomeView();
+            return const MainNavigationPage();
           }
           if (state is AuthLoading) {
             return const Scaffold(

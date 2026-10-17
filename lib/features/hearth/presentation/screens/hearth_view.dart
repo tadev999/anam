@@ -51,11 +51,11 @@ class _HearthViewState extends State<HearthView> {
     final uid = (authBloc.state is Authenticated)
         ? (authBloc.state as Authenticated).user.uid
         : '';
-        
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
-      barrierColor: Colors.black.withOpacity(0.5),
+      barrierColor: Colors.black.withValues(alpha: 0.5),
       isScrollControlled: true,
       builder: (sheetCtx) {
         return _EmpathyMirrorBottomSheet(
@@ -81,13 +81,22 @@ class _HearthViewState extends State<HearthView> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios, color: ZenTheme.creamWhite, size: 20),
-          onPressed: () => Navigator.pop(context),
-        ),
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: const Icon(
+                  Icons.arrow_back_ios,
+                  color: ZenTheme.creamWhite,
+                  size: 20,
+                ),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
         title: Text(
           "Bếp lửa chung",
-          style: textTheme.titleLarge!.copyWith(fontFamily: 'Lora', fontWeight: FontWeight.normal),
+          style: textTheme.titleLarge!.copyWith(
+            fontFamily: 'Lora',
+            fontWeight: FontWeight.normal,
+          ),
         ),
         centerTitle: true,
       ),
@@ -105,13 +114,16 @@ class _HearthViewState extends State<HearthView> {
               ),
             ),
           ),
-          
+
           SafeArea(
             child: BlocConsumer<HearthBloc, HearthState>(
               listener: (context, state) {
                 if (state is HearthFailure) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(state.message), backgroundColor: ZenTheme.mistRed),
+                    SnackBar(
+                      content: Text(state.message),
+                      backgroundColor: ZenTheme.mistRed,
+                    ),
                   );
                 }
               },
@@ -120,24 +132,57 @@ class _HearthViewState extends State<HearthView> {
 
                 List<ReleaseModel> displayedReleases = [];
                 if (state is HearthLoaded) {
-                  final dbRepo = RepositoryProvider.of<BaseDatabaseRepository>(context);
+                  final dbRepo = RepositoryProvider.of<BaseDatabaseRepository>(
+                    context,
+                  );
                   final mindState = dbRepo.currentMindState;
 
                   List<String> keywords = [];
                   if (mindState == 'lonely_state') {
-                    keywords = ['cô đơn', 'trống rỗng', 'lắng nghe', 'một mình', 'buồn', 'chia sẻ'];
+                    keywords = [
+                      'cô đơn',
+                      'trống rỗng',
+                      'lắng nghe',
+                      'một mình',
+                      'buồn',
+                      'chia sẻ',
+                    ];
                   } else if (mindState == 'burnout_state') {
-                    keywords = ['mệt', 'kiệt sức', 'áp lực', 'nghỉ ngơi', 'quá tải', 'stress', 'ngủ'];
+                    keywords = [
+                      'mệt',
+                      'kiệt sức',
+                      'áp lực',
+                      'nghỉ ngơi',
+                      'quá tải',
+                      'stress',
+                      'ngủ',
+                    ];
                   } else if (mindState == 'overthinking_state') {
-                    keywords = ['suy nghĩ', 'lo âu', 'tha thứ', 'sợ', 'dũng cảm', 'sự thật', 'đúng sai'];
+                    keywords = [
+                      'suy nghĩ',
+                      'lo âu',
+                      'tha thứ',
+                      'sợ',
+                      'dũng cảm',
+                      'sự thật',
+                      'đúng sai',
+                    ];
                   }
 
                   displayedReleases = List<ReleaseModel>.from(state.releases);
                   if (keywords.isNotEmpty) {
                     displayedReleases.sort((a, b) {
-                      final scoreA = _calculateRelevanceScore(a.content, keywords);
-                      final scoreB = _calculateRelevanceScore(b.content, keywords);
-                      return scoreB.compareTo(scoreA); // Descending order of relevance
+                      final scoreA = _calculateRelevanceScore(
+                        a.content,
+                        keywords,
+                      );
+                      final scoreB = _calculateRelevanceScore(
+                        b.content,
+                        keywords,
+                      );
+                      return scoreB.compareTo(
+                        scoreA,
+                      ); // Descending order of relevance
                     });
                   }
                 }
@@ -147,7 +192,7 @@ class _HearthViewState extends State<HearthView> {
                   children: [
                     _buildEmpathySummary(textTheme, user),
                     const SizedBox(height: 16),
-                    
+
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Text(
@@ -161,11 +206,16 @@ class _HearthViewState extends State<HearthView> {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 20.0),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 10,
+                        ),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(12),
-                          color: ZenTheme.sageGreen.withOpacity(0.05),
-                          border: Border.all(color: ZenTheme.sageGreen.withOpacity(0.15)),
+                          color: ZenTheme.sageGreen.withValues(alpha: 0.05),
+                          border: Border.all(
+                            color: ZenTheme.sageGreen.withValues(alpha: 0.15),
+                          ),
                         ),
                         child: Row(
                           children: [
@@ -175,7 +225,9 @@ class _HearthViewState extends State<HearthView> {
                               child: Text(
                                 'Đang có $_silentPresenceCount lữ khách khác cùng ngồi bên bếp lửa lúc này',
                                 style: textTheme.bodyMedium!.copyWith(
-                                  color: ZenTheme.sageGreen.withOpacity(0.8),
+                                  color: ZenTheme.sageGreen.withValues(
+                                    alpha: 0.8,
+                                  ),
                                   fontSize: 12,
                                   fontStyle: FontStyle.italic,
                                 ),
@@ -189,92 +241,133 @@ class _HearthViewState extends State<HearthView> {
 
                     Expanded(
                       child: isLoading
-                          ? const Center(child: CircularProgressIndicator(color: ZenTheme.sageGreen))
+                          ? const Center(
+                              child: CircularProgressIndicator(
+                                color: ZenTheme.sageGreen,
+                              ),
+                            )
                           : state is HearthLoaded && displayedReleases.isEmpty
-                              ? _buildEmptyState(textTheme)
-                              : state is HearthLoaded
-                                  ? ListView.builder(
-                                      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-                                      itemCount: displayedReleases.length,
-                                      itemBuilder: (context, index) {
-                                        final release = displayedReleases[index];
-                                        final hasSupported = release.supportedUserUids.contains(user?.uid);
-                                        
-                                        return GlassContainer(
-                                          margin: const EdgeInsets.only(bottom: 16),
-                                          opacity: 0.04,
-                                          child: Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(
-                                                release.content,
-                                                style: textTheme.bodyLarge!.copyWith(
-                                                  fontSize: 14,
-                                                  height: 1.5,
+                          ? _buildEmptyState(textTheme)
+                          : state is HearthLoaded
+                          ? ListView.builder(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 20,
+                                vertical: 10,
+                              ),
+                              itemCount: displayedReleases.length,
+                              itemBuilder: (context, index) {
+                                final release = displayedReleases[index];
+                                final hasSupported = release.supportedUserUids
+                                    .contains(user?.uid);
+
+                                return GlassContainer(
+                                  margin: const EdgeInsets.only(bottom: 16),
+                                  opacity: 0.04,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        release.content,
+                                        style: textTheme.bodyLarge!.copyWith(
+                                          fontSize: 14,
+                                          height: 1.5,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      // Topic Tags tự động
+                                      _buildTopicTags(
+                                        release.content,
+                                        textTheme,
+                                      ),
+                                      const SizedBox(height: 12),
+
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            _formatTimeAgo(release.timestamp),
+                                            style: textTheme.bodyMedium!
+                                                .copyWith(
+                                                  fontSize: 11,
+                                                  color: ZenTheme.softGray
+                                                      .withValues(alpha: 0.5),
+                                                ),
+                                          ),
+
+                                          GestureDetector(
+                                            onTap: hasSupported
+                                                ? null
+                                                : () => _sendHug(release.id),
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                    horizontal: 14,
+                                                    vertical: 8,
+                                                  ),
+                                              decoration: BoxDecoration(
+                                                color: hasSupported
+                                                    ? ZenTheme.sageGreen
+                                                          .withValues(
+                                                            alpha: 0.12,
+                                                          )
+                                                    : ZenTheme.softGold
+                                                          .withValues(
+                                                            alpha: 0.08,
+                                                          ),
+                                                borderRadius:
+                                                    BorderRadius.circular(20),
+                                                border: Border.all(
+                                                  color: hasSupported
+                                                      ? ZenTheme.sageGreen
+                                                            .withValues(
+                                                              alpha: 0.2,
+                                                            )
+                                                      : ZenTheme.softGold
+                                                            .withValues(
+                                                              alpha: 0.2,
+                                                            ),
+                                                  width: 1.0,
                                                 ),
                                               ),
-                                              const SizedBox(height: 10),
-                                              // Topic Tags tự động
-                                              _buildTopicTags(release.content, textTheme),
-                                              const SizedBox(height: 12),
-                                              
-                                              Row(
-                                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                              child: Row(
                                                 children: [
-                                                  Text(
-                                                    _formatTimeAgo(release.timestamp),
-                                                    style: textTheme.bodyMedium!.copyWith(
-                                                      fontSize: 11,
-                                                      color: ZenTheme.softGray.withOpacity(0.5),
-                                                    ),
+                                                  Icon(
+                                                    hasSupported
+                                                        ? Icons.favorite
+                                                        : Icons.favorite_border,
+                                                    color: hasSupported
+                                                        ? ZenTheme.sageGreen
+                                                        : ZenTheme.softGold,
+                                                    size: 14,
                                                   ),
-                                                  
-                                                  GestureDetector(
-                                                    onTap: hasSupported ? null : () => _sendHug(release.id),
-                                                    child: Container(
-                                                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                                                      decoration: BoxDecoration(
-                                                        color: hasSupported
-                                                            ? ZenTheme.sageGreen.withOpacity(0.12)
-                                                            : ZenTheme.softGold.withOpacity(0.08),
-                                                        borderRadius: BorderRadius.circular(20),
-                                                        border: Border.all(
-                                                          color: hasSupported
-                                                              ? ZenTheme.sageGreen.withOpacity(0.2)
-                                                              : ZenTheme.softGold.withOpacity(0.2),
-                                                          width: 1.0,
-                                                        ),
-                                                      ),
-                                                      child: Row(
-                                                        children: [
-                                                          Icon(
-                                                            hasSupported ? Icons.favorite : Icons.favorite_border,
-                                                            color: hasSupported ? ZenTheme.sageGreen : ZenTheme.softGold,
-                                                            size: 14,
-                                                          ),
-                                                          const SizedBox(width: 6),
-                                                          Text(
-                                                            hasSupported
-                                                                ? "Đã sưởi ấm (${release.hugCount})"
-                                                                : "Sưởi ấm (${release.hugCount})",
-                                                            style: TextStyle(
-                                                              color: hasSupported ? ZenTheme.sageGreen : ZenTheme.softGold,
-                                                              fontSize: 12,
-                                                              fontWeight: FontWeight.bold,
-                                                            ),
-                                                          ),
-                                                        ],
-                                                      ),
+                                                  const SizedBox(width: 6),
+                                                  Text(
+                                                    hasSupported
+                                                        ? "Đã sưởi ấm (${release.hugCount})"
+                                                        : "Sưởi ấm (${release.hugCount})",
+                                                    style: TextStyle(
+                                                      color: hasSupported
+                                                          ? ZenTheme.sageGreen
+                                                          : ZenTheme.softGold,
+                                                      fontSize: 12,
+                                                      fontWeight:
+                                                          FontWeight.bold,
                                                     ),
                                                   ),
                                                 ],
                                               ),
-                                            ],
+                                            ),
                                           ),
-                                        );
-                                      },
-                                    )
-                                  : const SizedBox.shrink(),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              },
+                            )
+                          : const SizedBox.shrink(),
                     ),
                   ],
                 );
@@ -291,27 +384,68 @@ class _HearthViewState extends State<HearthView> {
   // ---------------------------------------------------------------------------
   static const Map<String, Map<String, dynamic>> _topicConfig = {
     'Áp lực thành tích': {
-      'keywords': ['thành công', 'thất bại', 'điểm', 'bằng cấp', 'thi', 'áp lực', 'cố gắng', 'cạnh tranh'],
+      'keywords': [
+        'thành công',
+        'thất bại',
+        'điểm',
+        'bằng cấp',
+        'thi',
+        'áp lực',
+        'cố gắng',
+        'cạnh tranh',
+      ],
       'icon': '🎓',
       'color': 0xffc98b8b,
     },
     'Lo âu & Kiệt sức': {
-      'keywords': ['mệt', 'kiệt sức', 'stress', 'lo', 'sợ', 'lo lắng', 'burn out', 'burnout'],
+      'keywords': [
+        'mệt',
+        'kiệt sức',
+        'stress',
+        'lo',
+        'sợ',
+        'lo lắng',
+        'burn out',
+        'burnout',
+      ],
       'icon': '🌊',
       'color': 0xff6a8caf,
     },
     'Cô đơn & Kết nối': {
-      'keywords': ['cô đơn', 'lạc lõng', 'một mình', 'không ai', 'bạn bè', 'gia đình', 'yêu'],
+      'keywords': [
+        'cô đơn',
+        'lạc lõng',
+        'một mình',
+        'không ai',
+        'bạn bè',
+        'gia đình',
+        'yêu',
+      ],
       'icon': '🌙',
       'color': 0xff8fa89b,
     },
     'Giá trị bản thân': {
-      'keywords': ['giá trị', 'xứng đáng', 'tôi là', 'bản thân', 'không đủ', 'kém', 'tệ'],
+      'keywords': [
+        'giá trị',
+        'xứng đáng',
+        'tôi là',
+        'bản thân',
+        'không đủ',
+        'kém',
+        'tệ',
+      ],
       'icon': '✨',
       'color': 0xffd4af37,
     },
     'Buông bỏ': {
-      'keywords': ['buông', 'tha thứ', 'quá khứ', 'không còn', 'từ bỏ', 'chấp nhận'],
+      'keywords': [
+        'buông',
+        'tha thứ',
+        'quá khứ',
+        'không còn',
+        'từ bỏ',
+        'chấp nhận',
+      ],
       'icon': '🍃',
       'color': 0xffb5c7be,
     },
@@ -337,14 +471,17 @@ class _HearthViewState extends State<HearthView> {
         return Container(
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: color.withOpacity(0.25)),
+            border: Border.all(color: color.withValues(alpha: 0.25)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(topic['icon'] as String, style: const TextStyle(fontSize: 10)),
+              Text(
+                topic['icon'] as String,
+                style: const TextStyle(fontSize: 10),
+              ),
               const SizedBox(width: 4),
               Text(
                 topic['name'] as String,
@@ -368,15 +505,15 @@ class _HearthViewState extends State<HearthView> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            ZenTheme.sageGreen.withOpacity(0.08),
-            ZenTheme.softGold.withOpacity(0.04),
+            ZenTheme.sageGreen.withValues(alpha: 0.08),
+            ZenTheme.softGold.withValues(alpha: 0.04),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: ZenTheme.sageGreen.withOpacity(0.15),
+          color: ZenTheme.sageGreen.withValues(alpha: 0.15),
           width: 1.0,
         ),
       ),
@@ -386,9 +523,13 @@ class _HearthViewState extends State<HearthView> {
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: ZenTheme.sageGreen.withOpacity(0.1),
+              color: ZenTheme.sageGreen.withValues(alpha: 0.1),
             ),
-            child: const Icon(Icons.people_outline, color: ZenTheme.sageGreen, size: 28),
+            child: const Icon(
+              Icons.people_outline,
+              color: ZenTheme.sageGreen,
+              size: 28,
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -397,7 +538,10 @@ class _HearthViewState extends State<HearthView> {
               children: [
                 Text(
                   user?.spiritualRole ?? "Seeker (Người tìm kiếm)",
-                  style: textTheme.titleLarge!.copyWith(fontSize: 16, color: ZenTheme.creamWhite),
+                  style: textTheme.titleLarge!.copyWith(
+                    fontSize: 16,
+                    color: ZenTheme.creamWhite,
+                  ),
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -424,7 +568,7 @@ class _HearthViewState extends State<HearthView> {
           child: LinearProgressIndicator(
             value: percent,
             minHeight: 6,
-            backgroundColor: Colors.white.withOpacity(0.05),
+            backgroundColor: Colors.white.withValues(alpha: 0.05),
             valueColor: const AlwaysStoppedAnimation<Color>(ZenTheme.softGold),
           ),
         ),
@@ -432,10 +576,16 @@ class _HearthViewState extends State<HearthView> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text("$points EP", style: const TextStyle(color: ZenTheme.softGold, fontSize: 10)),
-            const Text("50 EP", style: TextStyle(color: ZenTheme.softGray, fontSize: 10)),
+            Text(
+              "$points EP",
+              style: const TextStyle(color: ZenTheme.softGold, fontSize: 10),
+            ),
+            const Text(
+              "50 EP",
+              style: TextStyle(color: ZenTheme.softGray, fontSize: 10),
+            ),
           ],
-        )
+        ),
       ],
     );
   }
@@ -445,11 +595,21 @@ class _HearthViewState extends State<HearthView> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.wb_cloudy_outlined, color: ZenTheme.softGray, size: 48),
+          const Icon(
+            Icons.wb_cloudy_outlined,
+            color: ZenTheme.softGray,
+            size: 48,
+          ),
           const SizedBox(height: 16),
-          Text("Bếp lửa chung hiện rất bình yên", style: textTheme.titleLarge!.copyWith(fontSize: 16)),
+          Text(
+            "Bếp lửa chung hiện rất bình yên",
+            style: textTheme.titleLarge!.copyWith(fontSize: 16),
+          ),
           const SizedBox(height: 8),
-          const Text("Chưa có chia sẻ nào cần được sưởi ấm.", style: TextStyle(color: ZenTheme.softGray)),
+          const Text(
+            "Chưa có chia sẻ nào cần được sưởi ấm.",
+            style: TextStyle(color: ZenTheme.softGray),
+          ),
         ],
       ),
     );
@@ -475,7 +635,6 @@ class _EmpathyMirrorBottomSheet extends StatefulWidget {
   final BaseDatabaseRepository dbRepo;
 
   const _EmpathyMirrorBottomSheet({
-    super.key,
     required this.releaseId,
     required this.senderUid,
     required this.hearthBloc,
@@ -484,10 +643,12 @@ class _EmpathyMirrorBottomSheet extends StatefulWidget {
   });
 
   @override
-  State<_EmpathyMirrorBottomSheet> createState() => _EmpathyMirrorBottomSheetState();
+  State<_EmpathyMirrorBottomSheet> createState() =>
+      _EmpathyMirrorBottomSheetState();
 }
 
-class _EmpathyMirrorBottomSheetState extends State<_EmpathyMirrorBottomSheet> with SingleTickerProviderStateMixin {
+class _EmpathyMirrorBottomSheetState extends State<_EmpathyMirrorBottomSheet>
+    with SingleTickerProviderStateMixin {
   String? _selectedChipId;
   bool _isSuccess = false;
   late AnimationController _heartController;
@@ -500,10 +661,13 @@ class _EmpathyMirrorBottomSheetState extends State<_EmpathyMirrorBottomSheet> wi
       vsync: this,
       duration: const Duration(milliseconds: 1000),
     );
-    _heartScale = TweenSequence<double>([
-      TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.25), weight: 50),
-      TweenSequenceItem(tween: Tween(begin: 1.25, end: 1.0), weight: 50),
-    ]).animate(CurvedAnimation(parent: _heartController, curve: Curves.easeInOut));
+    _heartScale =
+        TweenSequence<double>([
+          TweenSequenceItem(tween: Tween(begin: 1.0, end: 1.25), weight: 50),
+          TweenSequenceItem(tween: Tween(begin: 1.25, end: 1.0), weight: 50),
+        ]).animate(
+          CurvedAnimation(parent: _heartController, curve: Curves.easeInOut),
+        );
   }
 
   @override
@@ -568,7 +732,7 @@ class _EmpathyMirrorBottomSheetState extends State<_EmpathyMirrorBottomSheet> wi
             width: 40,
             height: 4,
             decoration: BoxDecoration(
-              color: ZenTheme.creamWhite.withOpacity(0.2),
+              color: ZenTheme.creamWhite.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -591,7 +755,7 @@ class _EmpathyMirrorBottomSheetState extends State<_EmpathyMirrorBottomSheet> wi
             "Chia sẻ này chạm vào nhu cầu nào của bạn lúc này?",
             textAlign: TextAlign.center,
             style: textTheme.bodyLarge!.copyWith(
-              color: ZenTheme.creamWhite.withOpacity(0.8),
+              color: ZenTheme.creamWhite.withValues(alpha: 0.8),
               fontSize: 13,
             ),
           ),
@@ -650,13 +814,13 @@ class _EmpathyMirrorBottomSheetState extends State<_EmpathyMirrorBottomSheet> wi
         padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
         decoration: BoxDecoration(
           color: isSelected
-              ? accentColor.withOpacity(0.12)
-              : ZenTheme.creamWhite.withOpacity(0.04),
+              ? accentColor.withValues(alpha: 0.12)
+              : ZenTheme.creamWhite.withValues(alpha: 0.04),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
             color: isSelected
-                ? accentColor.withOpacity(0.5)
-                : ZenTheme.creamWhite.withOpacity(0.08),
+                ? accentColor.withValues(alpha: 0.5)
+                : ZenTheme.creamWhite.withValues(alpha: 0.08),
             width: isSelected ? 1.5 : 1.0,
           ),
         ),
@@ -668,7 +832,9 @@ class _EmpathyMirrorBottomSheetState extends State<_EmpathyMirrorBottomSheet> wi
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: isSelected ? accentColor : ZenTheme.softGray.withOpacity(0.6),
+                  color: isSelected
+                      ? accentColor
+                      : ZenTheme.softGray.withValues(alpha: 0.6),
                   width: 1.5,
                 ),
                 color: isSelected ? accentColor : Colors.transparent,

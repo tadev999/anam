@@ -8,7 +8,7 @@ import '../../features/auth/data/models/user_model.dart';
 
 abstract class BaseDatabaseRepository {
   String? currentMindState;
-  
+
   Future<void> init();
   Future<List<ReleaseModel>> fetchReleases();
   Future<ReleaseModel> addRelease(String content);
@@ -17,11 +17,30 @@ abstract class BaseDatabaseRepository {
   Future<AnchorModel?> fetchYesterdayAnchor(String uid, String yesterdayDate);
   Future<List<AnchorModel>> fetchMonthAnchors(String uid, String yearMonth);
   // Morning ritual: Intention → Offering → Affirmation
-  Future<AnchorModel> completeMorningAnchor(String uid, String date, String affirmation, String microOfferingId, String intention);
+  Future<AnchorModel> completeMorningAnchor(
+    String uid,
+    String date,
+    String affirmation,
+    String microOfferingId,
+    String intention,
+  );
   // Alias backward compat cho code cũ
-  Future<AnchorModel> completeTodayAnchor(String uid, String date, String affirmation, String microOfferingId, String intention, {String? emotionCheckIn});
+  Future<AnchorModel> completeTodayAnchor(
+    String uid,
+    String date,
+    String affirmation,
+    String microOfferingId,
+    String intention, {
+    String? emotionCheckIn,
+  });
   // Evening ritual: Check-in → Review intention → Journal note
-  Future<AnchorModel> completeEveningReflection(String uid, String date, String emotion, String note, bool intentionAchieved);
+  Future<AnchorModel> completeEveningReflection(
+    String uid,
+    String date,
+    String emotion,
+    String note,
+    bool intentionAchieved,
+  );
   Future<void> markIntentionReviewed(String uid, String date, bool achieved);
   Future<UserModel> fetchSpiritualProfile(String uid);
   Future<void> updateSpiritualAvatar(String uid, String symbol);
@@ -29,7 +48,11 @@ abstract class BaseDatabaseRepository {
   Future<List<Map<String, dynamic>>> fetchReflections();
   // Sleep Seed
   Future<AnchorModel> sowSleepSeed(String uid, String date, String sownAt);
-  Future<AnchorModel> collectSleepSprout(String uid, String date, String sproutedAt);
+  Future<AnchorModel> collectSleepSprout(
+    String uid,
+    String date,
+    String sproutedAt,
+  );
 }
 
 // TRIỂN KHAI MOCK DATABASE REPOSITORY (Lưu SharedPreferences offline)
@@ -159,7 +182,8 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
         'morningCompleted': true,
         'eveningCompleted': true,
         'eveningEmotion': 'burnout',
-        'eveningNote': 'Một ngày kiệt sức vì họp hành liên tục, đầu muốn nổ tung',
+        'eveningNote':
+            'Một ngày kiệt sức vì họp hành liên tục, đầu muốn nổ tung',
         'intentionReviewed': false,
       },
       // Day 11: overthinking
@@ -210,7 +234,8 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
         'morningCompleted': true,
         'eveningCompleted': true,
         'eveningEmotion': 'overthinking',
-        'eveningNote': 'Vừa dọn dẹp vừa nghĩ vẩn vơ về định hướng tương lai 5 năm tới',
+        'eveningNote':
+            'Vừa dọn dẹp vừa nghĩ vẩn vơ về định hướng tương lai 5 năm tới',
         'intentionReviewed': true,
       },
       // Day 16: peaceful
@@ -261,13 +286,15 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
       // Day 20: peaceful
       {
         'date': '2026-06-20',
-        'affirmationText': 'Tần số của tôi hòa nhịp cùng sự hài hòa của tự nhiên',
+        'affirmationText':
+            'Tần số của tôi hòa nhịp cùng sự hài hòa của tự nhiên',
         'microOfferingId': 'offering_20',
         'intention': 'Nghe nhạc thiền tần số 432Hz',
         'morningCompleted': true,
         'eveningCompleted': true,
         'eveningEmotion': 'peaceful',
-        'eveningNote': 'Âm thanh tiếng chuông xoay Tây Tạng giúp tinh thần dịu lại',
+        'eveningNote':
+            'Âm thanh tiếng chuông xoay Tây Tạng giúp tinh thần dịu lại',
         'intentionReviewed': true,
         'sleepSeedSownAt': '2026-06-20T22:15:00',
         'sleepSeedSproutedAt': '2026-06-21T06:00:00',
@@ -294,7 +321,8 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
         'morningCompleted': true,
         'eveningCompleted': true,
         'eveningEmotion': 'lonely',
-        'eveningNote': 'Gió hồ mát lạnh, xung quanh ai cũng có đôi, cảm thấy cô đơn nhưng dễ chịu',
+        'eveningNote':
+            'Gió hồ mát lạnh, xung quanh ai cũng có đôi, cảm thấy cô đơn nhưng dễ chịu',
         'intentionReviewed': true,
       },
       // Day 23: grateful
@@ -326,11 +354,7 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
     for (final data in mockAnchors) {
       final date = data['date'] as String;
       final key = 'anchor_${uid}_$date';
-      final anchorMap = {
-        'id': key,
-        'uid': uid,
-        ...data,
-      };
+      final anchorMap = {'id': key, 'uid': uid, ...data};
       await _prefs.setString(key, jsonEncode(anchorMap));
     }
 
@@ -344,21 +368,24 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
       _releases = [
         ReleaseModel(
           id: 'c1',
-          content: "Tôi thấy áp lực kinh khủng từ kỳ vọng của bố mẹ. Nhiều lúc chỉ muốn biến mất...",
+          content:
+              "Tôi thấy áp lực kinh khủng từ kỳ vọng của bố mẹ. Nhiều lúc chỉ muốn biến mất...",
           timestamp: DateTime.now().subtract(const Duration(hours: 5)),
           hugCount: 12,
           supportedUserUids: const ['user_x'],
         ),
         ReleaseModel(
           id: 'c2',
-          content: "Đã 3 tháng thất nghiệp rồi. Cảm thấy bản thân thật vô dụng, không bằng bạn bè cùng trang lứa.",
+          content:
+              "Đã 3 tháng thất nghiệp rồi. Cảm thấy bản thân thật vô dụng, không bằng bạn bè cùng trang lứa.",
           timestamp: DateTime.now().subtract(const Duration(hours: 12)),
           hugCount: 24,
           supportedUserUids: const [],
         ),
         ReleaseModel(
           id: 'c3',
-          content: "Hôm nay làm vỡ cái cốc của đồng nghiệp nhưng không dám nhận. Thấy tội lỗi và hèn nhát quá.",
+          content:
+              "Hôm nay làm vỡ cái cốc của đồng nghiệp nhưng không dám nhận. Thấy tội lỗi và hèn nhát quá.",
           timestamp: DateTime.now().subtract(const Duration(days: 1)),
           hugCount: 5,
           supportedUserUids: const [],
@@ -373,7 +400,9 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
           content: decoded['content'],
           timestamp: DateTime.parse(decoded['timestamp']),
           hugCount: decoded['hugCount'],
-          supportedUserUids: List<String>.from(decoded['supportedUserUids'] ?? []),
+          supportedUserUids: List<String>.from(
+            decoded['supportedUserUids'] ?? [],
+          ),
           isBurned: decoded['isBurned'] ?? false,
         );
       }).toList();
@@ -383,14 +412,18 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
   }
 
   Future<void> _saveReleasesToPrefs() async {
-    final listToSave = _releases.map((c) => jsonEncode({
-      'id': c.id,
-      'content': c.content,
-      'timestamp': c.timestamp.toIso8601String(),
-      'hugCount': c.hugCount,
-      'supportedUserUids': c.supportedUserUids,
-      'isBurned': c.isBurned,
-    })).toList();
+    final listToSave = _releases
+        .map(
+          (c) => jsonEncode({
+            'id': c.id,
+            'content': c.content,
+            'timestamp': c.timestamp.toIso8601String(),
+            'hugCount': c.hugCount,
+            'supportedUserUids': c.supportedUserUids,
+            'isBurned': c.isBurned,
+          }),
+        )
+        .toList();
     await _prefs.setStringList('mock_releases', listToSave);
   }
 
@@ -409,7 +442,10 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
   }
 
   @override
-  Future<ReleaseModel?> sendVirtualHug(String releaseId, String senderUid) async {
+  Future<ReleaseModel?> sendVirtualHug(
+    String releaseId,
+    String senderUid,
+  ) async {
     if (_releases.isEmpty) {
       await fetchReleases();
     }
@@ -445,7 +481,10 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
   }
 
   @override
-  Future<AnchorModel?> fetchYesterdayAnchor(String uid, String yesterdayDate) async {
+  Future<AnchorModel?> fetchYesterdayAnchor(
+    String uid,
+    String yesterdayDate,
+  ) async {
     final key = 'anchor_${uid}_$yesterdayDate';
     final savedData = _prefs.getString(key);
     if (savedData != null) {
@@ -456,12 +495,15 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
   }
 
   @override
-  Future<List<AnchorModel>> fetchMonthAnchors(String uid, String yearMonth) async {
+  Future<List<AnchorModel>> fetchMonthAnchors(
+    String uid,
+    String yearMonth,
+  ) async {
     if (yearMonth == '2026-06') {
       await seedJune2026MockDataForUid(uid);
     }
     final keys = _prefs.getKeys();
-    final prefix = 'anchor_${uid}_${yearMonth}-';
+    final prefix = 'anchor_${uid}_$yearMonth-';
     final List<AnchorModel> list = [];
     for (final key in keys) {
       if (key.startsWith(prefix)) {
@@ -476,7 +518,11 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
   }
 
   @override
-  Future<void> markIntentionReviewed(String uid, String date, bool achieved) async {
+  Future<void> markIntentionReviewed(
+    String uid,
+    String date,
+    bool achieved,
+  ) async {
     final key = 'anchor_${uid}_$date';
     final savedData = _prefs.getString(key);
     if (savedData != null) {
@@ -496,7 +542,9 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
   ) async {
     final key = 'anchor_${uid}_$date';
     final anchor = AnchorModel(
-      id: key, uid: uid, date: date,
+      id: key,
+      uid: uid,
+      date: date,
       affirmationText: affirmation,
       microOfferingId: microOfferingId,
       intention: intention,
@@ -508,13 +556,23 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
 
   @override
   Future<AnchorModel> completeEveningReflection(
-    String uid, String date, String emotion, String note, bool intentionAchieved,
+    String uid,
+    String date,
+    String emotion,
+    String note,
+    bool intentionAchieved,
   ) async {
     final key = 'anchor_${uid}_$date';
     final savedData = _prefs.getString(key);
     final Map<String, dynamic> base = savedData != null
         ? jsonDecode(savedData) as Map<String, dynamic>
-        : {'uid': uid, 'date': date, 'affirmationText': '', 'microOfferingId': '', 'intention': ''};
+        : {
+            'uid': uid,
+            'date': date,
+            'affirmationText': '',
+            'microOfferingId': '',
+            'intention': '',
+          };
     base['eveningCompleted'] = true;
     base['eveningEmotion'] = emotion;
     base['eveningNote'] = note;
@@ -524,12 +582,22 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
   }
 
   @override
-  Future<AnchorModel> sowSleepSeed(String uid, String date, String sownAt) async {
+  Future<AnchorModel> sowSleepSeed(
+    String uid,
+    String date,
+    String sownAt,
+  ) async {
     final key = 'anchor_${uid}_$date';
     final savedData = _prefs.getString(key);
     final Map<String, dynamic> base = savedData != null
         ? jsonDecode(savedData) as Map<String, dynamic>
-        : {'uid': uid, 'date': date, 'affirmationText': '', 'microOfferingId': '', 'intention': ''};
+        : {
+            'uid': uid,
+            'date': date,
+            'affirmationText': '',
+            'microOfferingId': '',
+            'intention': '',
+          };
     base['sleepSeedSownAt'] = sownAt;
     base['sleepSeedCollected'] = false;
     await _prefs.setString(key, jsonEncode(base));
@@ -537,12 +605,22 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
   }
 
   @override
-  Future<AnchorModel> collectSleepSprout(String uid, String date, String sproutedAt) async {
+  Future<AnchorModel> collectSleepSprout(
+    String uid,
+    String date,
+    String sproutedAt,
+  ) async {
     final key = 'anchor_${uid}_$date';
     final savedData = _prefs.getString(key);
     final Map<String, dynamic> base = savedData != null
         ? jsonDecode(savedData) as Map<String, dynamic>
-        : {'uid': uid, 'date': date, 'affirmationText': '', 'microOfferingId': '', 'intention': ''};
+        : {
+            'uid': uid,
+            'date': date,
+            'affirmationText': '',
+            'microOfferingId': '',
+            'intention': '',
+          };
     base['sleepSeedCollected'] = true;
     base['sleepSeedSproutedAt'] = sproutedAt;
     await _prefs.setString(key, jsonEncode(base));
@@ -619,9 +697,13 @@ class MockDatabaseRepository extends BaseDatabaseRepository {
   @override
   Future<List<Map<String, dynamic>>> fetchReflections() async {
     final rawList = _prefs.getStringList('local_reflections') ?? [];
-    return rawList.map((item) {
-      return jsonDecode(item) as Map<String, dynamic>;
-    }).toList().reversed.toList();
+    return rawList
+        .map((item) {
+          return jsonDecode(item) as Map<String, dynamic>;
+        })
+        .toList()
+        .reversed
+        .toList();
   }
 }
 
@@ -672,7 +754,10 @@ class FirebaseDatabaseRepository extends BaseDatabaseRepository {
   }
 
   @override
-  Future<ReleaseModel?> sendVirtualHug(String releaseId, String senderUid) async {
+  Future<ReleaseModel?> sendVirtualHug(
+    String releaseId,
+    String senderUid,
+  ) async {
     try {
       final ref = _firestore.collection('releases').doc(releaseId);
       ReleaseModel? updatedRelease;
@@ -680,7 +765,9 @@ class FirebaseDatabaseRepository extends BaseDatabaseRepository {
         final snapshot = await transaction.get(ref);
         if (!snapshot.exists) return;
         final data = snapshot.data() as Map<String, dynamic>;
-        final List<String> supportedUids = List<String>.from(data['supportedUserUids'] ?? []);
+        final List<String> supportedUids = List<String>.from(
+          data['supportedUserUids'] ?? [],
+        );
         if (!supportedUids.contains(senderUid)) {
           supportedUids.add(senderUid);
           final int newHugCount = (data['hugCount'] ?? 0) + 1;
@@ -722,7 +809,10 @@ class FirebaseDatabaseRepository extends BaseDatabaseRepository {
   }
 
   @override
-  Future<AnchorModel?> fetchYesterdayAnchor(String uid, String yesterdayDate) async {
+  Future<AnchorModel?> fetchYesterdayAnchor(
+    String uid,
+    String yesterdayDate,
+  ) async {
     try {
       final doc = await _firestore
           .collection('users')
@@ -741,7 +831,10 @@ class FirebaseDatabaseRepository extends BaseDatabaseRepository {
   }
 
   @override
-  Future<List<AnchorModel>> fetchMonthAnchors(String uid, String yearMonth) async {
+  Future<List<AnchorModel>> fetchMonthAnchors(
+    String uid,
+    String yearMonth,
+  ) async {
     try {
       final snapshot = await _firestore
           .collection('users')
@@ -762,7 +855,11 @@ class FirebaseDatabaseRepository extends BaseDatabaseRepository {
   }
 
   @override
-  Future<void> markIntentionReviewed(String uid, String date, bool achieved) async {
+  Future<void> markIntentionReviewed(
+    String uid,
+    String date,
+    bool achieved,
+  ) async {
     try {
       await _firestore
           .collection('users')
@@ -777,12 +874,22 @@ class FirebaseDatabaseRepository extends BaseDatabaseRepository {
 
   @override
   Future<AnchorModel> completeMorningAnchor(
-    String uid, String date, String affirmation, String microOfferingId, String intention,
+    String uid,
+    String date,
+    String affirmation,
+    String microOfferingId,
+    String intention,
   ) async {
     try {
-      final ref = _firestore.collection('users').doc(uid).collection('anchors').doc(date);
+      final ref = _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('anchors')
+          .doc(date);
       final anchor = AnchorModel(
-        id: date, uid: uid, date: date,
+        id: date,
+        uid: uid,
+        date: date,
         affirmationText: affirmation,
         microOfferingId: microOfferingId,
         intention: intention,
@@ -798,10 +905,18 @@ class FirebaseDatabaseRepository extends BaseDatabaseRepository {
 
   @override
   Future<AnchorModel> completeEveningReflection(
-    String uid, String date, String emotion, String note, bool intentionAchieved,
+    String uid,
+    String date,
+    String emotion,
+    String note,
+    bool intentionAchieved,
   ) async {
     try {
-      final ref = _firestore.collection('users').doc(uid).collection('anchors').doc(date);
+      final ref = _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('anchors')
+          .doc(date);
       await ref.set({
         'eveningCompleted': true,
         'eveningEmotion': emotion,
@@ -817,9 +932,17 @@ class FirebaseDatabaseRepository extends BaseDatabaseRepository {
   }
 
   @override
-  Future<AnchorModel> sowSleepSeed(String uid, String date, String sownAt) async {
+  Future<AnchorModel> sowSleepSeed(
+    String uid,
+    String date,
+    String sownAt,
+  ) async {
     try {
-      final ref = _firestore.collection('users').doc(uid).collection('anchors').doc(date);
+      final ref = _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('anchors')
+          .doc(date);
       await ref.set({
         'sleepSeedSownAt': sownAt,
         'sleepSeedCollected': false,
@@ -833,9 +956,17 @@ class FirebaseDatabaseRepository extends BaseDatabaseRepository {
   }
 
   @override
-  Future<AnchorModel> collectSleepSprout(String uid, String date, String sproutedAt) async {
+  Future<AnchorModel> collectSleepSprout(
+    String uid,
+    String date,
+    String sproutedAt,
+  ) async {
     try {
-      final ref = _firestore.collection('users').doc(uid).collection('anchors').doc(date);
+      final ref = _firestore
+          .collection('users')
+          .doc(uid)
+          .collection('anchors')
+          .doc(date);
       await ref.set({
         'sleepSeedCollected': true,
         'sleepSeedSproutedAt': sproutedAt,
@@ -961,8 +1092,12 @@ class FirebaseDatabaseRepository extends BaseDatabaseRepository {
   @override
   Future<List<Map<String, dynamic>>> fetchReflections() async {
     final rawList = _prefs.getStringList('local_reflections') ?? [];
-    return rawList.map((item) {
-      return jsonDecode(item) as Map<String, dynamic>;
-    }).toList().reversed.toList();
+    return rawList
+        .map((item) {
+          return jsonDecode(item) as Map<String, dynamic>;
+        })
+        .toList()
+        .reversed
+        .toList();
   }
 }

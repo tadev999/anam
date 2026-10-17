@@ -140,20 +140,21 @@ class _EveningReflectionViewState extends State<EveningReflectionView>
     setState(() => _selectedEmotionId = id);
     // Cross-feature emotional loop: evening emotion → personalizes Gương tự vấn
     final dbRepo = RepositoryProvider.of<BaseDatabaseRepository>(context);
-    if (id == 'burnout')
+    if (id == 'burnout') {
       dbRepo.currentMindState = 'burnout_state';
-    else if (id == 'overthinking')
+    } else if (id == 'overthinking') {
       dbRepo.currentMindState = 'overthinking_state';
-    else if (id == 'lonely')
+    } else if (id == 'lonely') {
       dbRepo.currentMindState = 'lonely_state';
-    else if (id == 'empty')
+    } else if (id == 'empty') {
       dbRepo.currentMindState = 'lonely_state';
-    else if (id == 'peaceful')
+    } else if (id == 'peaceful') {
       dbRepo.currentMindState = 'peaceful_state';
-    else if (id == 'grateful')
+    } else if (id == 'grateful') {
       dbRepo.currentMindState = 'peaceful_state';
-    else
+    } else {
       dbRepo.currentMindState = null;
+    }
   }
 
   void _submitEvening() {
@@ -303,7 +304,7 @@ class _EveningReflectionViewState extends State<EveningReflectionView>
                 decoration: BoxDecoration(
                   color: active
                       ? ZenTheme.inkBlue
-                      : ZenTheme.creamWhite.withOpacity(0.1),
+                      : ZenTheme.creamWhite.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(2),
                 ),
               ),
@@ -322,8 +323,8 @@ class _EveningReflectionViewState extends State<EveningReflectionView>
                   fontSize: 9,
                   letterSpacing: 0.4,
                   color: active
-                      ? ZenTheme.inkBlue.withOpacity(0.9)
-                      : ZenTheme.softGray.withOpacity(0.35),
+                      ? ZenTheme.inkBlue.withValues(alpha: 0.9)
+                      : ZenTheme.softGray.withValues(alpha: 0.35),
                   fontWeight: active ? FontWeight.w600 : FontWeight.normal,
                 ),
               ),
@@ -360,14 +361,16 @@ class _EveningReflectionViewState extends State<EveningReflectionView>
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
             decoration: BoxDecoration(
-              color: ZenTheme.creamWhite.withOpacity(0.05),
+              color: ZenTheme.creamWhite.withValues(alpha: 0.05),
               borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: ZenTheme.creamWhite.withOpacity(0.08)),
+              border: Border.all(
+                color: ZenTheme.creamWhite.withValues(alpha: 0.08),
+              ),
             ),
             child: Text(
               '🌙  Nhìn lại cuối ngày  ·  ~3 phút',
               style: textTheme.bodyMedium!.copyWith(
-                color: ZenTheme.softGray.withOpacity(0.7),
+                color: ZenTheme.softGray.withValues(alpha: 0.7),
                 fontSize: 11,
                 letterSpacing: 0.5,
               ),
@@ -450,13 +453,13 @@ class _EveningReflectionViewState extends State<EveningReflectionView>
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 14),
         decoration: BoxDecoration(
           color: isSelected
-              ? em.accentColor.withOpacity(0.12)
-              : ZenTheme.creamWhite.withOpacity(0.05),
+              ? em.accentColor.withValues(alpha: 0.12)
+              : ZenTheme.creamWhite.withValues(alpha: 0.05),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: isSelected
-                ? em.accentColor.withOpacity(0.5)
-                : ZenTheme.creamWhite.withOpacity(0.08),
+                ? em.accentColor.withValues(alpha: 0.5)
+                : ZenTheme.creamWhite.withValues(alpha: 0.08),
             width: isSelected ? 1.5 : 1.0,
           ),
         ),
@@ -491,21 +494,22 @@ class _EveningReflectionViewState extends State<EveningReflectionView>
         ? 'peaceful'
         : (_selectedEmotionId ?? 'peaceful');
     final affirmations = ZenConstants.emotionalAffirmations[emotionKey];
-    if (affirmations == null || affirmations.isEmpty)
+    if (affirmations == null || affirmations.isEmpty) {
       return const SizedBox.shrink();
+    }
 
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: ZenTheme.creamWhite.withOpacity(0.04),
+        color: ZenTheme.creamWhite.withValues(alpha: 0.04),
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: ZenTheme.creamWhite.withOpacity(0.07)),
+        border: Border.all(color: ZenTheme.creamWhite.withValues(alpha: 0.07)),
       ),
       child: Text(
         '"${affirmations[DateTime.now().hour % affirmations.length]}"',
         textAlign: TextAlign.center,
         style: textTheme.bodyMedium!.copyWith(
-          color: ZenTheme.softGray.withOpacity(0.8),
+          color: ZenTheme.softGray.withValues(alpha: 0.8),
           fontStyle: FontStyle.italic,
           height: 1.5,
           fontSize: 13,
@@ -673,9 +677,11 @@ class _EveningReflectionViewState extends State<EveningReflectionView>
           Container(
             padding: const EdgeInsets.all(18),
             decoration: BoxDecoration(
-              color: ZenTheme.creamWhite.withOpacity(0.04),
+              color: ZenTheme.creamWhite.withValues(alpha: 0.04),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: ZenTheme.creamWhite.withOpacity(0.08)),
+              border: Border.all(
+                color: ZenTheme.creamWhite.withValues(alpha: 0.08),
+              ),
             ),
             child: Column(
               children: [
@@ -716,13 +722,13 @@ class _EveningReflectionViewState extends State<EveningReflectionView>
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
           color: selected
-              ? color.withOpacity(0.12)
-              : ZenTheme.creamWhite.withOpacity(0.04),
+              ? color.withValues(alpha: 0.12)
+              : ZenTheme.creamWhite.withValues(alpha: 0.04),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: selected
-                ? color.withOpacity(0.4)
-                : ZenTheme.creamWhite.withOpacity(0.08),
+                ? color.withValues(alpha: 0.4)
+                : ZenTheme.creamWhite.withValues(alpha: 0.08),
             width: selected ? 1.5 : 1.0,
           ),
         ),
@@ -744,7 +750,7 @@ class _EveningReflectionViewState extends State<EveningReflectionView>
               sublabel,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: ZenTheme.softGray.withOpacity(0.6),
+                color: ZenTheme.softGray.withValues(alpha: 0.6),
                 fontSize: 10,
               ),
             ),
@@ -785,7 +791,7 @@ class _EveningReflectionViewState extends State<EveningReflectionView>
             textAlign: TextAlign.center,
             style: textTheme.bodyMedium!.copyWith(
               fontStyle: FontStyle.italic,
-              color: ZenTheme.softGray.withOpacity(0.5),
+              color: ZenTheme.softGray.withValues(alpha: 0.5),
               fontSize: 12,
             ),
           ),
@@ -814,7 +820,7 @@ class _EveningReflectionViewState extends State<EveningReflectionView>
                   hintText:
                       "Ví dụ: \"Hôm nay tôi học được rằng...\" hoặc chỉ \"Cần nghỉ ngơi nhiều hơn\"",
                   hintStyle: TextStyle(
-                    color: ZenTheme.softGray.withOpacity(0.4),
+                    color: ZenTheme.softGray.withValues(alpha: 0.4),
                     fontSize: 12,
                   ),
                   border: InputBorder.none,
@@ -854,16 +860,16 @@ class _EveningReflectionViewState extends State<EveningReflectionView>
                           vertical: 6,
                         ),
                         decoration: BoxDecoration(
-                          color: ZenTheme.creamWhite.withOpacity(0.05),
+                          color: ZenTheme.creamWhite.withValues(alpha: 0.05),
                           borderRadius: BorderRadius.circular(12),
                           border: Border.all(
-                            color: ZenTheme.creamWhite.withOpacity(0.1),
+                            color: ZenTheme.creamWhite.withValues(alpha: 0.1),
                           ),
                         ),
                         child: Text(
                           hint,
                           style: TextStyle(
-                            color: ZenTheme.softGray.withOpacity(0.8),
+                            color: ZenTheme.softGray.withValues(alpha: 0.8),
                             fontSize: 11,
                           ),
                         ),
@@ -896,7 +902,7 @@ class _EveningReflectionViewState extends State<EveningReflectionView>
               height: 90,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: ZenTheme.inkBlue.withOpacity(0.1),
+                color: ZenTheme.inkBlue.withValues(alpha: 0.1),
                 border: Border.all(color: ZenTheme.inkBlue, width: 1.5),
               ),
               child: const Icon(
@@ -923,10 +929,10 @@ class _EveningReflectionViewState extends State<EveningReflectionView>
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: selectedEmotion.accentColor.withOpacity(0.06),
+              color: selectedEmotion.accentColor.withValues(alpha: 0.06),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: selectedEmotion.accentColor.withOpacity(0.15),
+                color: selectedEmotion.accentColor.withValues(alpha: 0.15),
               ),
             ),
             child: Row(
@@ -951,7 +957,7 @@ class _EveningReflectionViewState extends State<EveningReflectionView>
                       Text(
                         selectedEmotion.subtitle,
                         style: TextStyle(
-                          color: ZenTheme.softGray.withOpacity(0.7),
+                          color: ZenTheme.softGray.withValues(alpha: 0.7),
                           fontSize: 12,
                         ),
                       ),

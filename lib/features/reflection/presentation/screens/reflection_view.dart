@@ -163,7 +163,7 @@ class _ReflectionViewState extends State<ReflectionView> {
               SnackBar(
                 content: Text(
                   state.message,
-                  style: GoogleFonts.nunito(color: ZenTheme.creamWhite),
+                  style: GoogleFonts.plusJakartaSans(color: ZenTheme.creamWhite),
                 ),
                 backgroundColor: ZenTheme.slateDark,
                 duration: const Duration(seconds: 3),
@@ -175,7 +175,7 @@ class _ReflectionViewState extends State<ReflectionView> {
               SnackBar(
                 content: Text(
                   state.error,
-                  style: GoogleFonts.nunito(color: ZenTheme.creamWhite),
+                  style: GoogleFonts.plusJakartaSans(color: ZenTheme.creamWhite),
                 ),
                 backgroundColor: ZenTheme.mistRed.withValues(alpha: 0.8),
               ),
@@ -226,19 +226,23 @@ class _ReflectionViewState extends State<ReflectionView> {
                                   Text(
                                     "Câu hỏi tự thấu hiểu hôm nay",
                                     textAlign: TextAlign.center,
-                                    style: GoogleFonts.nunito(
+                                    style: GoogleFonts.plusJakartaSans(
                                       fontSize: 12,
-                                      color: ZenTheme.softGray.withValues(alpha: 0.6),
+                                      color: ZenTheme.softGray.withValues(
+                                        alpha: 0.6,
+                                      ),
                                       letterSpacing: 1.5,
                                     ),
                                   ),
                                   const SizedBox(height: 8),
                                   Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8.0,
+                                    ),
                                     child: Text(
                                       "\"$_prompt\"",
                                       textAlign: TextAlign.center,
-                                      style: GoogleFonts.lora(
+                                      style: GoogleFonts.plusJakartaSans(
                                         fontSize: 18,
                                         fontStyle: FontStyle.italic,
                                         color: ZenTheme.creamWhite,
@@ -251,155 +255,175 @@ class _ReflectionViewState extends State<ReflectionView> {
                             ),
                             const SizedBox(height: 16),
 
+                            const Divider(color: Colors.white10),
+                            const SizedBox(height: 16),
 
-                      const Divider(color: Colors.white10),
-                      const SizedBox(height: 16),
-
-                      // Text Editor Area wrapped with Particle dissolution
-                      Expanded(
-                        child: ReleaseParticleEffect(
-                          isBurning: _isDissolving,
-                          onComplete: () {
-                            // After dissolution, trigger bloc to discard and exit
-                            BlocProvider.of<ReflectionBloc>(
-                              context,
-                            ).add(const DiscardReflectionRequested());
-                          },
-                          child: Stack(
-                            children: [
-                              TextField(
-                                controller: _controller,
-                                focusNode: _focusNode,
-                                maxLines: null,
-                                cursorColor: ZenTheme.sageGreen,
-                                style: GoogleFonts.nunito(
-                                  fontSize: 17,
-                                   color: ZenTheme.creamWhite.withValues(alpha: 0.9),
-                                  height: 1.65,
-                                ),
-                                decoration: InputDecoration(
-                                  hintText:
-                                      "Nhập những suy nghĩ chân thật nhất...\nViết tự do không bộ lọc...",
-                                  hintStyle: GoogleFonts.nunito(
-                                    fontSize: 16,
-                                    color: ZenTheme.softGray.withValues(alpha: 0.4),
-                                    height: 1.65,
-                                  ),
-                                  border: InputBorder.none,
-                                ),
-                              ),
-
-                              // Flow state warning indicator
-                              Positioned(
-                                bottom: 12,
-                                left: 0,
-                                right: 0,
-                                child: AnimatedOpacity(
-                                  opacity: _showFlowReminder ? 0.7 : 0.0,
-                                  duration: const Duration(milliseconds: 450),
-                                  child: Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 8,
-                                      horizontal: 12,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.black26,
-                                      borderRadius: BorderRadius.circular(12),
-                                    ),
-                                    child: Text(
-                                      "Đừng lo lắng về câu từ hay ngữ pháp, cứ để dòng suy nghĩ tuôn chảy tự do...",
-                                      textAlign: TextAlign.center,
-                                      style: GoogleFonts.nunito(
-                                        color: ZenTheme.softGold,
-                                        fontSize: 12,
-                                        fontStyle: FontStyle.italic,
+                            // Text Editor Area wrapped with Particle dissolution
+                            Expanded(
+                              child: ReleaseParticleEffect(
+                                isBurning: _isDissolving,
+                                onComplete: () {
+                                  // After dissolution, trigger bloc to discard and exit
+                                  BlocProvider.of<ReflectionBloc>(
+                                    context,
+                                  ).add(const DiscardReflectionRequested());
+                                },
+                                child: Stack(
+                                  children: [
+                                    TextField(
+                                      controller: _controller,
+                                      focusNode: _focusNode,
+                                      maxLines: null,
+                                      cursorColor: ZenTheme.sageGreen,
+                                      style: GoogleFonts.plusJakartaSans(
+                                        fontSize: 17,
+                                        color: ZenTheme.creamWhite.withValues(
+                                          alpha: 0.9,
+                                        ),
+                                        height: 1.65,
+                                      ),
+                                      decoration: InputDecoration(
+                                        hintText:
+                                            "Nhập những suy nghĩ chân thật nhất...\nViết tự do không bộ lọc...",
+                                        hintStyle: GoogleFonts.plusJakartaSans(
+                                          fontSize: 16,
+                                          color: ZenTheme.softGray.withValues(
+                                            alpha: 0.4,
+                                          ),
+                                          height: 1.65,
+                                        ),
+                                        border: InputBorder.none,
                                       ),
                                     ),
-                                  ),
+
+                                    // Flow state warning indicator
+                                    Positioned(
+                                      bottom: 12,
+                                      left: 0,
+                                      right: 0,
+                                      child: AnimatedOpacity(
+                                        opacity: _showFlowReminder ? 0.7 : 0.0,
+                                        duration: const Duration(
+                                          milliseconds: 450,
+                                        ),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            vertical: 8,
+                                            horizontal: 12,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.black26,
+                                            borderRadius: BorderRadius.circular(
+                                              12,
+                                            ),
+                                          ),
+                                          child: Text(
+                                            "Đừng lo lắng về câu từ hay ngữ pháp, cứ để dòng suy nghĩ tuôn chảy tự do...",
+                                            textAlign: TextAlign.center,
+                                            style: GoogleFonts.plusJakartaSans(
+                                              color: ZenTheme.softGold,
+                                              fontSize: 12,
+                                              fontStyle: FontStyle.italic,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ],
-                          ),
+                            ),
+
+                            AnimatedSwitcher(
+                              duration: const Duration(milliseconds: 250),
+                              transitionBuilder:
+                                  (Widget child, Animation<double> animation) {
+                                    return FadeTransition(
+                                      opacity: animation,
+                                      child: SizeTransition(
+                                        sizeFactor: animation,
+                                        alignment: Alignment.topCenter,
+                                        child: child,
+                                      ),
+                                    );
+                                  },
+                              child: _isFocusMode
+                                  ? const SizedBox.shrink()
+                                  : Column(
+                                      key: const ValueKey('bottom_actions'),
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.stretch,
+                                      children: [
+                                        const SizedBox(height: 16),
+                                        const Divider(color: Colors.white10),
+                                        const SizedBox(height: 16),
+                                        // Character count validation feedback
+                                        if (_controller.text.trim().length <
+                                                50 &&
+                                            _controller.text.trim().isNotEmpty)
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                              bottom: 8.0,
+                                            ),
+                                            child: Text(
+                                              "Cần nhập thêm ${50 - _controller.text.trim().length} ký tự để hoàn tất bài chiêm nghiệm.",
+                                              textAlign: TextAlign.center,
+                                              style: GoogleFonts.plusJakartaSans(
+                                                color: ZenTheme.softGold,
+                                                fontSize: 12,
+                                              ),
+                                            ),
+                                          ),
+
+                                        // Dual button options stacked vertically to prevent right overflow
+                                        Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.stretch,
+                                          children: [
+                                            ZenButton(
+                                              text: "Cất vào góc riêng",
+                                              onPressed: _isDissolving
+                                                  ? null
+                                                  : _handleSaveLocal,
+                                            ),
+                                            const SizedBox(height: 12),
+                                            OutlinedButton(
+                                              onPressed: _isDissolving
+                                                  ? null
+                                                  : _handleVoidRelease,
+                                              style: OutlinedButton.styleFrom(
+                                                foregroundColor:
+                                                    ZenTheme.mistRed,
+                                                side: const BorderSide(
+                                                  color: ZenTheme.mistRed,
+                                                  width: 1.0,
+                                                ),
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                      vertical: 16,
+                                                    ),
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(28),
+                                                ),
+                                              ),
+                                              child: Text(
+                                                "Gửi vào hư vô",
+                                                style: GoogleFonts.plusJakartaSans(
+                                                  fontSize: 15,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                            ),
+                          ],
                         ),
                       ),
-
-                      AnimatedSwitcher(
-                        duration: const Duration(milliseconds: 250),
-                        transitionBuilder: (Widget child, Animation<double> animation) {
-                          return FadeTransition(
-                            opacity: animation,
-                            child: SizeTransition(
-                              sizeFactor: animation,
-                              axisAlignment: -1.0,
-                              child: child,
-                            ),
-                          );
-                        },
-                        child: _isFocusMode
-                            ? const SizedBox.shrink()
-                            : Column(
-                                key: const ValueKey('bottom_actions'),
-                                crossAxisAlignment: CrossAxisAlignment.stretch,
-                                children: [
-                                  const SizedBox(height: 16),
-                                  const Divider(color: Colors.white10),
-                                  const SizedBox(height: 16),
-                                  // Character count validation feedback
-                                  if (_controller.text.trim().length < 50 &&
-                                      _controller.text.trim().isNotEmpty)
-                                    Padding(
-                                      padding: const EdgeInsets.only(bottom: 8.0),
-                                      child: Text(
-                                        "Cần nhập thêm ${50 - _controller.text.trim().length} ký tự để hoàn tất bài chiêm nghiệm.",
-                                        textAlign: TextAlign.center,
-                                        style: GoogleFonts.nunito(
-                                          color: ZenTheme.softGold,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ),
-
-                                  // Dual button options stacked vertically to prevent right overflow
-                                  Column(
-                                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                                    children: [
-                                      ZenButton(
-                                        text: "Cất vào góc riêng",
-                                        onPressed: _isDissolving ? null : _handleSaveLocal,
-                                      ),
-                                      const SizedBox(height: 12),
-                                      OutlinedButton(
-                                        onPressed: _isDissolving ? null : _handleVoidRelease,
-                                        style: OutlinedButton.styleFrom(
-                                          foregroundColor: ZenTheme.mistRed,
-                                          side: const BorderSide(
-                                            color: ZenTheme.mistRed,
-                                            width: 1.0,
-                                          ),
-                                          padding: const EdgeInsets.symmetric(
-                                            vertical: 16,
-                                          ),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(28),
-                                          ),
-                                        ),
-                                        child: Text(
-                                          "Gửi vào hư vô",
-                                          style: GoogleFonts.nunito(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.bold,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ],
-                              ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
+                    ),
             ),
           ],
         ),
@@ -408,8 +432,9 @@ class _ReflectionViewState extends State<ReflectionView> {
   }
 
   Widget _buildCircuitBadgeWidget() {
-    final circuit = ZenConstants.endogenCircuits
-        .firstWhere((c) => c['id'] == _selectedCircuitId);
+    final circuit = ZenConstants.endogenCircuits.firstWhere(
+      (c) => c['id'] == _selectedCircuitId,
+    );
     final color = Color(circuit['color'] as int);
     return GestureDetector(
       onTap: _isFocusMode
@@ -419,18 +444,21 @@ class _ReflectionViewState extends State<ReflectionView> {
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
+            color: color.withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: color.withOpacity(0.3)),
+            border: Border.all(color: color.withValues(alpha: 0.3)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(circuit['icon'] as String, style: const TextStyle(fontSize: 12)),
+              Text(
+                circuit['icon'] as String,
+                style: const TextStyle(fontSize: 12),
+              ),
               const SizedBox(width: 5),
               Text(
                 'Mạch ${circuit['id']} — ${circuit['name']}',
-                style: GoogleFonts.nunito(
+                style: GoogleFonts.plusJakartaSans(
                   color: color,
                   fontSize: 10,
                   letterSpacing: 0.6,
@@ -438,7 +466,11 @@ class _ReflectionViewState extends State<ReflectionView> {
                 ),
               ),
               const SizedBox(width: 4),
-              Icon(Icons.edit_outlined, color: color.withOpacity(0.5), size: 10),
+              Icon(
+                Icons.edit_outlined,
+                color: color.withValues(alpha: 0.5),
+                size: 10,
+              ),
             ],
           ),
         ),
@@ -488,22 +520,33 @@ class _ReflectionViewState extends State<ReflectionView> {
                       onTap: () {
                         setState(() {
                           _selectedCircuitId = circuit['id'] as int;
-                          _prompt = _selectPromptByMindState(_selectedCircuitId);
+                          _prompt = _selectPromptByMindState(
+                            _selectedCircuitId,
+                          );
                           _isCircuitSelecting = false;
                         });
                       },
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         margin: const EdgeInsets.only(bottom: 10),
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
                         decoration: BoxDecoration(
                           borderRadius: BorderRadius.circular(16),
-                          color: color.withOpacity(0.07),
-                          border: Border.all(color: color.withOpacity(0.3), width: 1),
+                          color: color.withValues(alpha: 0.07),
+                          border: Border.all(
+                            color: color.withValues(alpha: 0.3),
+                            width: 1,
+                          ),
                         ),
                         child: Row(
                           children: [
-                            Text(circuit['icon'] as String, style: const TextStyle(fontSize: 22)),
+                            Text(
+                              circuit['icon'] as String,
+                              style: const TextStyle(fontSize: 22),
+                            ),
                             const SizedBox(width: 14),
                             Expanded(
                               child: Column(
@@ -519,12 +562,18 @@ class _ReflectionViewState extends State<ReflectionView> {
                                   const SizedBox(height: 3),
                                   Text(
                                     circuit['desc'] as String,
-                                    style: textTheme.bodyMedium!.copyWith(fontSize: 12),
+                                    style: textTheme.bodyMedium!.copyWith(
+                                      fontSize: 12,
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
-                            Icon(Icons.arrow_forward_ios, color: color.withOpacity(0.5), size: 14),
+                            Icon(
+                              Icons.arrow_forward_ios,
+                              color: color.withValues(alpha: 0.5),
+                              size: 14,
+                            ),
                           ],
                         ),
                       ),
@@ -542,20 +591,29 @@ class _ReflectionViewState extends State<ReflectionView> {
                       });
                     },
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       decoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(16),
-                        color: ZenTheme.creamWhite.withOpacity(0.04),
-                        border: Border.all(color: ZenTheme.creamWhite.withOpacity(0.1)),
+                        color: ZenTheme.creamWhite.withValues(alpha: 0.04),
+                        border: Border.all(
+                          color: ZenTheme.creamWhite.withValues(alpha: 0.1),
+                        ),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.auto_awesome, color: ZenTheme.softGray, size: 16),
+                          const Icon(
+                            Icons.auto_awesome,
+                            color: ZenTheme.softGray,
+                            size: 16,
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             'Tự động theo tâm trạng của tôi',
-                            style: GoogleFonts.nunito(
+                            style: GoogleFonts.plusJakartaSans(
                               fontSize: 13,
                               color: ZenTheme.softGray,
                             ),
@@ -579,7 +637,7 @@ class _ReflectionViewState extends State<ReflectionView> {
         SnackBar(
           content: Text(
             "Bài chiêm nghiệm cần đạt tối thiểu 50 ký tự để gửi vào hư vô.",
-            style: GoogleFonts.nunito(color: ZenTheme.creamWhite),
+            style: GoogleFonts.plusJakartaSans(color: ZenTheme.creamWhite),
           ),
           backgroundColor: ZenTheme.mistRed.withValues(alpha: 0.8),
         ),
@@ -599,7 +657,7 @@ class _ReflectionViewState extends State<ReflectionView> {
         SnackBar(
           content: Text(
             "Bài chiêm nghiệm cần đạt tối thiểu 50 ký tự để cất vào nhật ký.",
-            style: GoogleFonts.nunito(color: ZenTheme.creamWhite),
+            style: GoogleFonts.plusJakartaSans(color: ZenTheme.creamWhite),
           ),
           backgroundColor: ZenTheme.mistRed.withValues(alpha: 0.8),
         ),

@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import '../../core/theme.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../core/constants/app_colors.dart';
 
 class ZenButton extends StatefulWidget {
   final String text;
@@ -9,6 +10,8 @@ class ZenButton extends StatefulWidget {
   final bool isGlass;
   final IconData? icon;
   final bool isLoading;
+  final double height;
+  final double borderRadius;
 
   const ZenButton({
     super.key,
@@ -18,6 +21,8 @@ class ZenButton extends StatefulWidget {
     this.isGlass = false,
     this.icon,
     this.isLoading = false,
+    this.height = 52,
+    this.borderRadius = 16,
   });
 
   const ZenButton.glass({
@@ -26,6 +31,8 @@ class ZenButton extends StatefulWidget {
     this.onPressed,
     this.icon,
     this.isLoading = false,
+    this.height = 52,
+    this.borderRadius = 16,
   })  : isSecondary = false,
         isGlass = true;
 
@@ -38,51 +45,74 @@ class _ZenButtonState extends State<ZenButton> {
 
   @override
   Widget build(BuildContext context) {
+    final isDisabled = widget.onPressed == null || widget.isLoading;
+
+    Color contentColor;
+    if (widget.isGlass) {
+      contentColor = AppColors.textPrimary;
+    } else if (widget.isSecondary) {
+      contentColor = AppColors.primary;
+    } else {
+      contentColor = Colors.white;
+    }
+
     Widget buttonBody = Container(
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+      height: widget.height,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       decoration: widget.isGlass
           ? BoxDecoration(
-              color: Colors.white.withOpacity(0.04),
-              borderRadius: BorderRadius.circular(30),
+              color: AppColors.surfaceLight.withValues(alpha: 0.7),
+              borderRadius: BorderRadius.circular(widget.borderRadius),
               border: Border.all(
-                color: Colors.white.withOpacity(0.08),
+                color: AppColors.glassBorder,
                 width: 1.0,
               ),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.15),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
             )
           : widget.isSecondary
               ? BoxDecoration(
                   color: Colors.transparent,
-                  borderRadius: BorderRadius.circular(30),
+                  borderRadius: BorderRadius.circular(widget.borderRadius),
                   border: Border.all(
-                    color: ZenTheme.sageGreen.withOpacity(0.5),
-                    width: 1.5,
+                    color: AppColors.primary,
+                    width: 1.4,
                   ),
                 )
               : BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      ZenTheme.sageGreen,
-                      ZenTheme.sageGreen.withBlue(160).withGreen(180),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  borderRadius: BorderRadius.circular(30),
-                  boxShadow: [
-                    BoxShadow(
-                      color: ZenTheme.sageGreen.withOpacity(0.3),
-                      blurRadius: 15,
-                      offset: const Offset(0, 5),
-                    ),
-                  ],
+                  gradient: isDisabled
+                      ? null
+                      : const LinearGradient(
+                          colors: [AppColors.primary, AppColors.primaryLight],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                  color: isDisabled ? AppColors.surfaceElevated : null,
+                  borderRadius: BorderRadius.circular(widget.borderRadius),
+                  boxShadow: isDisabled
+                      ? null
+                      : [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.35),
+                            blurRadius: 14,
+                            offset: const Offset(0, 6),
+                          ),
+                        ],
                 ),
       child: widget.isLoading
-          ? const SizedBox(
-              width: 20,
-              height: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(ZenTheme.creamWhite),
+          ? Center(
+              child: SizedBox(
+                width: 22,
+                height: 22,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2.5,
+                  valueColor: AlwaysStoppedAnimation<Color>(contentColor),
+                ),
               ),
             )
           : Row(
@@ -92,10 +122,8 @@ class _ZenButtonState extends State<ZenButton> {
                 if (widget.icon != null) ...[
                   Icon(
                     widget.icon,
-                    color: widget.isGlass
-                        ? ZenTheme.creamWhite
-                        : (widget.isSecondary ? ZenTheme.sageGreen : ZenTheme.slateDark),
-                    size: 18,
+                    color: contentColor,
+                    size: 19,
                   ),
                   const SizedBox(width: 8),
                 ],
@@ -105,12 +133,12 @@ class _ZenButtonState extends State<ZenButton> {
                     textAlign: TextAlign.center,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.labelLarge!.copyWith(
-                          color: widget.isGlass
-                              ? ZenTheme.creamWhite
-                              : (widget.isSecondary ? ZenTheme.sageGreen : ZenTheme.slateDark),
-                          fontWeight: FontWeight.bold,
-                        ),
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 15,
+                      fontWeight: FontWeight.w600,
+                      color: contentColor,
+                      letterSpacing: 0.2,
+                    ),
                   ),
                 ),
               ],
@@ -119,7 +147,7 @@ class _ZenButtonState extends State<ZenButton> {
 
     if (widget.isGlass) {
       buttonBody = ClipRRect(
-        borderRadius: BorderRadius.circular(30),
+        borderRadius: BorderRadius.circular(widget.borderRadius),
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
           child: buttonBody,
@@ -128,7 +156,7 @@ class _ZenButtonState extends State<ZenButton> {
     }
 
     return GestureDetector(
-      onTapDown: (_) => setState(() => _scale = 0.95),
+      onTapDown: (_) => setState(() => _scale = 0.96),
       onTapUp: (_) => setState(() => _scale = 1.0),
       onTapCancel: () => setState(() => _scale = 1.0),
       onTap: widget.isLoading ? null : widget.onPressed,

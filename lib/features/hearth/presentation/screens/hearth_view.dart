@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
+import '../../../../core/constants/app_colors.dart';
 import '../../../../core/theme.dart';
 import '../../../../shared/widgets/glass_container.dart';
 import '../../../../shared/widgets/zen_button.dart';
 import '../../../../core/repositories/database_repository.dart';
 import '../../../auth/bloc/auth_bloc.dart';
-import '../../../auth/data/models/user_model.dart';
 import '../../bloc/hearth_bloc.dart';
 import '../../../release_space/data/models/release_model.dart';
 
@@ -19,6 +20,16 @@ class HearthView extends StatefulWidget {
 class _HearthViewState extends State<HearthView> {
   // Silent Presence Counter — số lượt hiện diện ẩn danh cạnh bếp lửa
   late int _silentPresenceCount;
+  String _selectedFilter = 'all';
+
+  static const List<Map<String, dynamic>> _filters = [
+    {'id': 'all', 'label': 'Tất cả', 'icon': null},
+    {'id': 'Lo âu & Kiệt sức', 'label': 'Kiệt sức & Lo âu', 'icon': '🌊'},
+    {'id': 'Cô đơn & Kết nối', 'label': 'Cô đơn & Lạc lõng', 'icon': '🌙'},
+    {'id': 'Áp lực thành tích', 'label': 'Áp lực & Kỳ vọng', 'icon': '🎓'},
+    {'id': 'Giá trị bản thân', 'label': 'Giá trị bản thân', 'icon': '✨'},
+    {'id': 'Buông bỏ', 'label': 'Buông bỏ', 'icon': '🍃'},
+  ];
 
   @override
   void initState() {
@@ -42,6 +53,15 @@ class _HearthViewState extends State<HearthView> {
       }
     }
     return score;
+  }
+
+  bool _matchesFilter(String content, String filterId) {
+    if (filterId == 'all') return true;
+    final config = _topicConfig[filterId];
+    if (config == null) return true;
+    final keywords = config['keywords'] as List<String>;
+    final lower = content.toLowerCase();
+    return keywords.any((kw) => lower.contains(kw));
   }
 
   void _sendHug(String releaseId) {
@@ -78,28 +98,7 @@ class _HearthViewState extends State<HearthView> {
     final textTheme = Theme.of(context).textTheme;
 
     return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: Navigator.canPop(context)
-            ? IconButton(
-                icon: const Icon(
-                  Icons.arrow_back_ios,
-                  color: ZenTheme.creamWhite,
-                  size: 20,
-                ),
-                onPressed: () => Navigator.pop(context),
-              )
-            : null,
-        title: Text(
-          "Bếp lửa chung",
-          style: textTheme.titleLarge!.copyWith(
-            fontFamily: 'Lora',
-            fontWeight: FontWeight.normal,
-          ),
-        ),
-        centerTitle: true,
-      ),
+      backgroundColor: AppColors.background,
       body: Stack(
         children: [
           // Nền Zen sương khói
@@ -180,70 +179,58 @@ class _HearthViewState extends State<HearthView> {
                         b.content,
                         keywords,
                       );
-                      return scoreB.compareTo(
-                        scoreA,
-                      ); // Descending order of relevance
+                      return scoreB.compareTo(scoreA);
                     });
+                  }
+
+                  if (_selectedFilter != 'all') {
+                    displayedReleases = displayedReleases
+                        .where((r) => _matchesFilter(r.content, _selectedFilter))
+                        .toList();
                   }
                 }
 
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    _buildEmpathySummary(textTheme, user),
+                    _buildHearthHeader(context),
+                    _buildHearthSanctuaryBanner(),
+                    const SizedBox(height: 14),
+
+                    _buildFilterChips(),
                     const SizedBox(height: 16),
 
                     Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Text(
-                        "Hãy sưởi ấm những nỗi lòng xung quanh",
-                        style: textTheme.titleLarge!.copyWith(fontSize: 16),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-
-                    // Silent Presence Counter Banner
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(12),
-                          color: ZenTheme.sageGreen.withValues(alpha: 0.05),
-                          border: Border.all(
-                            color: ZenTheme.sageGreen.withValues(alpha: 0.15),
+                      padding: const EdgeInsets.symmetric(horizontal: 22.0),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Nỗi niềm quanh bếp",
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.textPrimary,
+                            ),
                           ),
-                        ),
-                        child: Row(
-                          children: [
-                            const Text('🕯️', style: TextStyle(fontSize: 14)),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                'Đang có $_silentPresenceCount lữ khách khác cùng ngồi bên bếp lửa lúc này',
-                                style: textTheme.bodyMedium!.copyWith(
-                                  color: ZenTheme.sageGreen.withValues(
-                                    alpha: 0.8,
-                                  ),
-                                  fontSize: 12,
-                                  fontStyle: FontStyle.italic,
-                                ),
+                          if (displayedReleases.isNotEmpty)
+                            Text(
+                              "${displayedReleases.length} chia sẻ",
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 12,
+                                color: ZenTheme.softGray.withValues(alpha: 0.6),
                               ),
                             ),
-                          ],
-                        ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
 
                     Expanded(
                       child: isLoading
                           ? const Center(
                               child: CircularProgressIndicator(
-                                color: ZenTheme.sageGreen,
+                                color: Color(0xFFFF9E79),
                               ),
                             )
                           : state is HearthLoaded && displayedReleases.isEmpty
@@ -252,7 +239,7 @@ class _HearthViewState extends State<HearthView> {
                           ? ListView.builder(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 20,
-                                vertical: 10,
+                                vertical: 6,
                               ),
                               itemCount: displayedReleases.length,
                               itemBuilder: (context, index) {
@@ -260,59 +247,97 @@ class _HearthViewState extends State<HearthView> {
                                 final hasSupported = release.supportedUserUids
                                     .contains(user?.uid);
 
-                                return GlassContainer(
-                                  margin: const EdgeInsets.only(bottom: 16),
-                                  opacity: 0.04,
+                                return Container(
+                                  margin: const EdgeInsets.only(bottom: 14),
+                                  padding: const EdgeInsets.all(18),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surfaceLight.withValues(
+                                      alpha: 0.5,
+                                    ),
+                                    borderRadius: BorderRadius.circular(22),
+                                    border: Border.all(
+                                      color: hasSupported
+                                          ? const Color(0xFFFF9E79).withValues(
+                                              alpha: 0.35,
+                                            )
+                                          : AppColors.glassBorder,
+                                      width: 1.0,
+                                    ),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black.withValues(
+                                          alpha: 0.15,
+                                        ),
+                                        blurRadius: 10,
+                                        offset: const Offset(0, 3),
+                                      ),
+                                    ],
+                                  ),
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
                                         release.content,
-                                        style: textTheme.bodyLarge!.copyWith(
-                                          fontSize: 14,
-                                          height: 1.5,
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 14.5,
+                                          height: 1.6,
+                                          color: AppColors.textPrimary,
                                         ),
                                       ),
-                                      const SizedBox(height: 10),
+                                      const SizedBox(height: 12),
                                       // Topic Tags tự động
                                       _buildTopicTags(
                                         release.content,
                                         textTheme,
                                       ),
-                                      const SizedBox(height: 12),
+                                      const SizedBox(height: 14),
 
                                       Row(
                                         mainAxisAlignment:
                                             MainAxisAlignment.spaceBetween,
                                         children: [
-                                          Text(
-                                            _formatTimeAgo(release.timestamp),
-                                            style: textTheme.bodyMedium!
-                                                .copyWith(
-                                                  fontSize: 11,
+                                          Row(
+                                            children: [
+                                              Icon(
+                                                Icons.access_time_rounded,
+                                                size: 13,
+                                                color: ZenTheme.softGray
+                                                    .withValues(alpha: 0.5),
+                                              ),
+                                              const SizedBox(width: 5),
+                                              Text(
+                                                _formatTimeAgo(release.timestamp),
+                                                style: GoogleFonts
+                                                    .plusJakartaSans(
+                                                  fontSize: 11.5,
                                                   color: ZenTheme.softGray
-                                                      .withValues(alpha: 0.5),
+                                                      .withValues(alpha: 0.6),
                                                 ),
+                                              ),
+                                            ],
                                           ),
 
                                           GestureDetector(
                                             onTap: hasSupported
                                                 ? null
                                                 : () => _sendHug(release.id),
-                                            child: Container(
+                                            child: AnimatedContainer(
+                                              duration: const Duration(
+                                                milliseconds: 200,
+                                              ),
                                               padding:
                                                   const EdgeInsets.symmetric(
                                                     horizontal: 14,
-                                                    vertical: 8,
+                                                    vertical: 7,
                                                   ),
                                               decoration: BoxDecoration(
                                                 color: hasSupported
-                                                    ? ZenTheme.sageGreen
+                                                    ? const Color(0xFFFF9E79)
                                                           .withValues(
-                                                            alpha: 0.12,
+                                                            alpha: 0.16,
                                                           )
-                                                    : ZenTheme.softGold
+                                                    : const Color(0xFFFF9E79)
                                                           .withValues(
                                                             alpha: 0.08,
                                                           ),
@@ -320,40 +345,39 @@ class _HearthViewState extends State<HearthView> {
                                                     BorderRadius.circular(20),
                                                 border: Border.all(
                                                   color: hasSupported
-                                                      ? ZenTheme.sageGreen
+                                                      ? const Color(0xFFFF9E79)
                                                             .withValues(
-                                                              alpha: 0.2,
+                                                              alpha: 0.45,
                                                             )
-                                                      : ZenTheme.softGold
+                                                      : const Color(0xFFFF9E79)
                                                             .withValues(
-                                                              alpha: 0.2,
+                                                              alpha: 0.25,
                                                             ),
                                                   width: 1.0,
                                                 ),
                                               ),
                                               child: Row(
+                                                mainAxisSize: MainAxisSize.min,
                                                 children: [
-                                                  Icon(
-                                                    hasSupported
-                                                        ? Icons.favorite
-                                                        : Icons.favorite_border,
-                                                    color: hasSupported
-                                                        ? ZenTheme.sageGreen
-                                                        : ZenTheme.softGold,
-                                                    size: 14,
+                                                  const Icon(
+                                                    Icons
+                                                        .local_fire_department_rounded,
+                                                    color: Color(0xFFFF9E79),
+                                                    size: 15,
                                                   ),
                                                   const SizedBox(width: 6),
                                                   Text(
                                                     hasSupported
                                                         ? "Đã sưởi ấm (${release.hugCount})"
-                                                        : "Sưởi ấm (${release.hugCount})",
-                                                    style: TextStyle(
-                                                      color: hasSupported
-                                                          ? ZenTheme.sageGreen
-                                                          : ZenTheme.softGold,
+                                                        : "Gửi hơi ấm (${release.hugCount})",
+                                                    style: GoogleFonts
+                                                        .plusJakartaSans(
+                                                      color: const Color(
+                                                        0xFFFFB396,
+                                                      ),
                                                       fontSize: 12,
                                                       fontWeight:
-                                                          FontWeight.bold,
+                                                          FontWeight.w700,
                                                     ),
                                                   ),
                                                 ],
@@ -498,58 +522,184 @@ class _HearthViewState extends State<HearthView> {
     );
   }
 
-  Widget _buildEmpathySummary(TextTheme textTheme, UserModel? user) {
+  Widget _buildHearthHeader(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 22.0, vertical: 16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Tầng 1: Eyebrow row (Tag pill bên trái + Presence badge bên phải)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFFF9E79).withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: const Color(0xFFFF9E79).withValues(alpha: 0.3),
+                    width: 0.8,
+                  ),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.local_fire_department_rounded,
+                      color: Color(0xFFFF9E79),
+                      size: 13,
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      "BẾP LỬA THẤU CẢM",
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 10.5,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: 1.8,
+                        color: const Color(0xFFFF9E79),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 5,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.surfaceLight.withValues(alpha: 0.6),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: AppColors.glassBorder),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Text('🕯️', style: TextStyle(fontSize: 11)),
+                    const SizedBox(width: 4),
+                    Text(
+                      '$_silentPresenceCount cùng ngồi',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 11.5,
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          // Tầng 2: Title lớn
+          Text(
+            "Ngồi Lại Bên Nhau",
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 24,
+              fontWeight: FontWeight.w700,
+              letterSpacing: -0.5,
+              color: AppColors.textPrimary,
+            ),
+          ),
+          const SizedBox(height: 6),
+          // Tầng 3: Dòng dẫn dịu lành
+          Text(
+            "Nơi những tâm hồn đồng điệu cùng sưởi ấm cho nhau qua những dòng sẻ chia ẩn danh.",
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13.5,
+              color: AppColors.textSecondary,
+              height: 1.5,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHearthSanctuaryBanner() {
     return Container(
-      margin: const EdgeInsets.all(20),
-      padding: const EdgeInsets.all(20),
+      margin: const EdgeInsets.symmetric(horizontal: 22.0, vertical: 4.0),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            ZenTheme.sageGreen.withValues(alpha: 0.08),
-            ZenTheme.softGold.withValues(alpha: 0.04),
+            const Color(0xFFFF9E79).withValues(alpha: 0.12),
+            ZenTheme.softGold.withValues(alpha: 0.05),
+            Colors.white.withValues(alpha: 0.02),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(
-          color: ZenTheme.sageGreen.withValues(alpha: 0.15),
+          color: const Color(0xFFFF9E79).withValues(alpha: 0.22),
           width: 1.0,
         ),
       ),
       child: Row(
         children: [
           Container(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: ZenTheme.sageGreen.withValues(alpha: 0.1),
+              color: const Color(0xFFFF9E79).withValues(alpha: 0.15),
+              border: Border.all(
+                color: const Color(0xFFFF9E79).withValues(alpha: 0.35),
+                width: 1,
+              ),
             ),
             child: const Icon(
-              Icons.people_outline,
-              color: ZenTheme.sageGreen,
-              size: 28,
+              Icons.local_fire_department_rounded,
+              color: Color(0xFFFF9E79),
+              size: 22,
             ),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  user?.spiritualRole ?? "Seeker (Người tìm kiếm)",
-                  style: textTheme.titleLarge!.copyWith(
-                    fontSize: 16,
-                    color: ZenTheme.creamWhite,
-                  ),
+                Row(
+                  children: [
+                    Text(
+                      "Hơi Ấm Tự Thân",
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 14.5,
+                        fontWeight: FontWeight.w700,
+                        color: ZenTheme.creamWhite,
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 7,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: ZenTheme.softGold.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Text(
+                        "Bình đẳng & Vô điều kiện",
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w600,
+                          color: ZenTheme.softGold,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 4),
                 Text(
-                  "Tích luỹ 50 EP để nâng mức độ thấu cảm, lan tỏa hơi ấm đến mọi người.",
-                  style: textTheme.bodyMedium!.copyWith(fontSize: 11),
+                  "Trước bếp lửa, mọi nỗi niềm đều xứng đáng được lắng nghe trong tĩnh lặng.",
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 11.5,
+                    color: ZenTheme.softGray,
+                    height: 1.4,
+                  ),
                 ),
-                const SizedBox(height: 10),
-                _buildProgressLinear(user?.empathyPoints ?? 0),
               ],
             ),
           ),
@@ -558,59 +708,113 @@ class _HearthViewState extends State<HearthView> {
     );
   }
 
-  Widget _buildProgressLinear(int points) {
-    final double percent = (points / 50).clamp(0.0, 1.0);
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(4),
-          child: LinearProgressIndicator(
-            value: percent,
-            minHeight: 6,
-            backgroundColor: Colors.white.withValues(alpha: 0.05),
-            valueColor: const AlwaysStoppedAnimation<Color>(ZenTheme.softGold),
-          ),
-        ),
-        const SizedBox(height: 4),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              "$points EP",
-              style: const TextStyle(color: ZenTheme.softGold, fontSize: 10),
+  Widget _buildFilterChips() {
+    return SizedBox(
+      height: 38,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: 22),
+        itemCount: _filters.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
+        itemBuilder: (context, index) {
+          final filter = _filters[index];
+          final isSelected = _selectedFilter == filter['id'];
+          final icon = filter['icon'] as String?;
+          final label = filter['label'] as String;
+
+          return GestureDetector(
+            onTap: () {
+              setState(() {
+                _selectedFilter = filter['id'] as String;
+              });
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? const Color(0xFFFF9E79).withValues(alpha: 0.18)
+                    : AppColors.surfaceLight.withValues(alpha: 0.4),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isSelected
+                      ? const Color(0xFFFF9E79).withValues(alpha: 0.5)
+                      : AppColors.glassBorder,
+                  width: isSelected ? 1.2 : 0.8,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (icon != null) ...[
+                    Text(icon, style: const TextStyle(fontSize: 12)),
+                    const SizedBox(width: 5),
+                  ],
+                  Text(
+                    label,
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 12,
+                      fontWeight:
+                          isSelected ? FontWeight.w700 : FontWeight.w500,
+                      color: isSelected
+                          ? const Color(0xFFFFB396)
+                          : AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ),
             ),
-            const Text(
-              "50 EP",
-              style: TextStyle(color: ZenTheme.softGray, fontSize: 10),
-            ),
-          ],
-        ),
-      ],
+          );
+        },
+      ),
     );
   }
 
   Widget _buildEmptyState(TextTheme textTheme) {
+    final isFiltered = _selectedFilter != 'all';
     return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(
-            Icons.wb_cloudy_outlined,
-            color: ZenTheme.softGray,
-            size: 48,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            "Bếp lửa chung hiện rất bình yên",
-            style: textTheme.titleLarge!.copyWith(fontSize: 16),
-          ),
-          const SizedBox(height: 8),
-          const Text(
-            "Chưa có chia sẻ nào cần được sưởi ấm.",
-            style: TextStyle(color: ZenTheme.softGray),
-          ),
-        ],
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFFFF9E79).withValues(alpha: 0.1),
+              ),
+              child: const Icon(
+                Icons.local_fire_department_rounded,
+                color: Color(0xFFFF9E79),
+                size: 40,
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              isFiltered
+                  ? "Chưa có chia sẻ nào về chủ đề này"
+                  : "Bếp lửa chung hiện rất bình yên",
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 16,
+                fontWeight: FontWeight.w700,
+                color: ZenTheme.creamWhite,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              isFiltered
+                  ? "Hãy thử chọn một chủ đề khác hoặc lắng nghe những dòng sẻ chia khác quanh bếp lửa."
+                  : "Chưa có nỗi niềm nào cần được sưởi ấm lúc này.",
+              textAlign: TextAlign.center,
+              style: GoogleFonts.plusJakartaSans(
+                color: ZenTheme.softGray,
+                fontSize: 13,
+                height: 1.5,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -741,22 +945,22 @@ class _EmpathyMirrorBottomSheetState extends State<_EmpathyMirrorBottomSheet>
         Center(
           child: Text(
             "Gương thấu cảm",
-            style: textTheme.titleLarge!.copyWith(
-              fontFamily: 'Lora',
+            style: GoogleFonts.plusJakartaSans(
               fontSize: 20,
-              fontWeight: FontWeight.normal,
-              color: ZenTheme.softGold,
+              fontWeight: FontWeight.w700,
+              color: const Color(0xFFFF9E79),
             ),
           ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
         Center(
           child: Text(
             "Chia sẻ này chạm vào nhu cầu nào của bạn lúc này?",
             textAlign: TextAlign.center,
-            style: textTheme.bodyLarge!.copyWith(
-              color: ZenTheme.creamWhite.withValues(alpha: 0.8),
-              fontSize: 13,
+            style: GoogleFonts.plusJakartaSans(
+              color: AppColors.textSecondary,
+              fontSize: 13.5,
+              height: 1.5,
             ),
           ),
         ),
@@ -772,13 +976,13 @@ class _EmpathyMirrorBottomSheetState extends State<_EmpathyMirrorBottomSheet>
         _buildReflectionOption(
           id: 'need',
           label: "Tôi muốn sưởi ấm vì tôi cũng cần sự ấm áp",
-          accentColor: ZenTheme.inkBlue,
+          accentColor: const Color(0xFFFF9E79),
         ),
         const SizedBox(height: 12),
         _buildReflectionOption(
           id: 'truth',
           label: "Tôi trân trọng sự dũng cảm nói ra sự thật",
-          accentColor: ZenTheme.mistRed,
+          accentColor: ZenTheme.softGold,
         ),
         const SizedBox(height: 24),
 
@@ -787,7 +991,7 @@ class _EmpathyMirrorBottomSheetState extends State<_EmpathyMirrorBottomSheet>
           child: IgnorePointer(
             ignoring: _selectedChipId == null,
             child: ZenButton(
-              text: "Gửi hơi ấm & Phản chiếu",
+              text: "Gửi hơi ấm thấu cảm",
               onPressed: _onConfirm,
             ),
           ),
@@ -847,10 +1051,10 @@ class _EmpathyMirrorBottomSheetState extends State<_EmpathyMirrorBottomSheet>
             Expanded(
               child: Text(
                 label,
-                style: TextStyle(
+                style: GoogleFonts.plusJakartaSans(
                   color: isSelected ? accentColor : ZenTheme.softGray,
                   fontSize: 13,
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                  fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
                 ),
               ),
             ),
@@ -866,25 +1070,38 @@ class _EmpathyMirrorBottomSheetState extends State<_EmpathyMirrorBottomSheet>
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SizedBox(height: 32),
+        const SizedBox(height: 28),
         Center(
           child: ScaleTransition(
             scale: _heartScale,
-            child: const Icon(
-              Icons.favorite,
-              color: ZenTheme.mistRed,
-              size: 64,
+            child: Container(
+              padding: const EdgeInsets.all(22),
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(0xFFFF9E79).withValues(alpha: 0.15),
+                boxShadow: [
+                  BoxShadow(
+                    color: const Color(0xFFFF9E79).withValues(alpha: 0.25),
+                    blurRadius: 30,
+                    spreadRadius: 4,
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.local_fire_department_rounded,
+                color: Color(0xFFFF9E79),
+                size: 48,
+              ),
             ),
           ),
         ),
         const SizedBox(height: 24),
         Center(
           child: Text(
-            "Đã phản chiếu cảm xúc",
-            style: textTheme.titleLarge!.copyWith(
-              fontFamily: 'Lora',
+            "Hơi ấm đã được trao gửi",
+            style: GoogleFonts.plusJakartaSans(
               fontSize: 20,
-              fontWeight: FontWeight.normal,
+              fontWeight: FontWeight.w700,
               color: ZenTheme.creamWhite,
             ),
           ),
@@ -894,19 +1111,19 @@ class _EmpathyMirrorBottomSheetState extends State<_EmpathyMirrorBottomSheet>
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16.0),
             child: Text(
-              "Hơi ấm đã được gửi đi thành công. Trải nghiệm thấu cảm này giúp bạn tích luỹ +3 EP để hiểu sâu hơn về bản thân.",
+              "Sự hiện diện thấu cảm của bạn đã lặng lẽ sưởi ấm một tâm hồn đồng điệu.\nCảm ơn bạn vì đã cùng giữ cho bếp lửa đêm nay luôn ấm.",
               textAlign: TextAlign.center,
-              style: textTheme.bodyLarge!.copyWith(
+              style: GoogleFonts.plusJakartaSans(
                 color: ZenTheme.softGray,
-                fontSize: 13,
-                height: 1.5,
+                fontSize: 13.5,
+                height: 1.6,
               ),
             ),
           ),
         ),
-        const SizedBox(height: 32),
+        const SizedBox(height: 28),
         ZenButton(
-          text: "Khép lại gương",
+          text: "Khép lại & Trở về bếp lửa",
           onPressed: () {
             Navigator.pop(context);
           },

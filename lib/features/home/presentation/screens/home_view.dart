@@ -20,8 +20,6 @@ import '../../../sleep_seed/bloc/sleep_seed_state.dart';
 import '../../../sleep_seed/presentation/screens/sleep_seed_screen.dart';
 import '../widgets/micro_ritual_sheet.dart';
 
-enum _CircadianPeriod { day, evening, night }
-
 class HomeView extends StatefulWidget {
   const HomeView({super.key});
 
@@ -30,17 +28,14 @@ class HomeView extends StatefulWidget {
 }
 
 class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
-  late final String _comfortQuote;
   late final AnimationController _breathingController;
   late final Animation<double> _breathingAnimation;
   late final AnimationController _entranceController;
+  int _pebbleShuffleOffset = 0;
 
   @override
   void initState() {
     super.initState();
-    final random = Random();
-    _comfortQuote = ZenConstants
-        .hearthQuotes[random.nextInt(ZenConstants.hearthQuotes.length)];
 
     // 1. Setup Hearth Breathing animation guide (8s cycle)
     _breathingController = AnimationController(
@@ -82,14 +77,49 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     return '${now.year}-${now.month.toString().padLeft(2, '0')}-${now.day.toString().padLeft(2, '0')}';
   }
 
-  String _getGreetingPrefix() {
+  String _getFormattedHeaderDate() {
+    final now = DateTime.now();
+    const weekdays = [
+      'Th 2', 'Th 3', 'Th 4', 'Th 5', 'Th 6', 'Th 7', 'CN'
+    ];
+    final weekday = weekdays[now.weekday - 1];
+    return '$weekday, ${now.day} Th${now.month}';
+  }
+
+  String _getCircadianGreetingTitle() {
     final hour = DateTime.now().hour;
     if (hour >= 5 && hour < 12) {
-      return "Chào ngày mới nhẹ nhõm,";
-    } else if (hour >= 12 && hour < 17) {
-      return "Bình yên giữa ngày,";
+      return "Chào Ngày Mới Nhẹ Nhõm";
+    } else if (hour >= 12 && hour < 18) {
+      return "Bình Yên Giữa Ngày";
+    } else if (hour >= 18 && hour < 22) {
+      return "Buổi Tối An Lành";
     } else {
-      return "Khép lại ngày, thả lỏng...";
+      return "Đêm Đã Về Khuya";
+    }
+  }
+
+  String _getCircadianLeadingPhrase() {
+    final hour = DateTime.now().hour;
+    if (hour >= 5 && hour < 12) {
+      return "Bắt đầu ngày mới từ sự tĩnh tại bên trong chính bạn.";
+    } else if (hour >= 12 && hour < 18) {
+      return "Dừng lại một nhịp thở giữa dòng chảy hối hả của ngày.";
+    } else if (hour >= 18 && hour < 22) {
+      return "Một ngày khép lại khi lòng bạn bắt đầu an yên.";
+    } else {
+      return "Màn đêm buông xuống, hãy để tâm trí được nghỉ ngơi trọn vẹn.";
+    }
+  }
+
+  String _getHeroSectionTitle(int hour, bool isEveningCompleted) {
+    if (hour >= 17 || hour < 5) {
+      if (isEveningCompleted && (hour >= 21 || hour < 5)) {
+        return "GIẤC NGỦ AN LÀNH";
+      }
+      return "LẮNG ĐỌNG CUỐI NGÀY";
+    } else {
+      return "Ý NIỆM TRONG NGÀY";
     }
   }
 
@@ -107,14 +137,139 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
     }
   }
 
-  _CircadianPeriod _getCircadianPeriod() {
+  List<Map<String, dynamic>> _getCircadianPebblePool() {
     final hour = DateTime.now().hour;
-    if (hour >= 5 && hour < 17) {
-      return _CircadianPeriod.day;
-    } else if (hour >= 17 && hour < 21) {
-      return _CircadianPeriod.evening;
+    if (hour >= 5 && hour < 11) {
+      // Sáng (Morning): Đánh thức sinh học & nạp năng lượng (Mạch 3)
+      return [
+        {
+          'title': 'Uống nước ấm',
+          'subtitle': 'Ấm áp • Tế bào',
+          'icon': Icons.water_drop_outlined,
+          'type': MicroRitualType.water,
+        },
+        {
+          'title': 'Đón nắng sớm',
+          'subtitle': 'Kích hoạt Serotonin',
+          'icon': Icons.wb_sunny_outlined,
+          'type': MicroRitualType.sunlight,
+        },
+        {
+          'title': 'Vươn vai',
+          'subtitle': 'Đón dưỡng khí',
+          'icon': Icons.self_improvement_rounded,
+          'type': MicroRitualType.stretch,
+        },
+        {
+          'title': 'Sắp góc nhỏ',
+          'subtitle': 'Xứng đáng bắt đầu',
+          'icon': Icons.cleaning_services_rounded,
+          'type': MicroRitualType.tidySpace,
+        },
+        {
+          'title': '5 hơi thở sâu',
+          'subtitle': 'Khởi đầu tĩnh tại',
+          'icon': Icons.air_rounded,
+          'type': MicroRitualType.breathing,
+        },
+        {
+          'title': '5 trang sách',
+          'subtitle': '15p lắng nghe',
+          'icon': Icons.menu_book_rounded,
+          'type': MicroRitualType.readPages,
+        },
+      ];
+    } else if (hour >= 11 && hour < 17) {
+      // Chiều (Afternoon): Giải tỏa căng thẳng, hạ nhiệt giữa ngày (Mạch 3)
+      return [
+        {
+          'title': '5 hơi thở sâu',
+          'subtitle': 'Lắng dịu • Tự tại',
+          'icon': Icons.air_rounded,
+          'type': MicroRitualType.breathing,
+        },
+        {
+          'title': 'Nghỉ mắt 60s',
+          'subtitle': 'Quy tắc 20-20-20',
+          'icon': Icons.visibility_outlined,
+          'type': MicroRitualType.restEyes,
+        },
+        {
+          'title': 'Thả lỏng vai',
+          'subtitle': 'Buông gánh nặng',
+          'icon': Icons.accessibility_new_rounded,
+          'type': MicroRitualType.shoulder,
+        },
+        {
+          'title': 'Quy tắc 5 phút',
+          'subtitle': 'Bắt đầu việc nhỏ',
+          'icon': Icons.timer_outlined,
+          'type': MicroRitualType.fiveMinRule,
+        },
+        {
+          'title': 'Tin tử tế',
+          'subtitle': 'Gửi lời chân thành',
+          'icon': Icons.favorite_border_rounded,
+          'type': MicroRitualType.kindMessage,
+        },
+        {
+          'title': 'Đi bộ thong thả',
+          'subtitle': 'Rời xa màn hình',
+          'icon': Icons.directions_walk_rounded,
+          'type': MicroRitualType.walkUnplugged,
+        },
+      ];
     } else {
-      return _CircadianPeriod.night;
+      // Tối / Đêm (Evening & Night): Thư giãn sâu, vỗ về & chuyển giao giấc ngủ (Mạch 3)
+      return [
+        {
+          'title': 'Thở dài trút bỏ',
+          'subtitle': 'Hạ Cortisol tức thì',
+          'icon': Icons.spa_outlined,
+          'type': MicroRitualType.sigh,
+        },
+        {
+          'title': 'Xoa ấm mắt',
+          'subtitle': 'Vỗ về thị giác',
+          'icon': Icons.back_hand_outlined,
+          'type': MicroRitualType.handWarmth,
+        },
+        {
+          'title': 'Đặt tay lên tim',
+          'subtitle': 'Tự trắc ẩn & an yên',
+          'icon': Icons.favorite_outline_rounded,
+          'type': MicroRitualType.gratitudeChest,
+        },
+        {
+          'title': '3 điều biết ơn',
+          'subtitle': 'Nhận ra điều có sẵn',
+          'icon': Icons.auto_awesome_rounded,
+          'type': MicroRitualType.threeGratitudes,
+        },
+        {
+          'title': 'Tắm xả buông',
+          'subtitle': 'Trôi đi mệt mỏi',
+          'icon': Icons.shower_rounded,
+          'type': MicroRitualType.showerCleanse,
+        },
+        {
+          'title': 'Thả lỏng vai',
+          'subtitle': 'Rũ bỏ mệt mỏi',
+          'icon': Icons.accessibility_new_rounded,
+          'type': MicroRitualType.shoulder,
+        },
+      ];
+    }
+  }
+
+  String _getCircadianPebbleSectionTitle() {
+    final hour = DateTime.now().hour;
+    if (hour >= 5 && hour < 11) {
+      return "NUÔI DƯỠNG BUỔI SÁNG";
+    } else if (hour >= 11 && hour < 17) {
+      return "HẠ NHIỆT GIỮA NGÀY";
+    } else {
+      return "VỖ VỀ BUỔI TỐI";
     }
   }
 
@@ -127,8 +282,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
 
   @override
   Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Stack(
@@ -246,10 +399,6 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
               ],
               child: BlocBuilder<AuthBloc, AuthState>(
                 builder: (context, authState) {
-                  final user = (authState is Authenticated)
-                      ? authState.user
-                      : null;
-
                   return BlocBuilder<AnchorBloc, AnchorState>(
                     builder: (context, anchorState) {
                       AnchorModel? anchor;
@@ -263,103 +412,106 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                       final isEveningCompleted =
                           anchor?.eveningCompleted ?? false;
 
-                      final period = _getCircadianPeriod();
-                      final isNight = period == _CircadianPeriod.night;
-
                       // Xây dựng danh sách thành phần Home tối giản, thanh nhã (Sanctuary Zen)
                       final List<Widget> children = [];
 
-                      // 1. Header tinh tế
+                      // 1. Header tinh tế đồng nhất (Sanctuary Header Standard)
                       children.add(
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            // Tầng 1: Eyebrow row (Tag pill bên trái + Date badge bên phải)
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                Text(
-                                  _getGreetingPrefix(),
-                                  style: textTheme.bodyMedium!.copyWith(
-                                    fontSize: 13,
-                                    color: AppColors.textSecondary,
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 10,
+                                    vertical: 4,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary.withValues(alpha: 0.12),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: AppColors.primary.withValues(alpha: 0.25),
+                                      width: 0.8,
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        Icons.spa_rounded,
+                                        color: AppColors.primary,
+                                        size: 13,
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        "AN TRÚ THƯỜNG NHẬT",
+                                        style: GoogleFonts.plusJakartaSans(
+                                          fontSize: 10.5,
+                                          fontWeight: FontWeight.w700,
+                                          letterSpacing: 1.8,
+                                          color: AppColors.primary,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
-                                const SizedBox(height: 2),
-                                Text(
-                                  user?.displayName ?? "Lữ khách",
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.w700,
-                                    color: AppColors.textPrimary,
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 5,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.surfaceLight.withValues(alpha: 0.6),
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(color: AppColors.glassBorder),
+                                  ),
+                                  child: Text(
+                                    _getFormattedHeaderDate(),
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontSize: 11.5,
+                                      fontWeight: FontWeight.w600,
+                                      color: AppColors.primaryLight,
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 6,
+                            const SizedBox(height: 10),
+                            // Tầng 2: Title lớn thời khắc sinh học (Buông bỏ danh xưng, trở về thực tại)
+                            Text(
+                              _getCircadianGreetingTitle(),
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 24,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: -0.5,
+                                color: AppColors.textPrimary,
                               ),
-                              decoration: BoxDecoration(
-                                color: AppColors.surfaceLight,
-                                borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: AppColors.glassBorder),
-                              ),
-                              child: Text(
-                                "Hôm nay",
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: AppColors.primary,
-                                ),
+                            ),
+                            const SizedBox(height: 6),
+                            // Tầng 3: Dòng dẫn dịu lành
+                            Text(
+                              _getCircadianLeadingPhrase(),
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 13.5,
+                                color: AppColors.textSecondary,
+                                height: 1.5,
                               ),
                             ),
                           ],
                         ),
                       );
 
-                      // 2. Câu hỏi định tâm nội sinh (Focal Triday Question)
-                      final focalQuestion = _getFocalQuestion();
-                      children.add(
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 4.0),
-                          child: Center(
-                            child: Column(
-                              children: [
-                                Text(
-                                  "CÂU HỎI ĐỊNH TÂM",
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w700,
-                                    letterSpacing: 2.0,
-                                    color: AppColors.primaryLight,
-                                  ),
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  "\"$focalQuestion\"",
-                                  textAlign: TextAlign.center,
-                                  style: GoogleFonts.plusJakartaSans(
-                                    fontSize: 16.5,
-                                    fontWeight: FontWeight.w600,
-                                    color: AppColors.textPrimary,
-                                    fontStyle: FontStyle.italic,
-                                    height: 1.5,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ),
-                      );
-
-                      // 3. Tiêu điểm hành động duy nhất theo thời khắc (Single Primary Hero Card)
+                      // 2. Tiêu điểm hành động duy nhất theo thời khắc (Single Primary Hero Card)
+                      final hour = DateTime.now().hour;
                       children.add(
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             Text(
-                              isNight ? "GIẤC NGỦ & LẮNG ĐỌNG" : "Ý NIỆM TRONG NGÀY",
+                              _getHeroSectionTitle(hour, isEveningCompleted),
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 11.5,
                                 fontWeight: FontWeight.w700,
@@ -371,26 +523,68 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                             _buildHeroAnchorCard(
                               context,
                               anchor,
-                              isNight,
+                              hour,
                               isEveningCompleted,
                             ),
                           ],
                         ),
                       );
 
-                      // 4. Hành động vi mô nhẹ nhàng (Micro-offerings)
+                      // 4. Dòng chảy sỏi sinh học (Circadian Dynamic Pebbles)
                       children.add(
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            Text(
-                              "HÀNH ĐỘNG NUÔI DƯỠNG NHỎ",
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 11.5,
-                                fontWeight: FontWeight.w700,
-                                color: AppColors.textMuted,
-                                letterSpacing: 1.8,
-                              ),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  _getCircadianPebbleSectionTitle(),
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.textMuted,
+                                    letterSpacing: 1.8,
+                                  ),
+                                ),
+                                Material(
+                                  color: Colors.transparent,
+                                  child: InkWell(
+                                    borderRadius: BorderRadius.circular(12),
+                                    onTap: () {
+                                      HapticFeedback.selectionClick();
+                                      setState(() {
+                                        _pebbleShuffleOffset++;
+                                      });
+                                    },
+                                    child: Padding(
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 8,
+                                        vertical: 4,
+                                      ),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          const Icon(
+                                            Icons.shuffle_rounded,
+                                            size: 13,
+                                            color: AppColors.primaryLight,
+                                          ),
+                                          const SizedBox(width: 4),
+                                          Text(
+                                            "Đổi sỏi",
+                                            style: GoogleFonts.plusJakartaSans(
+                                              fontSize: 11.5,
+                                              fontWeight: FontWeight.w600,
+                                              color: AppColors.primaryLight,
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                             const SizedBox(height: 10),
                             _buildMicroOfferingsRow(context),
@@ -398,48 +592,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                         ),
                       );
 
-                      // 5. Bếp lửa sưởi ấm (Lời nhắn an ủi tâm hồn)
-                      children.add(
-                        GlassContainer(
-                          radius: 20,
-                          padding: const EdgeInsets.all(18),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
-                                children: [
-                                  const Icon(
-                                    Icons.local_fire_department_rounded,
-                                    color: AppColors.secondary,
-                                    size: 18,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    "Lời nhắn gửi hôm nay",
-                                    style: GoogleFonts.plusJakartaSans(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w700,
-                                      color: AppColors.secondary,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              const SizedBox(height: 10),
-                              Text(
-                                "\"$_comfortQuote\"",
-                                style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 14,
-                                  fontStyle: FontStyle.italic,
-                                  color: AppColors.textPrimary.withValues(alpha: 0.9),
-                                  height: 1.5,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      );
-
-                      // 6. Footer Tagline
+                      // 4. Footer Tagline
                       children.add(
                         Center(
                           child: Text(
@@ -489,50 +642,57 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
   Widget _buildHeroAnchorCard(
     BuildContext context,
     AnchorModel? anchor,
-    bool isNight,
+    int hour,
     bool isEveningCompleted,
   ) {
     final textTheme = Theme.of(context).textTheme;
-    if (isNight) {
-      if (!isEveningCompleted && anchor != null && anchor.morningCompleted) {
+    final isMorningCompleted = anchor?.morningCompleted ?? false;
+
+    // 1. Buổi tối & Đêm (17h - 5h sáng)
+    if (hour >= 17 || hour < 5) {
+      if (isEveningCompleted) {
+        // Đã hoàn thành nhìn lại tối:
+        if (hour >= 21 || hour < 5) {
+          // Khuya: Gieo hạt mầm ngủ ngon
+          return _buildSleepSeedCard(context, isNight: true);
+        } else {
+          // 17h - 21h: Thẻ Một ngày đã trọn vẹn
+          return _buildCompletedAnchorCard(context, textTheme, anchor!);
+        }
+      } else {
+        // Chưa nhìn lại tối -> Mời gọi Cùng khép lại một ngày (Lắng đọng cuối ngày)
         return _buildEveningReflectionCard(
           context,
           textTheme,
-          anchor,
+          anchor ??
+              AnchorModel(
+                id: '',
+                uid: '',
+                date: _getTodayString(),
+                affirmationText: '',
+                microOfferingId: '',
+                intention: '',
+              ),
         );
-      } else {
-        return _buildSleepSeedCard(context, isNight: true);
       }
+    }
+
+    // 2. Ban ngày (5h - 17h)
+    if (!isMorningCompleted || anchor == null) {
+      // Chưa gieo neo sáng -> Mời gieo ý niệm ngày mới
+      return _buildMorningAnchorCard(context, textTheme);
     } else {
-      if (anchor == null || !anchor.morningCompleted) {
-        return _buildMorningAnchorCard(context, textTheme);
-      } else {
-        return _buildCompletedAnchorCard(context, textTheme, anchor);
-      }
+      // Đã gieo neo sáng -> Thẻ Ý niệm đang đồng hành
+      return _buildActiveDaytimeAnchorCard(context, textTheme, anchor);
     }
   }
 
   Widget _buildMicroOfferingsRow(BuildContext context) {
-    final actions = [
-      {
-        'title': 'Uống nước',
-        'subtitle': 'Ấm áp • Tươi mới',
-        'icon': Icons.water_drop_outlined,
-        'type': MicroRitualType.water,
-      },
-      {
-        'title': '5 hơi thở',
-        'subtitle': 'Lắng dịu • Tự tại',
-        'icon': Icons.air_rounded,
-        'type': MicroRitualType.breathing,
-      },
-      {
-        'title': 'Thả lỏng vai',
-        'subtitle': 'Buông gánh nặng',
-        'icon': Icons.accessibility_new_rounded,
-        'type': MicroRitualType.shoulder,
-      },
-    ];
+    final pool = _getCircadianPebblePool();
+    final actions = List.generate(
+      3,
+      (i) => pool[(i + _pebbleShuffleOffset) % pool.length],
+    );
 
     return Row(
       children: actions.map((act) {
@@ -588,6 +748,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                         Text(
                           act['title'] as String,
                           textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 12.5,
                             fontWeight: FontWeight.w700,
@@ -598,6 +760,8 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                         Text(
                           act['subtitle'] as String,
                           textAlign: TextAlign.center,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 10,
                             color: AppColors.textSecondary,
@@ -685,11 +849,34 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
               ),
               const SizedBox(height: 12),
               Text(
-                "Gieo một ý niệm lành mạnh cho ngày hôm nay.",
+                "Gieo một ý niệm lành mạnh cho ngày hôm nay:",
                 style: textTheme.bodyMedium!.copyWith(
-                  fontSize: 13,
-                  color: ZenTheme.softGray,
-                  height: 1.5,
+                  color: ZenTheme.softGray.withValues(alpha: 0.8),
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: ZenTheme.creamWhite.withValues(alpha: 0.04),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: ZenTheme.creamWhite.withValues(alpha: 0.08),
+                  ),
+                ),
+                child: Text(
+                  "\"${_getFocalQuestion()}\"",
+                  style: textTheme.bodyMedium!.copyWith(
+                    color: ZenTheme.creamWhite.withValues(alpha: 0.9),
+                    fontStyle: FontStyle.italic,
+                    fontSize: 13.5,
+                    height: 1.45,
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -720,6 +907,165 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                     const Icon(
                       Icons.arrow_forward_rounded,
                       color: ZenTheme.sageGreen,
+                      size: 16,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActiveDaytimeAnchorCard(
+    BuildContext context,
+    TextTheme textTheme,
+    AnchorModel anchor,
+  ) {
+    const accentColor = AppColors.primary;
+    final intentionText = anchor.intention.isNotEmpty
+        ? anchor.intention
+        : (anchor.affirmationText.isNotEmpty
+            ? anchor.affirmationText
+            : "Sống trọn vẹn và an định trong từng khoảnh khắc");
+
+    return _PebblePressCard(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const AnchorView()),
+      ),
+      child: GlassContainer(
+        opacity: 0.12,
+        radius: 24,
+        padding: const EdgeInsets.all(0),
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: accentColor.withValues(alpha: 0.15),
+                    ),
+                    child: const Icon(
+                      Icons.spa_outlined,
+                      color: accentColor,
+                      size: 24,
+                    ),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          "Ý niệm đang đồng hành",
+                          style: textTheme.headlineSmall!.copyWith(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                            color: ZenTheme.creamWhite,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          "Nuôi dưỡng tâm thế an định",
+                          style: textTheme.bodyMedium!.copyWith(
+                            fontSize: 12,
+                            color: accentColor.withValues(alpha: 0.8),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Container(
+                height: 1,
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      accentColor.withValues(alpha: 0.3),
+                      Colors.transparent,
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                "Sáng nay bạn đã chọn neo đậu vào ý niệm:",
+                style: textTheme.bodyMedium!.copyWith(
+                  color: ZenTheme.softGray.withValues(alpha: 0.7),
+                  fontSize: 12,
+                ),
+              ),
+              const SizedBox(height: 6),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: ZenTheme.creamWhite.withValues(alpha: 0.04),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: ZenTheme.creamWhite.withValues(alpha: 0.08),
+                  ),
+                ),
+                child: Text(
+                  "\"$intentionText\"",
+                  style: textTheme.bodyMedium!.copyWith(
+                    color: ZenTheme.creamWhite.withValues(alpha: 0.9),
+                    fontStyle: FontStyle.italic,
+                    fontSize: 14,
+                    height: 1.4,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              Text(
+                "Hãy giữ tâm thế này trong từng hơi thở và hành động giữa ngày bận rộn.",
+                style: textTheme.bodyMedium!.copyWith(
+                  fontSize: 12.5,
+                  color: ZenTheme.softGray,
+                  height: 1.45,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 12,
+                ),
+                decoration: BoxDecoration(
+                  color: accentColor.withValues(alpha: 0.18),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(
+                    color: accentColor.withValues(alpha: 0.25),
+                    width: 1.0,
+                  ),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      "Xem lại ý niệm & bài học",
+                      style: textTheme.bodyMedium!.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: accentColor,
+                        fontSize: 14,
+                      ),
+                    ),
+                    const Icon(
+                      Icons.arrow_forward_rounded,
+                      color: accentColor,
                       size: 16,
                     ),
                   ],
@@ -772,7 +1118,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Nhìn lại cuối ngày",
+                          "Cùng khép lại một ngày",
                           style: textTheme.headlineSmall!.copyWith(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
@@ -839,7 +1185,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                 const SizedBox(height: 12),
               ],
               Text(
-                "Dành vài phút nhìn lại để lòng thêm nhẹ nhõm trước khi ngủ.",
+                "Dành vài phút nhìn lại để trút bỏ mọi gánh nặng trước khi bước vào giấc ngủ.",
                 style: textTheme.bodyMedium!.copyWith(
                   fontSize: 13,
                   color: ZenTheme.softGray,
@@ -864,7 +1210,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Bắt đầu nhìn lại tối",
+                      "Bắt đầu nhìn lại",
                       style: textTheme.bodyMedium!.copyWith(
                         fontWeight: FontWeight.bold,
                         color: eveningColor,
@@ -926,7 +1272,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "Khép lại ngày hôm nay",
+                          "Một ngày đã trọn vẹn",
                           style: textTheme.headlineSmall!.copyWith(
                             fontSize: 18,
                             fontWeight: FontWeight.w700,
@@ -935,7 +1281,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                         ),
                         const SizedBox(height: 2),
                         Text(
-                          "Tâm trí đã sẵn sàng nghỉ ngơi",
+                          "Tâm trí lắng yên & thảnh thơi",
                           style: textTheme.bodyMedium!.copyWith(
                             fontSize: 12,
                             color: completedColor.withValues(alpha: 0.8),
@@ -960,7 +1306,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
               ),
               const SizedBox(height: 12),
               Text(
-                "Tâm trí đã lắng yên. Bạn đã khép lại ngày hôm nay trọn vẹn.",
+                "Bạn đã đồng hành cùng chính mình trọn vẹn một ngày. Mọi âu lo đã được gửi lại phía sau, hãy để cơ thể và tâm hồn được nghỉ ngơi sâu.",
                 style: textTheme.bodyMedium!.copyWith(
                   fontSize: 13,
                   color: ZenTheme.softGray,
@@ -985,7 +1331,7 @@ class _HomeViewState extends State<HomeView> with TickerProviderStateMixin {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Xem chi tiết ngày hôm nay",
+                      "Xem lại nhật ký hôm nay",
                       style: textTheme.bodyMedium!.copyWith(
                         fontWeight: FontWeight.bold,
                         color: ZenTheme.sageGreen,

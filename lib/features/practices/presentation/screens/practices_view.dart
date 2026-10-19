@@ -1,18 +1,138 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:just_audio/just_audio.dart';
 import '../../../../core/constants/app_colors.dart';
-import '../../../../core/constants.dart';
 import '../../../../core/repositories/database_repository.dart';
-import '../../../../shared/widgets/glass_container.dart';
 import '../../../silence/presentation/screens/silence_view.dart';
 import '../../../release_space/presentation/screens/release_view.dart';
 import '../../../reflection/bloc/reflection_bloc.dart';
 import '../../../reflection/presentation/screens/reflection_view.dart';
-import '../../../sleep_seed/presentation/screens/sleep_seed_screen.dart';
 
-class PracticesView extends StatelessWidget {
+class PracticesView extends StatefulWidget {
   const PracticesView({super.key});
+
+  @override
+  State<PracticesView> createState() => _PracticesViewState();
+}
+
+class _SoundscapeItem {
+  final String id;
+  final String title;
+  final String subtitle;
+  final IconData icon;
+  final String assetPath;
+
+  const _SoundscapeItem({
+    required this.id,
+    required this.title,
+    required this.subtitle,
+    required this.icon,
+    required this.assetPath,
+  });
+}
+
+class _PracticesViewState extends State<PracticesView> {
+  late final AudioPlayer _audioPlayer;
+  String? _activeSoundId;
+  bool _isPlayingSound = false;
+
+  static const List<_SoundscapeItem> _soundscapes = [
+    _SoundscapeItem(
+      id: 'rain',
+      title: 'Mưa êm đềm',
+      subtitle: 'Mưa rơi mái hiên',
+      icon: Icons.water_drop_outlined,
+      assetPath: 'assets/audio/rain_sleep.m4a',
+    ),
+    _SoundscapeItem(
+      id: 'stream',
+      title: 'Suối rừng sâu',
+      subtitle: 'Nước chảy róc rách',
+      icon: Icons.waves_outlined,
+      assetPath: 'assets/audio/stream.m4a',
+    ),
+    _SoundscapeItem(
+      id: 'fire',
+      title: 'Bếp lửa đêm',
+      subtitle: 'Củi reo tí tách',
+      icon: Icons.local_fire_department_outlined,
+      assetPath: 'assets/audio/fire.m4a',
+    ),
+    _SoundscapeItem(
+      id: 'waves',
+      title: 'Sóng biển biếc',
+      subtitle: 'Nhịp sóng vỗ bờ',
+      icon: Icons.tsunami_outlined,
+      assetPath: 'assets/audio/waves.m4a',
+    ),
+    _SoundscapeItem(
+      id: 'wind',
+      title: 'Gió đại ngàn',
+      subtitle: 'Gió luồn rừng thông',
+      icon: Icons.air_outlined,
+      assetPath: 'assets/audio/wind.m4a',
+    ),
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    _audioPlayer = AudioPlayer();
+    _listenToPlayerState();
+  }
+
+  void _listenToPlayerState() {
+    _audioPlayer.playerStateStream.listen((state) {
+      if (mounted) {
+        setState(() {
+          _isPlayingSound = state.playing;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _audioPlayer.dispose();
+    super.dispose();
+  }
+
+  Future<void> _toggleSound(_SoundscapeItem item) async {
+    HapticFeedback.selectionClick();
+    if (_activeSoundId == item.id && _isPlayingSound) {
+      await _stopSound();
+    } else {
+      try {
+        await _audioPlayer.stop();
+        await _audioPlayer.setAsset(item.assetPath);
+        await _audioPlayer.setLoopMode(LoopMode.one);
+        await _audioPlayer.setVolume(1.0);
+        await _audioPlayer.play();
+        if (mounted) {
+          setState(() {
+            _activeSoundId = item.id;
+            _isPlayingSound = true;
+          });
+        }
+      } catch (e) {
+        debugPrint('Soundscape play error: $e');
+      }
+    }
+  }
+
+  Future<void> _stopSound() async {
+    try {
+      await _audioPlayer.stop();
+    } catch (_) {}
+    if (mounted) {
+      setState(() {
+        _activeSoundId = null;
+        _isPlayingSound = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,51 +171,44 @@ class PracticesView extends StatelessWidget {
             ),
           ),
 
+          Positioned(
+            bottom: 120,
+            left: -80,
+            child: Container(
+              width: 280,
+              height: 280,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: AppColors.primary.withValues(alpha: 0.05),
+              ),
+            ),
+          ),
+
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 22.0, vertical: 20.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Header
-                  Text(
-                    "KHÔNG GIAN LẮNG DỊU",
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 2.0,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    "Các bài thực tập tự thân",
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 24,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: -0.5,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    "Nơi bạn dừng chân, ngắt kết nối với thế giới ồn ào và trở về làm bạn với chính mình.",
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 14,
-                      color: AppColors.textSecondary,
-                      height: 1.5,
-                    ),
-                  ),
+                  // 1. Header: Thánh đường thế tục
+                  _buildHeader(),
                   const SizedBox(height: 24),
 
-                  // Practice 1: Khoảng Lặng
-                  _buildPracticeCard(
+                  // 2. Định hướng theo trạng thái cảm xúc (State-Based Guidance)
+                  _buildEmotionalPromptHeader(),
+                  const SizedBox(height: 14),
+
+                  // 3. Ba cánh cửa thực hành tâm lý cốt lõi
+                  // Cửa 1: Lắng Đọng (Khoảng Lặng)
+                  _buildStatePracticeCard(
                     context: context,
+                    stateLabel: "LẮNG ĐỌNG",
                     title: "Khoảng Lặng",
-                    subtitle: "Thở định tâm & chuông chánh niệm thanh lọc tâm trí",
+                    subtitle: "Theo dõi hơi thở & chuông chánh niệm để đưa tâm trí về trạng thái phẳng lặng",
                     tag: "Định tâm • 3-10 phút",
                     icon: Icons.spa_rounded,
-                    color: AppColors.radarActive,
+                    accentColor: AppColors.radarActive,
+                    badgeBg: AppColors.radarActive.withValues(alpha: 0.12),
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(builder: (_) => const SilenceView()),
@@ -103,14 +216,16 @@ class PracticesView extends StatelessWidget {
                   ),
                   const SizedBox(height: 14),
 
-                  // Practice 2: Khoảng Buông
-                  _buildPracticeCard(
+                  // Cửa 2: Buông Xả (Khoảng Buông)
+                  _buildStatePracticeCard(
                     context: context,
+                    stateLabel: "BUÔNG XẢ",
                     title: "Khoảng Buông",
-                    subtitle: "Viết ra những nỗi niềm nặng nề và để chúng tan vào hư vô",
-                    tag: "Xả bỏ • 3 phút",
+                    subtitle: "Viết ra những nỗi niềm nặng trĩu và để chúng tan biến nhẹ nhàng vào hư không",
+                    tag: "Nhẹ lòng • 3 phút",
                     icon: Icons.cloud_queue_rounded,
-                    color: AppColors.accentRose,
+                    accentColor: AppColors.accentRose,
+                    badgeBg: AppColors.accentRose.withValues(alpha: 0.12),
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(builder: (_) => const ReleaseView()),
@@ -118,14 +233,16 @@ class PracticesView extends StatelessWidget {
                   ),
                   const SizedBox(height: 14),
 
-                  // Practice 3: Gương Tự Vấn
-                  _buildPracticeCard(
+                  // Cửa 3: Thấu Suốt (Gương Tự Vấn)
+                  _buildStatePracticeCard(
                     context: context,
+                    stateLabel: "THẤU SUỐT",
                     title: "Gương Tự Vấn",
-                    subtitle: "Đối thoại sâu sắc qua những câu hỏi soi chiếu nội tâm",
-                    tag: "Thấu hiểu • 5 phút",
+                    subtitle: "Lắng nghe và đối thoại trung thực với chính mình qua những câu hỏi tự soi chiếu",
+                    tag: "Sáng tỏ • 5 Mạch Endo",
                     icon: Icons.psychology_rounded,
-                    color: AppColors.secondary,
+                    accentColor: AppColors.secondary,
+                    badgeBg: AppColors.secondary.withValues(alpha: 0.12),
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -139,36 +256,11 @@ class PracticesView extends StatelessWidget {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 14),
+                  const SizedBox(height: 28),
 
-                  // Practice 4: Hạt Mầm Giấc Ngủ
-                  _buildPracticeCard(
-                    context: context,
-                    title: "Hạt Mầm Giấc Ngủ",
-                    subtitle: "Gieo một ý niệm bình yên trước khi ngủ để hồi phục qua đêm",
-                    tag: "Tái tạo • Đêm khuya",
-                    icon: Icons.bedtime_rounded,
-                    color: const Color(0xFF8B7CF8),
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const SleepSeedScreen()),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-
-                  // Wisdom section
-                  Text(
-                    "TRI THỨC NỘI SINH",
-                    style: GoogleFonts.plusJakartaSans(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 2.0,
-                      color: AppColors.primary,
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildWisdomPreview(context),
-                  const SizedBox(height: 20),
+                  // 4. Âm Thanh Tĩnh Lặng (Ambient Soundscapes)
+                  _buildSoundscapesSection(),
+                  const SizedBox(height: 16),
                 ],
               ),
             ),
@@ -178,13 +270,132 @@ class PracticesView extends StatelessWidget {
     );
   }
 
-  Widget _buildPracticeCard({
+  // ---------------------------------------------------------------------------
+  // Widget Components
+  // ---------------------------------------------------------------------------
+
+  Widget _buildHeader() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.25),
+                  width: 0.8,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.self_improvement_rounded,
+                    color: AppColors.primary,
+                    size: 13,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    "KHÔNG GIAN LẮNG DỊU",
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 10.5,
+                      fontWeight: FontWeight.w700,
+                      letterSpacing: 1.8,
+                      color: AppColors.primary,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 5,
+              ),
+              decoration: BoxDecoration(
+                color: AppColors.surfaceLight.withValues(alpha: 0.6),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: AppColors.glassBorder),
+              ),
+              child: Text(
+                "Chậm lại một nhịp",
+                style: GoogleFonts.plusJakartaSans(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primaryLight,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        Text(
+          "Trở Về Với Chính Mình",
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 24,
+            fontWeight: FontWeight.w700,
+            letterSpacing: -0.5,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 6),
+        Text(
+          "Nơi bạn ngắt kết nối với thế giới vội vã, hạ nhiệt hệ thần kinh và làm bạn với tâm trí.",
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 13.5,
+            color: AppColors.textSecondary,
+            height: 1.5,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildEmotionalPromptHeader() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: AppColors.surface.withValues(alpha: 0.4),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: AppColors.glassBorder.withValues(alpha: 0.5)),
+      ),
+      child: Row(
+        children: [
+          const Icon(
+            Icons.spa_outlined,
+            color: AppColors.primary,
+            size: 18,
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              "Một chốn dừng chân dịu lành cho tâm trí bạn",
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: AppColors.textPrimary,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatePracticeCard({
     required BuildContext context,
+    required String stateLabel,
     required String title,
     required String subtitle,
     required String tag,
     required IconData icon,
-    required Color color,
+    required Color accentColor,
+    required Color badgeBg,
     required VoidCallback onTap,
   }) {
     return Container(
@@ -194,9 +405,9 @@ class PracticesView extends StatelessWidget {
         border: Border.all(color: AppColors.glassBorder),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
+            color: Colors.black.withValues(alpha: 0.18),
             blurRadius: 14,
-            offset: const Offset(0, 6),
+            offset: const Offset(0, 5),
           ),
         ],
       ),
@@ -205,40 +416,73 @@ class PracticesView extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
-          onTap: onTap,
+          splashColor: accentColor.withValues(alpha: 0.12),
+          highlightColor: accentColor.withValues(alpha: 0.06),
+          onTap: () {
+            HapticFeedback.lightImpact();
+            onTap();
+          },
           child: Padding(
             padding: const EdgeInsets.all(18.0),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Icon tròn bên trái
                 Container(
-                  padding: const EdgeInsets.all(14),
+                  padding: const EdgeInsets.all(13),
                   decoration: BoxDecoration(
-                    color: color.withValues(alpha: 0.14),
+                    color: accentColor.withValues(alpha: 0.12),
                     shape: BoxShape.circle,
+                    border: Border.all(
+                      color: accentColor.withValues(alpha: 0.25),
+                      width: 1,
+                    ),
                   ),
-                  child: Icon(icon, color: color, size: 26),
+                  child: Icon(icon, color: accentColor, size: 24),
                 ),
-                const SizedBox(width: 16),
+                const SizedBox(width: 15),
+
+                // Nội dung chính
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-                        decoration: BoxDecoration(
-                          color: color.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          tag,
-                          style: GoogleFonts.plusJakartaSans(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: color,
+                      // Chip trạng thái cảm xúc
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 4,
+                        crossAxisAlignment: WrapCrossAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: badgeBg,
+                              borderRadius: BorderRadius.circular(7),
+                            ),
+                            child: Text(
+                              stateLabel,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.5,
+                                color: accentColor,
+                              ),
+                            ),
                           ),
-                        ),
+                          Text(
+                            tag,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.textMuted,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 6),
+                      const SizedBox(height: 7),
                       Text(
                         title,
                         style: GoogleFonts.plusJakartaSans(
@@ -259,11 +503,14 @@ class PracticesView extends StatelessWidget {
                     ],
                   ),
                 ),
-                const SizedBox(width: 8),
-                const Icon(
-                  Icons.arrow_forward_ios_rounded,
-                  color: AppColors.textMuted,
-                  size: 16,
+                const SizedBox(width: 6),
+                const Padding(
+                  padding: EdgeInsets.only(top: 14),
+                  child: Icon(
+                    Icons.arrow_forward_ios_rounded,
+                    color: AppColors.textMuted,
+                    size: 15,
+                  ),
                 ),
               ],
             ),
@@ -273,57 +520,197 @@ class PracticesView extends StatelessWidget {
     );
   }
 
-  Widget _buildWisdomPreview(BuildContext context) {
-    final flashcards = ZenConstants.wisdomFlashcards;
-    final card = flashcards.isNotEmpty ? flashcards.first : null;
-
-    if (card == null) return const SizedBox.shrink();
-
-    return GlassContainer(
-      radius: 20,
-      padding: const EdgeInsets.all(18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(
-                Icons.auto_awesome_rounded,
-                color: AppColors.gold,
-                size: 18,
+  // ---------------------------------------------------------------------------
+  // 4. Âm Thanh Tĩnh Lặng (Ambient Soundscapes)
+  // ---------------------------------------------------------------------------
+  Widget _buildSoundscapesSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(
+              Icons.graphic_eq_rounded,
+              color: AppColors.primary,
+              size: 18,
+            ),
+            const SizedBox(width: 8),
+            Text(
+              "ÂM THANH TĨNH LẶNG",
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 1.8,
+                color: AppColors.primary,
               ),
-              const SizedBox(width: 8),
-              Text(
-                "Góc nhìn hôm nay",
-                style: GoogleFonts.plusJakartaSans(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: AppColors.gold,
+            ),
+            const Spacer(),
+            if (_isPlayingSound)
+              GestureDetector(
+                onTap: _stopSound,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  decoration: BoxDecoration(
+                    color: AppColors.accentRose.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(10),
+                    border: Border.all(
+                      color: AppColors.accentRose.withValues(alpha: 0.3),
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(
+                        Icons.stop_rounded,
+                        color: AppColors.accentRose,
+                        size: 14,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        "Dừng phát",
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.accentRose,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
-            ],
+          ],
+        ),
+        const SizedBox(height: 6),
+        Text(
+          "Không gian âm thanh tự nhiên giúp hạ kích thích giác quan & tập trung sâu.",
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 13,
+            color: AppColors.textSecondary,
           ),
-          const SizedBox(height: 10),
-          Text(
-            "\"${card['quote']}\"",
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 14.5,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-              height: 1.5,
-            ),
+        ),
+        const SizedBox(height: 14),
+
+        // Carousel ngang các âm thanh
+        SizedBox(
+          height: 112,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            clipBehavior: Clip.none,
+            itemCount: _soundscapes.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 12),
+            itemBuilder: (context, index) {
+              final item = _soundscapes[index];
+              final isActive = _activeSoundId == item.id && _isPlayingSound;
+
+              return AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                width: 136,
+                decoration: BoxDecoration(
+                  color: isActive
+                      ? AppColors.primary.withValues(alpha: 0.15)
+                      : AppColors.surface,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isActive
+                        ? AppColors.primary
+                        : AppColors.glassBorder,
+                    width: isActive ? 1.4 : 1,
+                  ),
+                  boxShadow: [
+                    if (isActive)
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.2),
+                        blurRadius: 12,
+                        offset: const Offset(0, 4),
+                      )
+                    else
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.12),
+                        blurRadius: 8,
+                        offset: const Offset(0, 3),
+                      ),
+                  ],
+                ),
+                child: Material(
+                  color: Colors.transparent,
+                  borderRadius: BorderRadius.circular(16),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(16),
+                    onTap: () => _toggleSound(item),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 10,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(7),
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: isActive
+                                      ? AppColors.primary
+                                      : AppColors.primary.withValues(alpha: 0.12),
+                                ),
+                                child: Icon(
+                                  isActive
+                                      ? Icons.volume_up_rounded
+                                      : item.icon,
+                                  color: isActive
+                                      ? Colors.black87
+                                      : AppColors.primary,
+                                  size: 16,
+                                ),
+                              ),
+                              const Spacer(),
+                              Icon(
+                                isActive
+                                    ? Icons.pause_circle_filled_rounded
+                                    : Icons.play_circle_outline_rounded,
+                                color: isActive
+                                    ? AppColors.primary
+                                    : AppColors.textMuted,
+                                size: 20,
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            item.title,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 13,
+                              fontWeight:
+                                  isActive ? FontWeight.w700 : FontWeight.w600,
+                              color: isActive
+                                  ? AppColors.primary
+                                  : AppColors.textPrimary,
+                            ),
+                          ),
+                          Text(
+                            item.subtitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 10.5,
+                              color: AppColors.textMuted,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            },
           ),
-          const SizedBox(height: 8),
-          Text(
-            card['question'] as String? ?? '',
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 13,
-              color: AppColors.textSecondary,
-              fontStyle: FontStyle.italic,
-            ),
-          ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 }

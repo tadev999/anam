@@ -18,21 +18,519 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="Anam — Thánh Đường Thế Tục: Không gian an trú nội sinh, đồng điều hòa hệ thần kinh và thấu cảm tự thân.">
+  <meta name="theme-color" content="#0F141C">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="anam">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Anam">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>anam</title>
+  <title>Anam — Thánh Đường Thế Tục</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Google Fonts for Desktop Sanctuary Wings -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    /* Reset & Nền không gian tối giản */
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: #0B1017;
+      overflow: hidden;
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Khung bao Desktop & Không gian sống */
+    .desktop-wrapper {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at 50% 35%, #141c28 0%, #090d13 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+      z-index: 99999;
+    }
+
+    /* 🫁 Quầng sáng thở sinh học (Visual Co-regulation Aura - Chu kỳ 8s) */
+    .desktop-glow {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 680px;
+      height: 820px;
+      background: radial-gradient(circle, rgba(42, 157, 143, 0.18) 0%, rgba(255, 158, 121, 0.08) 40%, rgba(231, 111, 81, 0.03) 60%, transparent 75%);
+      filter: blur(85px);
+      pointer-events: none;
+      animation: auraBreathe 8s ease-in-out infinite;
+      z-index: 1;
+    }
+
+    @keyframes auraBreathe {
+      0%, 100% {
+        transform: translate(-50%, -50%) scale(0.96);
+        opacity: 0.7;
+        filter: blur(80px);
+      }
+      50% {
+        transform: translate(-50%, -50%) scale(1.18);
+        opacity: 1.0;
+        filter: blur(100px);
+      }
+    }
+
+    /* ✨ Hạt tro than hồng bay bồng bềnh (Floating Embers) */
+    .embers-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 2;
+    }
+
+    .ember-particle {
+      position: absolute;
+      bottom: -20px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #FFAA70 20%, #E76F51 85%);
+      box-shadow: 0 0 8px #FF9E79, 0 0 16px #E76F51;
+      opacity: 0;
+      pointer-events: none;
+      animation: emberFloat var(--duration) ease-in-out infinite var(--delay);
+    }
+
+    @keyframes emberFloat {
+      0% {
+        transform: translateY(0) translateX(0) scale(0.6);
+        opacity: 0;
+      }
+      20% {
+        opacity: var(--max-opacity);
+      }
+      80% {
+        opacity: calc(var(--max-opacity) * 0.7);
+      }
+      100% {
+        transform: translateY(-115vh) translateX(var(--drift)) scale(1.2);
+        opacity: 0;
+      }
+    }
+
+    /* 🏛️ BỐ CỤC KHÔNG GIAN THÁNH ĐƯỜNG (Sanctuary Stage) */
+    .sanctuary-stage {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 52px;
+      width: 100%;
+      max-width: 1320px;
+      height: 100%;
+      padding: 0 40px;
+      box-sizing: border-box;
+      z-index: 10;
+    }
+
+    /* 📱 Khung điện thoại mô phỏng Thánh đường ở trung tâm */
+    .phone-container {
+      position: relative;
+      width: 440px;
+      height: 92vh;
+      max-height: 900px;
+      min-height: 640px;
+      border-radius: 40px;
+      box-shadow: 0 30px 80px -15px rgba(0, 0, 0, 0.9),
+                  0 0 0 1.2px rgba(255, 255, 255, 0.12),
+                  0 0 50px rgba(42, 157, 143, 0.16);
+      overflow: hidden;
+      background-color: #0F141C;
+      flex-shrink: 0;
+      transition: transform 0.4s ease;
+    }
+
+    .phone-container iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+      display: block;
+    }
+
+    /* 🕊️ CÁNH TRÁI & CÁNH PHẢI (Left & Right Sanctuary Wings) */
+    .sanctuary-wing {
+      width: 290px;
+      flex-shrink: 0;
+      color: #F8FAFC;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      user-select: none;
+      transition: opacity 0.3s ease;
+    }
+
+    /* Thẻ kính mờ Zen (Frosted Glass Card) */
+    .zen-glass-box {
+      background: rgba(24, 31, 44, 0.65);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 24px;
+      padding: 22px 24px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.3);
+    }
+
+    /* Logo & Nhận diện */
+    .wing-brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .wing-logo-badge {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #2A9D8F 0%, #48B6A7 100%);
+      box-shadow: 0 0 20px rgba(42, 157, 143, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 20px;
+    }
+
+    .wing-title {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.6px;
+      color: #F8FAFC;
+      margin: 0;
+      line-height: 1.1;
+    }
+
+    .wing-subtitle {
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 2.2px;
+      color: #94A3B8;
+      margin-top: 4px;
+      text-transform: uppercase;
+    }
+
+    .circadian-headline {
+      font-size: 15px;
+      font-weight: 700;
+      color: #FFB396;
+      line-height: 1.4;
+      margin-bottom: 6px;
+    }
+
+    .circadian-body {
+      font-size: 13px;
+      color: #94A3B8;
+      line-height: 1.6;
+      margin: 0;
+    }
+
+    .zen-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      background: rgba(42, 157, 143, 0.12);
+      border: 1px solid rgba(42, 157, 143, 0.3);
+      color: #48B6A7;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    /* Cánh phải - Triết lý & Hiện diện */
+    .presence-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 7px 16px;
+      border-radius: 20px;
+      background: rgba(255, 158, 121, 0.12);
+      border: 1px solid rgba(255, 158, 121, 0.3);
+      color: #FF9E79;
+      font-size: 12px;
+      font-weight: 600;
+    }
+
+    .quote-text {
+      font-size: 13.5px;
+      line-height: 1.7;
+      color: #E2E8F0;
+      font-style: italic;
+      margin: 0 0 10px 0;
+    }
+
+    .quote-author {
+      font-size: 11px;
+      font-weight: 600;
+      color: #94A3B8;
+      letter-spacing: 0.5px;
+      text-align: right;
+      display: block;
+    }
+
+    /* 🎧 Nút Âm thanh môi trường */
+    .soundscape-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 18px;
+      border-radius: 18px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      color: #F8FAFC;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      font-family: inherit;
+    }
+
+    .soundscape-btn:hover {
+      background: rgba(255, 158, 121, 0.15);
+      border-color: rgba(255, 158, 121, 0.4);
+      color: #FFAA70;
+      transform: translateY(-1px);
+    }
+
+    .soundscape-btn.active {
+      background: rgba(42, 157, 143, 0.2);
+      border-color: rgba(42, 157, 143, 0.5);
+      color: #48B6A7;
+    }
+
+    /* Ẩn các cánh khi màn hình dưới 1100px để tập trung vào điện thoại */
+    @media (max-width: 1099px) {
+      .sanctuary-wing {
+        display: none !important;
+      }
+      .sanctuary-stage {
+        padding: 0;
+        gap: 0;
+      }
+    }
+  </style>
 </head>
 <body>
-  <script src="flutter_bootstrap.js" async></script>
+  <script>
+    // 1. Kiểm tra môi trường (Desktop vs Mobile vs Iframe)
+    const isDesktop = window.innerWidth > 600;
+    const isEmbedded = window.location.search.includes('embedded=true');
+
+    if (isDesktop && !isEmbedded) {
+      // Tính toán số người hiện diện thầm lặng đồng điệu với app
+      const now = new Date();
+      const hour = now.getHours();
+      const minute = now.getMinutes();
+      const presenceCount = 3 + ((hour * 7 + Math.floor(minute / 10)) % 18);
+
+      // Thông điệp nhịp sinh học tự động
+      let greetingTitle = "Đêm đã về khuya";
+      let greetingBody = "Thả lỏng đôi vai, thở chậm lại và để những âu lo lắng dịu tự nhiên.";
+      if (hour >= 5 && hour < 11) {
+        greetingTitle = "Chào ngày mới nhẹ nhõm";
+        greetingBody = "Chậm lại một nhịp trước khi bắt đầu, hiện diện trọn vẹn nơi chính mình.";
+      } else if (hour >= 11 && hour < 17) {
+        greetingTitle = "Bình yên giữa ngày";
+        greetingBody = "Tìm lại một khoảng dừng tĩnh lặng giữa những dòng chảy công việc bộn bề.";
+      } else if (hour >= 17 && hour < 22) {
+        greetingTitle = "Buổi tối an lành";
+        greetingBody = "Khép lại một ngày dài, trở về nương tựa nơi thánh đường nội tâm của bạn.";
+      }
+
+      const separator = window.location.search ? '&' : '?';
+      const iframeUrl = window.location.pathname + window.location.search + separator + 'embedded=true' + window.location.hash;
+
+      // Sinh ngẫu nhiên các hạt tro than hồng (Embers)
+      let embersHtml = '';
+      for (let i = 0; i < 16; i++) {
+        const left = Math.random() * 100;
+        const size = 2.5 + Math.random() * 3.5;
+        const duration = 9 + Math.random() * 12;
+        const delay = Math.random() * 10;
+        const drift = (Math.random() - 0.5) * 140;
+        const maxOpacity = 0.35 + Math.random() * 0.45;
+        embersHtml += `<div class="ember-particle" style="left: ${left}%; width: ${size}px; height: ${size}px; --duration: ${duration}s; --delay: ${delay}s; --drift: ${drift}px; --max-opacity: ${maxOpacity};"></div>`;
+      }
+
+      document.write(`
+        <div class="desktop-wrapper">
+          <!-- Quầng sáng thở êm ái -->
+          <div class="desktop-glow"></div>
+
+          <!-- Lớp hạt tro than hồng bay lơ lửng -->
+          <div class="embers-layer">
+            ${embersHtml}
+          </div>
+
+          <!-- Bố cục Thánh Đường: Cánh Trái - Chiếc Điện Thoại - Cánh Phải -->
+          <div class="sanctuary-stage">
+            <!-- CÁNH TRÁI: Nhận diện & Nhịp sinh học -->
+            <div class="sanctuary-wing">
+              <div class="wing-brand">
+                <div class="wing-logo-badge">🌸</div>
+                <div>
+                  <h1 class="wing-title">anam</h1>
+                  <div class="wing-subtitle">Thánh Đường Thế Tục</div>
+                </div>
+              </div>
+
+              <div class="zen-glass-box">
+                <div class="circadian-headline">${greetingTitle}</div>
+                <p class="circadian-body">${greetingBody}</p>
+              </div>
+
+              <div>
+                <span class="zen-pill">🌱 TỰ TRẮC ẨN • NỘI SINH</span>
+              </div>
+            </div>
+
+            <!-- TRUNG TÂM: Khung Điện thoại Thánh đường -->
+            <div class="phone-container">
+              <iframe src="${iframeUrl}" allow="autoplay; clipboard-write"></iframe>
+            </div>
+
+            <!-- CÁNH PHẢI: Lời thì thầm triết lý & Âm thanh -->
+            <div class="sanctuary-wing">
+              <div>
+                <span class="presence-badge">🕯️ ${presenceCount} tâm hồn cùng ngồi</span>
+              </div>
+
+              <div class="zen-glass-box">
+                <p class="quote-text">"Kể câu chuyện của mình — không phải để được thương hại, mà để ai đó nghe và thở phào: 'Hóa ra tôi cũng vậy'."</p>
+                <span class="quote-author">— Mạch 5: Thánh Đường Thế Tục</span>
+              </div>
+
+              <div>
+                <button id="soundscapeBtn" class="soundscape-btn" onclick="toggleFireSound()">
+                  <span>🎧</span>
+                  <span id="soundscapeLabel">Bếp lửa tí tách</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      `);
+
+      // 🎶 Trình tạo âm thanh tiếng củi bếp lửa tí tách thuần Web Audio API (Zero lag, zero load)
+      let audioCtx = null;
+      let isPlaying = false;
+      let crackleInterval = null;
+      let noiseNode = null;
+      let gainNode = null;
+
+      window.toggleFireSound = function() {
+        const btn = document.getElementById('soundscapeBtn');
+        const label = document.getElementById('soundscapeLabel');
+
+        if (!isPlaying) {
+          try {
+            audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            if (audioCtx.state === 'suspended') {
+              audioCtx.resume();
+            }
+
+            // 1. Tiếng xì xào trầm ấm (Gentle Low Ambient Rumble)
+            const bufferSize = audioCtx.sampleRate * 2;
+            const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const output = noiseBuffer.getChannelData(0);
+            let b0 = 0, b1 = 0, b2 = 0;
+            for (let i = 0; i < bufferSize; i++) {
+              const white = Math.random() * 2 - 1;
+              b0 = 0.99886 * b0 + white * 0.0555179;
+              b1 = 0.99332 * b1 + white * 0.0750759;
+              b2 = 0.96900 * b2 + white * 0.1538520;
+              output[i] = (b0 + b1 + b2) * 0.11;
+            }
+
+            const whiteNoise = audioCtx.createBufferSource();
+            whiteNoise.buffer = noiseBuffer;
+            whiteNoise.loop = true;
+
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(320, audioCtx.currentTime);
+
+            gainNode = audioCtx.createGain();
+            gainNode.gain.setValueAtTime(0.01, audioCtx.currentTime);
+            gainNode.gain.linearRampToValueAtTime(0.18, audioCtx.currentTime + 1.5);
+
+            whiteNoise.connect(filter);
+            filter.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            whiteNoise.start();
+            noiseNode = whiteNoise;
+
+            // 2. Tiếng nổ tách li ti ngẫu nhiên của tàn tro bếp lửa
+            crackleInterval = setInterval(() => {
+              if (!audioCtx || isPlaying === false) return;
+              if (Math.random() < 0.65) {
+                const popOsc = audioCtx.createOscillator();
+                const popGain = audioCtx.createGain();
+                popOsc.type = 'triangle';
+                const freq = 600 + Math.random() * 1400;
+                popOsc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                popOsc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.04);
+
+                const popVol = 0.02 + Math.random() * 0.05;
+                popGain.gain.setValueAtTime(popVol, audioCtx.currentTime);
+                popGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
+
+                popOsc.connect(popGain);
+                popGain.connect(audioCtx.destination);
+                popOsc.start();
+                popOsc.stop(audioCtx.currentTime + 0.05);
+              }
+            }, 180);
+
+            isPlaying = true;
+            btn.classList.add('active');
+            label.innerText = 'Đang phát bếp lửa';
+          } catch(e) {
+            console.error('AudioContext error:', e);
+          }
+        } else {
+          // Tắt âm thanh êm ái
+          if (gainNode && audioCtx) {
+            gainNode.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.5);
+            setTimeout(() => {
+              if (noiseNode) { noiseNode.stop(); noiseNode.disconnect(); }
+              if (audioCtx) { audioCtx.close(); }
+              clearInterval(crackleInterval);
+            }, 550);
+          }
+          isPlaying = false;
+          btn.classList.remove('active');
+          label.innerText = 'Bếp lửa tí tách';
+        }
+      };
+
+    } else {
+      // 2. Chế độ Mobile HOẶC trong iframe: Tải trực tiếp Flutter Engine
+      const flutterScript = document.createElement('script');
+      flutterScript.src = 'flutter_bootstrap.js';
+      flutterScript.async = true;
+      document.body.appendChild(flutterScript);
+    }
+  </script>
 </body>
 </html>

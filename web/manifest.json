@@ -1,12 +1,12 @@
 {
-    "name": "anam",
-    "short_name": "anam",
+    "name": "Anam — Thánh Đường Thế Tục",
+    "short_name": "Anam",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
-    "orientation": "portrait-primary",
+    "background_color": "#0F141C",
+    "theme_color": "#0F141C",
+    "description": "Không gian an trú nội sinh, đồng điều hòa hệ thần kinh và thấu cảm tự thân.",
+    "orientation": "any",
     "prefer_related_applications": false,
     "icons": [
         {
